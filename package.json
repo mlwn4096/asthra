@@ -1,0 +1,19 @@
+{
+  "name": "asthra",
+  "version": "1.0.0",
+  "description": "ASTRA 11.0: BUILD-A-BOT — Official Participant Portal & Live Pitch Sync System",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "astra",
+    "build-a-bot",
+    "hackathon",
+    "timer",
+    "leaderboard",
+    "sjcet"
+  ],
+  "author": "Melwin Santhosh",
+  "license": "MIT"
+}

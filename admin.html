@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ADMIN DASHBOARD // ASTRA 11.0 Build-a-Bot Sprint</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg: #0c0e14;
+      --card-bg: #141722;
+      --card-subtle: #1a1e2d;
+      --border: #272d3f;
+      --text: #e2e8f0;
+      --text-muted: #8491a5;
+      --red: #ff2a2b;
+      --red-dark: #2d0c10;
+      --green: #00e676;
+      --amber: #ffb300;
+      --blue: #3b82f6;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Space Grotesk', -apple-system, sans-serif;
+      padding: 24px 16px 60px;
+      line-height: 1.5;
+    }
+
+    .admin-container {
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+
+    /* Admin Header */
+    .admin-header {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--red);
+      padding: 18px 24px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+      border-radius: 4px;
+    }
+
+    .admin-title-wrap h1 {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .admin-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      background: var(--red-dark);
+      color: var(--red);
+      border: 1px solid var(--red);
+      padding: 2px 8px;
+      border-radius: 3px;
+    }
+
+    .admin-subtitle {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .admin-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .portal-link {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      color: #ffffff;
+      background: var(--card-subtle);
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      border-radius: 3px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .portal-link:hover {
+      border-color: var(--red);
+      color: var(--red);
+    }
+
+    /* Grid Layout */
+    .admin-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+
+    /* Card Standard */
+    .controller-card, .scoring-card, .leaderboard-ctrl-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 26px;
+    }
+
+    .card-heading {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+    }
+
+    .sync-status-indicator {
+      font-size: 11px;
+      color: var(--green);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .sync-status-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--green);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--green);
+    }
+
+    /* Big Clock */
+    .timer-stage {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 0 28px;
+      background: #090b10;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      margin-bottom: 24px;
+    }
+
+    .big-clock {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(48px, 9vw, 88px);
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1;
+      letter-spacing: 0.05em;
+      margin-bottom: 12px;
+    }
+
+    .clock-running {
+      color: var(--red);
+      text-shadow: 0 0 24px rgba(255, 42, 43, 0.4);
+    }
+
+    .clock-paused {
+      color: var(--amber);
+      text-shadow: 0 0 20px rgba(255, 179, 0, 0.3);
+    }
+
+    .phase-indicator {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12.5px;
+      font-weight: 600;
+      background: var(--card-subtle);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 5px 14px;
+      border-radius: 20px;
+      letter-spacing: 0.04em;
+    }
+
+    /* Primary Action Buttons */
+    .timer-action-buttons {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+
+    .act-btn {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 12px 22px;
+      border-radius: 3px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.18s ease;
+      letter-spacing: 0.04em;
+    }
+
+    .btn-start {
+      background: var(--green);
+      color: #04140a;
+      box-shadow: 0 0 16px rgba(0, 230, 118, 0.25);
+    }
+
+    .btn-start:hover {
+      background: #1aff8c;
+      transform: translateY(-1px);
+    }
+
+    .btn-pause {
+      background: var(--amber);
+      color: #1a1202;
+    }
+
+    .btn-pause:hover {
+      background: #ffc400;
+      transform: translateY(-1px);
+    }
+
+    .btn-stop {
+      background: var(--red);
+      color: #ffffff;
+      box-shadow: 0 0 16px rgba(255, 42, 43, 0.3);
+    }
+
+    .btn-stop:hover {
+      background: #ff4748;
+      transform: translateY(-1px);
+    }
+
+    .btn-reset {
+      background: var(--card-subtle);
+      color: var(--text);
+      border-color: var(--border);
+    }
+
+    .btn-reset:hover {
+      border-color: var(--text);
+      color: #ffffff;
+    }
+
+    /* Presets & Custom Configuration */
+    .timer-config-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+    }
+
+    .preset-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .preset-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .preset-btn {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      background: var(--card-subtle);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 6px 12px;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .preset-btn:hover, .preset-btn.active {
+      border-color: var(--red);
+      color: #ffffff;
+      background: var(--red-dark);
+    }
+
+    .custom-input-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+    }
+
+    .custom-input-group input {
+      background: #090b10;
+      border: 1px solid var(--border);
+      color: #ffffff;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      width: 56px;
+      padding: 6px 8px;
+      border-radius: 3px;
+      text-align: center;
+    }
+
+    .btn-apply {
+      background: var(--blue);
+      color: #ffffff;
+      border: none;
+      padding: 6px 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    .btn-apply:hover {
+      background: #2563eb;
+    }
+
+    /* Score Tabulation Card */
+    .form-grid-top {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .form-control {
+      background: #090b10;
+      border: 1px solid var(--border);
+      color: #ffffff;
+      font-family: inherit;
+      font-size: 14px;
+      padding: 10px 12px;
+      border-radius: 3px;
+      outline: none;
+    }
+
+    .form-control:focus {
+      border-color: var(--blue);
+    }
+
+    /* Criteria Rubric Rows */
+    .rubric-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .rubric-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      background: #0c0e14;
+      border: 1px solid var(--border);
+      padding: 12px 16px;
+      border-radius: 3px;
+    }
+
+    .rubric-meta {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .rubric-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    .rubric-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .rubric-input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .rubric-input {
+      width: 72px;
+      background: #000000;
+      border: 1px solid var(--border);
+      color: #ffffff;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 15px;
+      font-weight: 700;
+      text-align: center;
+      padding: 8px;
+      border-radius: 3px;
+    }
+
+    .rubric-max {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-muted);
+      width: 50px;
+    }
+
+    /* Score Summary Bar */
+    .score-summary-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--card-subtle);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--blue);
+      padding: 16px 20px;
+      border-radius: 3px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .score-total-display {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 20px;
+      font-weight: 800;
+      color: #ffffff;
+    }
+
+    .score-total-val {
+      color: var(--green);
+    }
+
+    .score-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    /* Saved Scores Table */
+    .table-container {
+      overflow-x: auto;
+      margin-top: 16px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      text-align: left;
+    }
+
+    th {
+      background: var(--card-subtle);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .td-bold {
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .td-total {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 800;
+      color: var(--green);
+    }
+
+    /* Leaderboard Broadcast Controller Card */
+    .leaderboard-ctrl-box {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #090b10;
+      border: 1px solid var(--border);
+      padding: 20px 24px;
+      border-radius: 4px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .lb-status-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .status-locked {
+      color: var(--amber);
+    }
+
+    .status-unlocked {
+      color: var(--green);
+    }
+
+    .lb-btn-push {
+      background: var(--blue);
+      color: #ffffff;
+      box-shadow: 0 0 16px rgba(59, 130, 246, 0.35);
+    }
+
+    .lb-btn-push:hover {
+      background: #2563eb;
+      transform: translateY(-1px);
+    }
+
+    .lb-btn-lock {
+      background: var(--card-subtle);
+      color: var(--amber);
+      border-color: var(--amber);
+    }
+
+    .lb-btn-lock:hover {
+      background: #2d2208;
+    }
+
+    @media (max-width: 720px) {
+      .form-grid-top {
+        grid-template-columns: 1fr;
+      }
+      .rubric-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .rubric-input-wrap {
+        width: 100%;
+        justify-content: flex-end;
+      }
+      .timer-config-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .leaderboard-ctrl-box {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="admin-container">
+    
+    <!-- Header -->
+    <header class="admin-header">
+      <div class="admin-title-wrap">
+        <h1>
+          <span>ASTRA 11.0 // SPRINT CONTROLLER</span>
+          <span class="admin-badge">ADMIN DESK</span>
+        </h1>
+        <div class="admin-subtitle">MASTER PITCH TIMER &amp; JURY EVALUATION CONSOLE</div>
+      </div>
+      <div class="admin-header-actions">
+        <a href="index.html" target="_blank" class="portal-link">
+          <span>VIEW PARTICIPANT PORTAL</span>
+          <span>↗</span>
+        </a>
+      </div>
+    </header>
+
+    <div class="admin-grid">
+
+      <!-- ============================================================= -->
+      <!-- MASTER PITCH TIMER CONTROLLER (3M PITCH + 2M Q&A)              -->
+      <!-- ============================================================= -->
+      <div class="controller-card">
+        <div class="card-heading">
+          <span>01. MASTER SYNCHRONIZED PITCH TIMER (3M PITCH + 2M Q&amp;A)</span>
+          <div class="sync-status-indicator">
+            <span class="sync-status-dot"></span>
+            <span id="sync-text">LIVE SYNC BROADCAST ACTIVE</span>
+          </div>
+        </div>
+
+        <div class="timer-stage">
+          <div class="big-clock" id="admin-clock">05:00</div>
+          <div class="phase-indicator" id="admin-phase">STATUS: STANDBY (AWAITING KICKOFF)</div>
+        </div>
+
+        <div class="timer-action-buttons">
+          <button class="act-btn btn-start" id="admin-start-btn">
+            <span>▶</span> <span>START TIMER</span>
+          </button>
+          <button class="act-btn btn-pause" id="admin-pause-btn">
+            <span>⏸</span> <span>PAUSE</span>
+          </button>
+          <button class="act-btn btn-stop" id="admin-stop-btn">
+            <span>⏹</span> <span>STOP &amp; CUTOFF</span>
+          </button>
+          <button class="act-btn btn-reset" id="admin-reset-btn">
+            <span>↺</span> <span>RESET</span>
+          </button>
+        </div>
+
+        <div class="timer-config-row">
+          <div class="preset-group">
+            <span class="preset-label">QUICK PRESETS:</span>
+            <button class="preset-btn active" data-mins="5">5 MIN (3M PITCH + 2M Q&amp;A)</button>
+            <button class="preset-btn" data-mins="3">3 MIN (PITCH ONLY)</button>
+            <button class="preset-btn" data-mins="2">2 MIN (Q&amp;A ONLY)</button>
+            <button class="preset-btn" data-mins="1">1 MIN (TEST)</button>
+          </div>
+
+          <div class="custom-input-group">
+            <span>CUSTOM:</span>
+            <input type="number" id="custom-mins" value="5" min="0" max="60" title="Minutes">
+            <span>m</span>
+            <input type="number" id="custom-secs" value="0" min="0" max="59" title="Seconds">
+            <span>s</span>
+            <button class="btn-apply" id="btn-apply-custom">SET TIME</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================= -->
+      <!-- LEADERBOARD BROADCAST CONTROLLER (LOCK / REVEAL PUSH)          -->
+      <!-- ============================================================= -->
+      <div class="leaderboard-ctrl-card">
+        <div class="card-heading">
+          <span>02. PARTICIPANT LEADERBOARD EMBARGO &amp; BROADCAST</span>
+          <span style="font-size: 11px; color: var(--text-muted);">REAL-TIME SYNC</span>
+        </div>
+
+        <div class="leaderboard-ctrl-box">
+          <div>
+            <div class="lb-status-text" id="admin-lb-status">
+              CURRENT STATUS: <span class="status-locked">🔒 LOCKED (EMBARGOED)</span>
+            </div>
+            <p style="font-size: 12.5px; color: var(--text-muted); margin-top: 4px;">
+              Participants currently see the locked standby banner. Click below to publish official live standings to the participant portal.
+            </p>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <button class="act-btn lb-btn-push" id="admin-lb-push-btn">
+              <span>🔓</span> <span>PUSH &amp; REVEAL LEADERBOARD</span>
+            </button>
+            <button class="act-btn lb-btn-lock" id="admin-lb-lock-btn">
+              <span>🔒</span> <span>LOCK EMBARGO</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================= -->
+      <!-- JURY EVALUATION & MARKS TABULATION                             -->
+      <!-- ============================================================= -->
+      <div class="scoring-card">
+        <div class="card-heading">
+          <span>03. JURY EVALUATION &amp; SCORE TABULATION (100-POINT FRAMEWORK)</span>
+          <span style="font-size: 11px; color: var(--text-muted);">0.5-PT PRECISION</span>
+        </div>
+
+        <div class="form-grid-top">
+          <div class="form-group">
+            <label class="form-label" for="eval-team-name">TEAM IDENTIFIER / NAME:</label>
+            <input type="text" id="eval-team-name" class="form-control" placeholder="e.g. Team 04 - CyberPulse">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="eval-domain-select">PROJECT DOMAIN (STRICT 01–15):</label>
+            <select id="eval-domain-select" class="form-control">
+              <option value="01">01 - AI Agents &amp; Autonomous Systems</option>
+              <option value="02">02 - Smart Cities &amp; Urban Technology</option>
+              <option value="03">03 - Healthcare &amp; Wellbeing Technology</option>
+              <option value="04">04 - Robotics, IoT &amp; Intelligent Devices</option>
+              <option value="05">05 - Disaster Management &amp; Emergency Tech</option>
+              <option value="06">06 - AI-Powered Applications</option>
+              <option value="07">07 - Cybersecurity &amp; Digital Safety</option>
+              <option value="08">08 - Education &amp; Learning Technology</option>
+              <option value="09">09 - Media, Content &amp; Digital Trust</option>
+              <option value="10">10 - Sustainability &amp; Resource Management</option>
+              <option value="11">11 - Student Productivity &amp; Campus Tech</option>
+              <option value="12">12 - Accessibility &amp; Inclusive Tech</option>
+              <option value="13">13 - Information Management</option>
+              <option value="14">14 - Creative Technology &amp; Multimedia</option>
+              <option value="15">15 - Data &amp; Decision Intelligence</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="rubric-list">
+          <div class="rubric-row">
+            <div class="rubric-meta">
+              <span class="rubric-name">1. Problem Definition &amp; Relevance</span>
+              <span class="rubric-sub">Problem formulation clarity, domain alignment, user context understanding.</span>
+            </div>
+            <div class="rubric-input-wrap">
+              <input type="number" class="rubric-input score-field" data-max="20" min="0" max="20" step="0.5" value="0">
+              <span class="rubric-max">/ 20</span>
+            </div>
+          </div>
+
+          <div class="rubric-row">
+            <div class="rubric-meta">
+              <span class="rubric-name">2. Innovation &amp; Creativity</span>
+              <span class="rubric-sub">Originality of concept, novel engineering, moving beyond basic/standard tutorials.</span>
+            </div>
+            <div class="rubric-input-wrap">
+              <input type="number" class="rubric-input score-field" data-max="20" min="0" max="20" step="0.5" value="0">
+              <span class="rubric-max">/ 20</span>
+            </div>
+          </div>
+
+          <div class="rubric-row">
+            <div class="rubric-meta">
+              <span class="rubric-name">3. Technical Implementation &amp; Robustness</span>
+              <span class="rubric-sub">Code quality, architectural depth, sound library/framework/API integration.</span>
+            </div>
+            <div class="rubric-input-wrap">
+              <input type="number" class="rubric-input score-field" data-max="20" min="0" max="20" step="0.5" value="0">
+              <span class="rubric-max">/ 20</span>
+            </div>
+          </div>
+
+          <div class="rubric-row" style="border-left: 3px solid var(--red);">
+            <div class="rubric-meta">
+              <span class="rubric-name">4. Functionality &amp; Prototype Quality [HIGHEST]</span>
+              <span class="rubric-sub">Live working solution, verifiable outputs, reliable under demo pressure.</span>
+            </div>
+            <div class="rubric-input-wrap">
+              <input type="number" class="rubric-input score-field" data-max="25" min="0" max="25" step="0.5" value="0">
+              <span class="rubric-max">/ 25</span>
+            </div>
+          </div>
+
+          <div class="rubric-row">
+            <div class="rubric-meta">
+              <span class="rubric-name">5. Practicality &amp; Potential Real Impact</span>
+              <span class="rubric-sub">Real-world feasibility, user value, viability for continued production build.</span>
+            </div>
+            <div class="rubric-input-wrap">
+              <input type="number" class="rubric-input score-field" data-max="10" min="0" max="10" step="0.5" value="0">
+              <span class="rubric-max">/ 10</span>
+            </div>
+          </div>
+
+          <div class="rubric-row">
+            <div class="rubric-meta">
+              <span class="rubric-name">6. Presentation &amp; 5-Min Demonstration (3m Pitch + 2m Q&amp;A)</span>
+              <span class="rubric-sub">Precise time management, articulate defense of code, live demo clarity.</span>
+            </div>
+            <div class="rubric-input-wrap">
+              <input type="number" class="rubric-input score-field" data-max="5" min="0" max="5" step="0.5" value="0">
+              <span class="rubric-max">/ 5</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="score-summary-bar">
+          <div class="score-total-display">
+            TOTAL SCORE: <span id="total-score-val" class="score-total-val">0.0</span> / 100
+          </div>
+          <div class="score-actions">
+            <button class="act-btn btn-start" id="save-score-btn" style="padding: 10px 18px;">
+              <span>💾</span> <span>SAVE TEAM EVALUATION</span>
+            </button>
+            <button class="act-btn btn-reset" id="clear-score-btn" style="padding: 10px 18px;">
+              <span>CLEAR</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Saved Results Table -->
+        <div class="card-heading" style="margin-top: 24px;">
+          <span>RECORDED SCORES LOG (AUTO-SYNCED WITH LEADERBOARD)</span>
+          <button id="export-csv-btn" class="preset-btn">EXPORT CSV</button>
+        </div>
+
+        <div class="table-container">
+          <table id="scores-table">
+            <thead>
+              <tr>
+                <th>RANK</th>
+                <th>TEAM</th>
+                <th>DOMAIN</th>
+                <th>C1 (20)</th>
+                <th>C2 (20)</th>
+                <th>C3 (20)</th>
+                <th>C4 (25)</th>
+                <th>C5 (10)</th>
+                <th>C6 (5)</th>
+                <th>TOTAL</th>
+              </tr>
+            </thead>
+            <tbody id="scores-tbody">
+              <tr>
+                <td colspan="10" style="text-align: center; color: var(--text-muted); padding: 20px;">
+                  No team scores recorded yet. Evaluate a team above and click "Save Team Evaluation".
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>
