@@ -255,8 +255,14 @@
   });
 
   function formatTime(seconds) {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
+    const s = Math.max(0, seconds);
+    const hrs = Math.floor(s / 3600);
+    const mins = Math.floor((s % 3600) / 60);
+    const secs = s % 60;
+
+    if (hrs > 0) {
+      return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
     return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
   }
 
@@ -282,44 +288,40 @@
       topProgress.style.width = `${progressPct}%`;
     }
 
-    // Determine Phase: 3-Min Participant Presentation + 2-Min Judge Q&A
+    // Determine Phase
     let phaseText = '';
     if (localTimerState.status === 'idle') {
       phaseText = 'AWAITING ADMIN KICKOFF';
       if (topTimerBar) topTimerBar.className = 'top-sync-timer timer-standby';
-      if (topStatusText) topStatusText.textContent = 'PITCH TIMER // STANDBY';
-    } else if (localTimerState.status === 'paused') {
-      phaseText = 'TIMER PAUSED // JURY REVIEW';
-      if (topTimerBar) topTimerBar.className = 'top-sync-timer timer-paused';
-      if (topStatusText) topStatusText.textContent = 'PITCH TIMER // PAUSED';
-    } else if (localTimerState.status === 'stopped') {
-      phaseText = 'PITCH CONCLUDED // STOPPED';
-      if (topTimerBar) topTimerBar.className = 'top-sync-timer timer-standby';
-      if (topStatusText) topStatusText.textContent = 'PITCH TIMER // CONCLUDED';
+      if (topStatusText) topStatusText.textContent = 'EVENT TIMER // STANDBY';
     } else if (localTimerState.status === 'running') {
       if (topTimerBar) topTimerBar.className = 'top-sync-timer timer-running';
-      if (topStatusText) topStatusText.textContent = 'LIVE PITCH TIMER';
 
-      if (currentRemaining > 120) {
-        phaseText = 'PHASE 1: PARTICIPANT PRESENTATION & DEMO (3 MIN)';
-      } else if (currentRemaining > 0) {
-        phaseText = 'PHASE 2: JURY Q&A & TECHNICAL DEFENSE (2 MIN)';
+      if (duration === 300) {
+        // Standard 5-Minute Pitch Breakdown
+        if (currentRemaining > 120) {
+          phaseText = 'PHASE 1: PARTICIPANT PITCH (3M)';
+          if (topStatusText) topStatusText.textContent = 'LIVE // PARTICIPANT PRESENTATION';
+        } else if (currentRemaining > 0) {
+          phaseText = 'PHASE 2: JUDGE Q&A (2M)';
+          if (topStatusText) topStatusText.textContent = 'TRANSITION // JURY INTERROGATION';
+        }
       } else {
-        phaseText = 'TIME EXPIRED // 5-MIN WINDOW CONCLUDED';
+        phaseText = 'SPRINT IN PROGRESS';
+        if (topStatusText) topStatusText.textContent = 'EVENT TIMER // ACTIVE COUNTDOWN';
       }
-
-      // Transition Alerts: Alert at 120s (2:00 remaining) and 0s
-      if (currentRemaining === 120 && lastAlertPlayedAt !== 120) {
-        playSound('alert');
-        lastAlertPlayedAt = 120;
-      } else if (currentRemaining === 0 && lastAlertPlayedAt !== 0) {
-        playSound('alert');
-        lastAlertPlayedAt = 0;
-      }
+    } else if (localTimerState.status === 'paused') {
+      phaseText = 'TIMER PAUSED';
+      if (topTimerBar) topTimerBar.className = 'top-sync-timer timer-paused';
+      if (topStatusText) topStatusText.textContent = 'EVENT TIMER // PAUSED';
+    } else if (localTimerState.status === 'stopped') {
+      phaseText = 'TIME EXPIRED // PITCH CUTOFF';
+      if (topTimerBar) topTimerBar.className = 'top-sync-timer timer-running';
+      if (topStatusText) topStatusText.textContent = 'TIME UP // PROTOCOL CUTOFF';
     }
 
     if (topPhase) topPhase.textContent = phaseText;
-    if (sectionPhase) sectionPhase.textContent = `PHASE: ${phaseText}`;
+    if (sectionPhase) sectionPhase.textContent = phaseText;
   }
 
   function applyTimerState(newState) {
@@ -346,7 +348,7 @@
   }
 
   // ---------------------------------------------------------------------------
-  // 05. LEADERBOARD EMBARGO & LIVE UNLOCK SYNC
+  // 05. LEADERBOARD STATE APPLY (EMBARGOED VS PUBLISHED SNAPSHOT)
   // ---------------------------------------------------------------------------
   const leaderboardLockedView = document.getElementById('leaderboard-locked-view');
   const leaderboardUnlockedView = document.getElementById('leaderboard-unlocked-view');
@@ -359,7 +361,9 @@
   function applyLeaderboardState(lbState) {
     if (!lbState) return;
 
-    if (lbState.isUnlocked) {
+    const isPublished = lbState.isUnlocked || lbState.state === 'PUBLISHED';
+
+    if (isPublished) {
       if (leaderboardLockedView) leaderboardLockedView.style.display = 'none';
       if (leaderboardUnlockedView) leaderboardUnlockedView.style.display = 'block';
       if (leaderboardTrackerStatus) leaderboardTrackerStatus.textContent = 'EMBARGO STATUS: RELEASED ●';
@@ -374,7 +378,7 @@
 
       if (leaderboardReleasedTime && lbState.publishedAt) {
         const d = new Date(lbState.publishedAt);
-        leaderboardReleasedTime.textContent = `OFFICIAL JURY RESULTS RELEASED // VERIFIED AT ${d.toLocaleTimeString()}`;
+        leaderboardReleasedTime.textContent = `OFFICIAL JURY RESULTS CERTIFIED // PUBLISHED AT ${d.toLocaleTimeString()}`;
       }
 
       if (leaderboardTbody && Array.isArray(lbState.teams)) {
@@ -388,28 +392,29 @@
           `;
         } else {
           leaderboardTbody.innerHTML = lbState.teams.map((t, idx) => {
-            let rankBadge = `<span class="rank-pill">#${idx + 1}</span>`;
-            let awardBadge = `<span class="badge badge-subtle">PARTICIPANT</span>`;
+            const teamName = t.teamName || t.team || 'Team';
+            const domain = t.domain || 'General';
+            const c4Score = t.avgFunctionality != null ? Number(t.avgFunctionality).toFixed(1) : (t.c4 != null ? Number(t.c4).toFixed(1) : '—');
+            const totalScore = t.avgTotal != null ? Number(t.avgTotal).toFixed(2) : (t.total != null ? Number(t.total).toFixed(1) : '—');
+            const award = t.award || (idx === 0 ? '🏆 CHAMPION' : (idx === 1 ? '🥈 RUNNER UP' : 'FINALIST'));
 
+            let rankBadge = `<span class="rank-pill">#${idx + 1}</span>`;
             if (idx === 0) {
               rankBadge = `<span class="rank-pill rank-gold">🥇 1ST</span>`;
-              awardBadge = `<span class="badge badge-solid-red">CHAMPION</span>`;
             } else if (idx === 1) {
               rankBadge = `<span class="rank-pill rank-silver">🥈 2ND</span>`;
-              awardBadge = `<span class="badge badge-red-glow">RUNNER UP</span>`;
             } else if (idx === 2) {
               rankBadge = `<span class="rank-pill rank-bronze">🥉 3RD</span>`;
-              awardBadge = `<span class="badge badge-pill-red">THIRD PLACE</span>`;
             }
 
             return `
               <tr>
                 <td>${rankBadge}</td>
-                <td style="font-weight: 700; color: #ffffff;">${t.team}</td>
-                <td><span style="font-family: 'JetBrains Mono'; font-size: 11px; background: var(--bg-surface-elevated); padding: 2px 6px; border-radius: 2px;">Domain ${t.domain}</span></td>
-                <td>${t.c4 || '—'} / 25</td>
-                <td class="score-highlight">${t.total} / 100</td>
-                <td>${awardBadge}</td>
+                <td style="font-weight: 700; color: #ffffff;">${teamName}</td>
+                <td><span style="font-family: 'JetBrains Mono'; font-size: 11px; background: var(--bg-surface-elevated); padding: 2px 6px; border-radius: 2px;">${domain}</span></td>
+                <td><span style="color: var(--red); font-weight: 700;">${c4Score}</span> / 25</td>
+                <td class="score-highlight">${totalScore} / 100</td>
+                <td><span class="badge ${idx === 0 ? 'badge-solid-red' : (idx <= 2 ? 'badge-red-glow' : 'badge-subtle')}">${award}</span></td>
               </tr>
             `;
           }).join('');

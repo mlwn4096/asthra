@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JUDGE EVALUATION PORTAL // ASTRA 11.0 BUILD-A-BOT</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;0,700;0,800;1,400&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #090b10;
+      --card: #121520;
+      --card-elevated: #181d2c;
+      --border: #22283a;
+      --border-focus: #3b4562;
+      --text: #e2e8f0;
+      --text-muted: #7c889f;
+      --red: #ff2a2b;
+      --red-dark: #2c0d12;
+      --green: #00e676;
+      --green-dark: #052915;
+      --amber: #ffb300;
+      --amber-dark: #2b1f05;
+      --blue: #3b82f6;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Space Grotesk', -apple-system, sans-serif;
+      padding: 20px 16px 80px;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 1040px;
+      margin: 0 auto;
+    }
+
+    /* Top Telemetry Header */
+    .portal-header {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--red);
+      padding: 20px 24px;
+      border-radius: 4px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .header-title-wrap h1 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: 0.02em;
+    }
+
+    .badge-jury {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      background: var(--red-dark);
+      color: var(--red);
+      border: 1px solid var(--red);
+      padding: 3px 8px;
+      border-radius: 3px;
+      font-weight: 700;
+    }
+
+    .header-sub {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .judge-auth-profile {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--card-elevated);
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      border-radius: 4px;
+    }
+
+    .judge-status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+    }
+
+    .judge-name-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .btn-switch-auth {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10.5px;
+      padding: 3px 8px;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-switch-auth:hover {
+      border-color: var(--red);
+      color: var(--red);
+    }
+
+    /* Section Cards */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .card-title-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+      margin-bottom: 18px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+    }
+
+    .card-title-bar span.accent {
+      color: var(--red);
+    }
+
+    /* Criteria Rubric Section (Visible at top) */
+    .rubric-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .rubric-card-item {
+      background: var(--card-elevated);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 14px 16px;
+      position: relative;
+    }
+
+    .rubric-card-item.item-priority {
+      border-color: rgba(255, 42, 43, 0.4);
+      background: #190e12;
+    }
+
+    .item-priority-tag {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9.5px;
+      background: var(--red-dark);
+      color: var(--red);
+      border: 1px solid var(--red);
+      padding: 1px 6px;
+      border-radius: 2px;
+      font-weight: 700;
+    }
+
+    .rubric-card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .rubric-card-name {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .rubric-card-score {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--green);
+    }
+
+    .rubric-card-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.45;
+      margin-bottom: 8px;
+    }
+
+    .rubric-bins-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .bin-chip {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 2px 6px;
+      border-radius: 2px;
+      color: var(--text);
+    }
+
+    /* Core Protocol Banner */
+    .protocol-callout {
+      background: #181206;
+      border: 1px solid rgba(255, 179, 0, 0.3);
+      padding: 12px 16px;
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 12px;
+      color: #ffd566;
+      margin-top: 10px;
+    }
+
+    /* Authentication View */
+    .auth-card {
+      max-width: 520px;
+      margin: 0 auto 30px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--red);
+      border-radius: 4px;
+      padding: 28px;
+      text-align: center;
+    }
+
+    .auth-icon {
+      font-size: 36px;
+      margin-bottom: 12px;
+    }
+
+    .auth-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 6px;
+    }
+
+    .auth-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .auth-input-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .key-input {
+      flex: 1;
+      background: #090b10;
+      border: 1px solid var(--border);
+      color: #ffffff;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      padding: 12px 16px;
+      border-radius: 3px;
+      text-align: center;
+      text-transform: uppercase;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .key-input:focus {
+      border-color: var(--red);
+    }
+
+    .btn-verify {
+      background: var(--red);
+      color: #ffffff;
+      border: none;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 12px 20px;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-verify:hover {
+      background: #ff4748;
+    }
+
+    .auth-error-msg {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--red);
+      margin-top: 10px;
+      display: none;
+    }
+
+    /* Scoring Form Console */
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-label {
+      display: block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+
+    .form-control {
+      width: 100%;
+      background: #090b10;
+      border: 1px solid var(--border);
+      color: #ffffff;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px;
+      padding: 10px 14px;
+      border-radius: 3px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-control:focus {
+      border-color: var(--border-focus);
+    }
+
+    .form-grid-top {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    /* Granular Rubric Input Rows */
+    .rubric-input-card {
+      background: var(--card-elevated);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 16px 20px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+      transition: border-color 0.2s;
+    }
+
+    .rubric-input-card:hover {
+      border-color: var(--border-focus);
+    }
+
+    .rubric-input-card.tier-1 {
+      border-left: 3px solid var(--red);
+    }
+
+    .input-meta-col {
+      flex: 1;
+      min-width: 240px;
+    }
+
+    .input-meta-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .input-meta-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    .input-control-col {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .step-btn {
+      width: 32px;
+      height: 36px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: #ffffff;
+      font-size: 16px;
+      font-weight: 700;
+      border-radius: 2px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+
+    .step-btn:hover {
+      border-color: var(--red);
+      color: var(--red);
+    }
+
+    .score-num-input {
+      width: 76px;
+      height: 36px;
+      background: #090b10;
+      border: 1px solid var(--border);
+      color: #ffffff;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 15px;
+      font-weight: 700;
+      text-align: center;
+      border-radius: 2px;
+      outline: none;
+    }
+
+    .score-num-input:focus {
+      border-color: var(--red);
+    }
+
+    .score-max-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-muted);
+      min-width: 44px;
+    }
+
+    /* Score Summary Bar */
+    .summary-score-deck {
+      background: #090b10;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--green);
+      padding: 18px 24px;
+      border-radius: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .total-aggregate-box {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .total-aggregate-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+
+    .total-aggregate-value {
+      font-size: 34px;
+      font-weight: 800;
+      color: var(--green);
+      line-height: 1.1;
+    }
+
+    .total-aggregate-max {
+      font-size: 16px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .btn-submit-eval {
+      background: var(--green);
+      color: #03140a;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13.5px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      border: none;
+      padding: 14px 26px;
+      border-radius: 3px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 0 16px rgba(0, 230, 118, 0.25);
+      transition: all 0.18s;
+    }
+
+    .btn-submit-eval:hover {
+      background: #1aff8c;
+      transform: translateY(-1px);
+    }
+
+    /* Status Banner */
+    .status-toast {
+      padding: 12px 18px;
+      border-radius: 3px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12.5px;
+      margin-top: 14px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .toast-success {
+      background: var(--green-dark);
+      border: 1px solid var(--green);
+      color: #a7f3d0;
+    }
+
+    .toast-error {
+      background: var(--red-dark);
+      border: 1px solid var(--red);
+      color: #fca5a5;
+    }
+
+    /* History Table */
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-top: 10px;
+    }
+
+    .history-table th {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .history-table td {
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .history-team-name {
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .history-score-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 800;
+      color: var(--green);
+    }
+
+    .btn-edit-eval {
+      background: var(--card-elevated);
+      border: 1px solid var(--border);
+      color: #ffffff;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-edit-eval:hover {
+      border-color: var(--blue);
+      color: var(--blue);
+    }
+
+    @media (max-width: 680px) {
+      .form-grid-top {
+        grid-template-columns: 1fr;
+      }
+      .rubric-input-card {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .input-control-col {
+        width: 100%;
+        justify-content: flex-end;
+      }
+      .summary-score-deck {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .btn-submit-eval {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <!-- Top Portal Header -->
+    <header class="portal-header">
+      <div class="header-title-wrap">
+        <h1>
+          <span>ASTRA 11.0 // BUILD-A-BOT</span>
+          <span class="badge-jury">JURY PORTAL</span>
+        </h1>
+        <div class="header-sub">OFFICIAL CRITERIA SPECIFICATION &amp; PROTOTYPE EVALUATION CONSOLE</div>
+      </div>
+
+      <div id="judge-auth-header-profile" class="judge-auth-profile" style="display: none;">
+        <span class="judge-status-dot"></span>
+        <div>
+          <div class="judge-name-tag" id="auth-judge-name">Judge: Active</div>
+          <div style="font-size: 10px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;">AUTHORIZED JUROR</div>
+        </div>
+        <button class="btn-switch-auth" id="btn-logout-judge" title="Switch to another judge key">SWITCH KEY</button>
+      </div>
+    </header>
+
+    <!-- ================================================================= -->
+    <!-- 1. OFFICIAL EVALUATION SPECIFICATION & RUBRIC (VISIBLE AT TOP)     -->
+    <!-- ================================================================= -->
+    <section class="card">
+      <div class="card-title-bar">
+        <span>01. OFFICIAL EVALUATION CRITERIA RUBRIC (100.0 AGGREGATE SCALE)</span>
+        <span class="accent">0.5-PT PRECISION</span>
+      </div>
+
+      <div class="rubric-grid">
+        <!-- C1 -->
+        <div class="rubric-card-item">
+          <div class="rubric-card-head">
+            <span class="rubric-card-name">1. Problem Definition &amp; Relevance</span>
+            <span class="rubric-card-score">20.0 pts</span>
+          </div>
+          <p class="rubric-card-desc">Clarity of problem formulation, domain alignment, and deep understanding of target users.</p>
+          <div class="rubric-bins-chips">
+            <span class="bin-chip">0–5: Unsatisfactory</span>
+            <span class="bin-chip">5.5–10: Moderate</span>
+            <span class="bin-chip">10.5–15: Proficient</span>
+            <span class="bin-chip">15.5–20: Exemplary</span>
+          </div>
+        </div>
+
+        <!-- C2 -->
+        <div class="rubric-card-item">
+          <div class="rubric-card-head">
+            <span class="rubric-card-name">2. Innovation &amp; Creativity</span>
+            <span class="rubric-card-score">20.0 pts</span>
+          </div>
+          <p class="rubric-card-desc">Novel engineering angle, originality, moving meaningfully beyond standard tutorials and boilerplate wrappers.</p>
+          <div class="rubric-bins-chips">
+            <span class="bin-chip">0–5: Derivative</span>
+            <span class="bin-chip">5.5–10: Standard</span>
+            <span class="bin-chip">10.5–15: Distinctive</span>
+            <span class="bin-chip">15.5–20: Original</span>
+          </div>
+        </div>
+
+        <!-- C3 -->
+        <div class="rubric-card-item">
+          <div class="rubric-card-head">
+            <span class="rubric-card-name">3. Technical Implementation</span>
+            <span class="rubric-card-score">20.0 pts</span>
+          </div>
+          <p class="rubric-card-desc">Architecture rigor, clean library/API integrations, error handling, modularity, and AI comprehension.</p>
+          <div class="rubric-bins-chips">
+            <span class="bin-chip">0–5: Deficient</span>
+            <span class="bin-chip">5.5–10: Basic</span>
+            <span class="bin-chip">10.5–15: Sound</span>
+            <span class="bin-chip">15.5–20: Robust</span>
+          </div>
+        </div>
+
+        <!-- C4 (Tier 1 Priority) -->
+        <div class="rubric-card-item item-priority">
+          <span class="item-priority-tag">TIER 1 TIE-BREAKER</span>
+          <div class="rubric-card-head">
+            <span class="rubric-card-name">4. Functionality &amp; Prototype Quality</span>
+            <span class="rubric-card-score" style="color: var(--red);">25.0 pts</span>
+          </div>
+          <p class="rubric-card-desc">Authentic working solution. Inputs dynamically yield expected outputs without crashes during live demo.</p>
+          <div class="rubric-bins-chips">
+            <span class="bin-chip">0–5: Non-functional</span>
+            <span class="bin-chip">5.5–10: Limited</span>
+            <span class="bin-chip">10.5–15: Partial</span>
+            <span class="bin-chip">15.5–20: Substantial</span>
+            <span class="bin-chip">20.5–25: Flawless</span>
+          </div>
+        </div>
+
+        <!-- C5 -->
+        <div class="rubric-card-item">
+          <div class="rubric-card-head">
+            <span class="rubric-card-name">5. Practicality &amp; Potential Impact</span>
+            <span class="rubric-card-score">10.0 pts</span>
+          </div>
+          <p class="rubric-card-desc">Real-world viability under cost/latency/hardware constraints; scalability and concrete user value.</p>
+          <div class="rubric-bins-chips">
+            <span class="bin-chip">0–2: Impractical</span>
+            <span class="bin-chip">2.5–5: Marginal</span>
+            <span class="bin-chip">5.5–8: Viable</span>
+            <span class="bin-chip">8.5–10: Scalable</span>
+          </div>
+        </div>
+
+        <!-- C6 -->
+        <div class="rubric-card-item">
+          <div class="rubric-card-head">
+            <span class="rubric-card-name">6. Presentation &amp; 5-Min Demonstration</span>
+            <span class="rubric-card-score">5.0 pts</span>
+          </div>
+          <p class="rubric-card-desc">Articulate communication (3m pitch + 2m judge Q&amp;A defense), fluid live execution, and technical command.</p>
+          <div class="rubric-bins-chips">
+            <span class="bin-chip">0–1: Incomplete</span>
+            <span class="bin-chip">1.5–3: Adequate</span>
+            <span class="bin-chip">3.5–4: Proficient</span>
+            <span class="bin-chip">4.5–5: Masterful</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="protocol-callout">
+        <span style="font-size: 16px;">⚠️</span>
+        <div>
+          <strong>CRITICAL MANDATE:</strong> Scores must be strictly in <strong>0.5-point increments</strong>. If a submission consists solely of wireframes, mockups, or non-functional slides, <strong>Criterion 4 is strictly capped at &le; 5.0 / 25.0</strong>.
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- 2. JUDGE KEY AUTHENTICATION CARD (SHOWN IF NOT LOGGED IN)         -->
+    <!-- ================================================================= -->
+    <div id="judge-auth-container" class="auth-card">
+      <div class="auth-icon">🔑</div>
+      <h2 class="auth-title">ENTER YOUR JUDGE KEY</h2>
+      <p class="auth-desc">
+        Please input the unique credential key provided by the event administrator (e.g. <code>J-4821</code>) to unlock your marking console.
+      </p>
+
+      <form id="auth-key-form">
+        <div class="auth-input-group">
+          <input type="text" id="input-judge-key" class="key-input" placeholder="J-XXXX" maxlength="10" autocomplete="off" required>
+          <button type="submit" class="btn-verify">VERIFY &amp; ENTER</button>
+        </div>
+        <div id="auth-error" class="auth-error-msg"></div>
+      </form>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- 3. MARKING & EVALUATION CONSOLE (UNLOCKED UPON AUTHENTICATION)    -->
+    <!-- ================================================================= -->
+    <main id="judge-console-container" style="display: none;">
+      <section class="card">
+        <div class="card-title-bar">
+          <span>02. ACTIVE TEAM EVALUATION FORM</span>
+          <span id="active-eval-status" style="color: var(--blue);">NEW SUBMISSION</span>
+        </div>
+
+        <form id="eval-form">
+          <div class="form-grid-top">
+            <div class="form-group">
+              <label class="form-label" for="team-name-input">TEAM NAME / IDENTIFIER:</label>
+              <input type="text" id="team-name-input" class="form-control" placeholder="e.g. Team 04 - CyberPulse" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="team-domain-select">TECHNOLOGY DOMAIN (01–15):</label>
+              <select id="team-domain-select" class="form-control" required>
+                <option value="01 - AI Agents & Autonomous Systems">01 - AI Agents &amp; Autonomous Systems</option>
+                <option value="02 - Smart Cities & Urban Technology">02 - Smart Cities &amp; Urban Technology</option>
+                <option value="03 - Healthcare & Wellbeing Technology">03 - Healthcare &amp; Wellbeing Technology</option>
+                <option value="04 - Robotics, IoT & Intelligent Devices">04 - Robotics, IoT &amp; Intelligent Devices</option>
+                <option value="05 - Disaster Management & Emergency Tech">05 - Disaster Management &amp; Emergency Tech</option>
+                <option value="06 - AI-Powered Applications">06 - AI-Powered Applications</option>
+                <option value="07 - Cybersecurity & Digital Safety">07 - Cybersecurity &amp; Digital Safety</option>
+                <option value="08 - Education & Learning Technology">08 - Education &amp; Learning Technology</option>
+                <option value="09 - Media, Content & Digital Trust">09 - Media, Content &amp; Digital Trust</option>
+                <option value="10 - Sustainability & Resource Management">10 - Sustainability &amp; Resource Management</option>
+                <option value="11 - Student Productivity & Campus Tech">11 - Student Productivity &amp; Campus Tech</option>
+                <option value="12 - Accessibility & Inclusive Tech">12 - Accessibility &amp; Inclusive Tech</option>
+                <option value="13 - Information Management">13 - Information Management</option>
+                <option value="14 - Creative Technology & Multimedia">14 - Creative Technology &amp; Multimedia</option>
+                <option value="15 - Data & Decision Intelligence">15 - Data &amp; Decision Intelligence</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- 6 Granular Scoring Rows -->
+          <div class="rubric-inputs-list">
+            <!-- C1 -->
+            <div class="rubric-input-card">
+              <div class="input-meta-col">
+                <div class="input-meta-title">1. Problem Definition &amp; Relevance</div>
+                <div class="input-meta-sub">Clarity of problem formulation &amp; domain fit.</div>
+              </div>
+              <div class="input-control-col">
+                <button type="button" class="step-btn" data-field="c1" data-delta="-0.5">-</button>
+                <input type="number" id="score-c1" class="score-num-input" min="0" max="20" step="0.5" value="0.0">
+                <button type="button" class="step-btn" data-field="c1" data-delta="0.5">+</button>
+                <span class="score-max-tag">/ 20.0</span>
+              </div>
+            </div>
+
+            <!-- C2 -->
+            <div class="rubric-input-card">
+              <div class="input-meta-col">
+                <div class="input-meta-title">2. Innovation &amp; Creativity</div>
+                <div class="input-meta-sub">Novel engineering approach &amp; originality.</div>
+              </div>
+              <div class="input-control-col">
+                <button type="button" class="step-btn" data-field="c2" data-delta="-0.5">-</button>
+                <input type="number" id="score-c2" class="score-num-input" min="0" max="20" step="0.5" value="0.0">
+                <button type="button" class="step-btn" data-field="c2" data-delta="0.5">+</button>
+                <span class="score-max-tag">/ 20.0</span>
+              </div>
+            </div>
+
+            <!-- C3 -->
+            <div class="rubric-input-card">
+              <div class="input-meta-col">
+                <div class="input-meta-title">3. Technical Implementation</div>
+                <div class="input-meta-sub">Code quality, integration depth &amp; AI mastery.</div>
+              </div>
+              <div class="input-control-col">
+                <button type="button" class="step-btn" data-field="c3" data-delta="-0.5">-</button>
+                <input type="number" id="score-c3" class="score-num-input" min="0" max="20" step="0.5" value="0.0">
+                <button type="button" class="step-btn" data-field="c3" data-delta="0.5">+</button>
+                <span class="score-max-tag">/ 20.0</span>
+              </div>
+            </div>
+
+            <!-- C4 (Tier 1 Priority) -->
+            <div class="rubric-input-card tier-1">
+              <div class="input-meta-col">
+                <div class="input-meta-title">
+                  <span>4. Functionality &amp; Prototype Quality</span>
+                  <span class="badge-jury" style="font-size: 10px;">TIER 1 TIE-BREAKER</span>
+                </div>
+                <div class="input-meta-sub">Working live solution. (Max &le; 5.0 if non-working mockup).</div>
+              </div>
+              <div class="input-control-col">
+                <button type="button" class="step-btn" data-field="c4" data-delta="-0.5">-</button>
+                <input type="number" id="score-c4" class="score-num-input" min="0" max="25" step="0.5" value="0.0">
+                <button type="button" class="step-btn" data-field="c4" data-delta="0.5">+</button>
+                <span class="score-max-tag" style="color: var(--red);">/ 25.0</span>
+              </div>
+            </div>
+
+            <!-- C5 -->
+            <div class="rubric-input-card">
+              <div class="input-meta-col">
+                <div class="input-meta-title">5. Practicality &amp; Potential Impact</div>
+                <div class="input-meta-sub">Real-world constraints, user value &amp; scalability.</div>
+              </div>
+              <div class="input-control-col">
+                <button type="button" class="step-btn" data-field="c5" data-delta="-0.5">-</button>
+                <input type="number" id="score-c5" class="score-num-input" min="0" max="10" step="0.5" value="0.0">
+                <button type="button" class="step-btn" data-field="c5" data-delta="0.5">+</button>
+                <span class="score-max-tag">/ 10.0</span>
+              </div>
+            </div>
+
+            <!-- C6 -->
+            <div class="rubric-input-card">
+              <div class="input-meta-col">
+                <div class="input-meta-title">6. Presentation &amp; Demonstration (5-Min Pitch)</div>
+                <div class="input-meta-sub">3m pitch + 2m Q&amp;A defense; live execution fluency.</div>
+              </div>
+              <div class="input-control-col">
+                <button type="button" class="step-btn" data-field="c6" data-delta="-0.5">-</button>
+                <input type="number" id="score-c6" class="score-num-input" min="0" max="5" step="0.5" value="0.0">
+                <button type="button" class="step-btn" data-field="c6" data-delta="0.5">+</button>
+                <span class="score-max-tag">/ 5.0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Remarks -->
+          <div class="form-group" style="margin-top: 18px;">
+            <label class="form-label" for="eval-remarks-input">JUROR REMARKS &amp; TECHNICAL OPINION (OPTIONAL):</label>
+            <textarea id="eval-remarks-input" class="form-control" rows="2" placeholder="Constructive evaluation feedback, strengths, or prototype deficiencies..."></textarea>
+          </div>
+
+          <!-- Score Summary Deck -->
+          <div class="summary-score-deck">
+            <div class="total-aggregate-box">
+              <div class="total-aggregate-label">TOTAL AGGREGATE SCORE</div>
+              <div class="total-aggregate-value">
+                <span id="display-total-score">0.0</span>
+                <span class="total-aggregate-max">/ 100.0</span>
+              </div>
+            </div>
+
+            <div>
+              <button type="submit" class="btn-submit-eval" id="btn-upload-marks">
+                <span>⬆</span>
+                <span>UPLOAD MARKS TO ADMIN DESK</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Status Toast -->
+          <div id="eval-toast" class="status-toast"></div>
+        </form>
+      </section>
+
+      <!-- ============================================================= -->
+      <!-- 4. EVALUATION HISTORY BY THIS JUDGE                           -->
+      <!-- ============================================================= -->
+      <section class="card">
+        <div class="card-title-bar">
+          <span>03. YOUR EVALUATED TEAMS HISTORY</span>
+          <span id="history-count" style="color: var(--green);">0 TEAMS EVALUATED</span>
+        </div>
+
+        <div style="overflow-x: auto;">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>TEAM NAME</th>
+                <th>DOMAIN</th>
+                <th>C4 (25)</th>
+                <th>TOTAL SCORE (100)</th>
+                <th>REMARKS</th>
+                <th>ACTION</th>
+              </tr>
+            </thead>
+            <tbody id="history-tbody">
+              <tr>
+                <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">
+                  No teams evaluated yet. Use the form above to score your first team!
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+  </div>
+
+  <script src="judge.js"></script>
+</body>
+</html>

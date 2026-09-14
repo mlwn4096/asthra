@@ -9,3 +9,7 @@ yarn-debug.log*
 
 # Node modules (if any installed)
 node_modules/
+
+# SQLite runtime databases
+data/*.db*
+
