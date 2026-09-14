@@ -1,5 +1,5 @@
 {
-  "name": "asthra",
+  "name": "buildabot",
   "version": "1.0.0",
   "description": "ASTRA 11.0: BUILD-A-BOT — Official Participant Portal & Live Pitch Sync System",
   "main": "server.js",
