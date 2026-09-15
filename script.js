@@ -465,6 +465,9 @@
             applyLeaderboardState(payload.leaderboard);
             localStorage.setItem('astra_leaderboard_state', JSON.stringify(payload.leaderboard));
           }
+          if (payload.domains && typeof payload.domains.isHidden === 'boolean') {
+            applyDomainsVisibility(payload.domains.isHidden);
+          }
         } catch (err) {}
       };
     } catch (e) {}
@@ -472,43 +475,53 @@
   initServerSync();
 
   // ---------------------------------------------------------------------------
-  // 07. QUICK-JUMP BAR & SCROLL-SPY ACTIVE PILLS
+  // 06C. DOMAINS VISIBILITY EMBARGO / SCRAMBLE CONTROL
   // ---------------------------------------------------------------------------
-  const jumpPills = document.querySelectorAll('.jump-pill');
-  const sectionsToSpy = document.querySelectorAll('section[id], header[id]');
+  async function loadDomainsVisibility() {
+    try {
+      const res = await fetch('/api/domains/visibility');
+      if (res.ok) {
+        const data = await res.json();
+        applyDomainsVisibility(data.isHidden);
+      }
+    } catch (e) {}
+  }
 
-  jumpPills.forEach(pill => {
-    pill.addEventListener('click', (e) => {
-      const targetId = pill.getAttribute('data-target');
-      const targetEl = document.getElementById(targetId);
-      if (targetEl) {
-        e.preventDefault();
-        targetEl.scrollIntoView({ behavior: 'smooth' });
-        jumpPills.forEach(p => p.classList.remove('active'));
-        pill.classList.add('active');
-        playSound('click');
+  function applyDomainsVisibility(isHidden) {
+    const grid = document.getElementById('domains-grid');
+    const banner = document.getElementById('domains-embargo-banner');
+    if (grid) {
+      if (isHidden) {
+        grid.classList.add('domains-scrambled');
+      } else {
+        grid.classList.remove('domains-scrambled');
+      }
+    }
+    if (banner) {
+      banner.style.display = isHidden ? 'block' : 'none';
+    }
+  }
+
+  loadDomainsVisibility();
+
+  // ---------------------------------------------------------------------------
+  // 07. QUICK-JUMP TACTICAL ACTION BUTTONS
+  // ---------------------------------------------------------------------------
+  const jumpButtons = document.querySelectorAll('.jump-action-btn, .jump-pill');
+
+  jumpButtons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const targetId = btn.getAttribute('data-target') || (btn.getAttribute('href') ? btn.getAttribute('href').replace('#', '') : null);
+      if (targetId) {
+        const targetEl = document.getElementById(targetId);
+        if (targetEl) {
+          e.preventDefault();
+          targetEl.scrollIntoView({ behavior: 'smooth' });
+          playSound('click');
+        }
       }
     });
   });
-
-  // Highlight jump pill based on scroll position
-  window.addEventListener('scroll', () => {
-    const scrollPos = window.scrollY + 180;
-    sectionsToSpy.forEach(sec => {
-      const top = sec.offsetTop;
-      const height = sec.offsetHeight;
-      const id = sec.getAttribute('id');
-      if (scrollPos >= top && scrollPos < top + height) {
-        jumpPills.forEach(pill => {
-          if (pill.getAttribute('data-target') === id) {
-            pill.classList.add('active');
-          } else {
-            pill.classList.remove('active');
-          }
-        });
-      }
-    });
-  }, { passive: true });
 
   // ---------------------------------------------------------------------------
   // 08. FLOATING MOVE TO TOP FEATURE
@@ -637,61 +650,50 @@
   }
 
   // ---------------------------------------------------------------------------
-  // 12. MOBILE MENU DRAWER TOGGLE
+  // 12. MOBILE MENU DRAWER TOGGLE & BACKDROP OVERLAY
   // ---------------------------------------------------------------------------
   const mobileToggle = document.getElementById('mobile-toggle');
   const mobileDrawer = document.getElementById('mobile-drawer');
+  const drawerBackdrop = document.getElementById('drawer-backdrop');
   const drawerClose = document.getElementById('drawer-close');
   const drawerItems = document.querySelectorAll('.drawer-item');
 
+  function openMobileDrawer() {
+    if (mobileDrawer) mobileDrawer.classList.add('active');
+    if (mobileToggle) mobileToggle.classList.add('active');
+    if (drawerBackdrop) drawerBackdrop.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    playSound('click');
+  }
+
+  function closeMobileDrawer() {
+    if (mobileDrawer) mobileDrawer.classList.remove('active');
+    if (mobileToggle) mobileToggle.classList.remove('active');
+    if (drawerBackdrop) drawerBackdrop.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
   if (mobileToggle && mobileDrawer) {
-    mobileToggle.addEventListener('click', () => {
-      mobileDrawer.classList.add('active');
-      document.body.style.overflow = 'hidden';
-      playSound('click');
+    mobileToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (mobileDrawer.classList.contains('active')) {
+        closeMobileDrawer();
+      } else {
+        openMobileDrawer();
+      }
     });
 
     if (drawerClose) {
-      drawerClose.addEventListener('click', () => {
-        mobileDrawer.classList.remove('active');
-        document.body.style.overflow = '';
-      });
+      drawerClose.addEventListener('click', closeMobileDrawer);
+    }
+
+    if (drawerBackdrop) {
+      drawerBackdrop.addEventListener('click', closeMobileDrawer);
     }
 
     drawerItems.forEach(item => {
-      item.addEventListener('click', () => {
-        mobileDrawer.classList.remove('active');
-        document.body.style.overflow = '';
-      });
+      item.addEventListener('click', closeMobileDrawer);
     });
-  }
-
-  // ---------------------------------------------------------------------------
-  // 13. SIMULATED GIT AUDIT TERMINAL LOGS
-  // ---------------------------------------------------------------------------
-  const terminalBody = document.getElementById('audit-terminal');
-  const auditLogs = [
-    '&gt; git diff --stat HEAD~1...HEAD [VERIFIED]',
-    '&gt; checking automated commit frequency... [NORMAL]',
-    '&gt; inspecting external APIs &amp; datasets... [APPROVED]',
-    '&gt; verifying hardware power connections at mentor desk #04...',
-    '&gt; Git commit history synchronized with evaluation jury portal.'
-  ];
-  let logIndex = 0;
-
-  if (terminalBody) {
-    setInterval(() => {
-      if (logIndex < auditLogs.length) {
-        const newLine = document.createElement('div');
-        newLine.className = 'term-line text-muted';
-        newLine.innerHTML = auditLogs[logIndex];
-        const promptEl = terminalBody.querySelector('.term-prompt');
-        if (promptEl) {
-          terminalBody.insertBefore(newLine, promptEl);
-        }
-        logIndex++;
-      }
-    }, 4500);
   }
 
 })();

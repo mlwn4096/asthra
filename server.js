@@ -134,6 +134,16 @@ function persistLeaderboardState() {
   setEventState('leaderboard_state', leaderboardState);
 }
 
+// Domains Visibility State (Scrambled / Hidden vs Revealed)
+let domainsState = getEventState('domains_state', {
+  isHidden: false,
+  updatedAt: Date.now()
+});
+
+function persistDomainsState() {
+  setEventState('domains_state', domainsState);
+}
+
 // ============================================================================
 // 3. SERVER-SENT EVENTS (SSE) BROADCAST BUS
 // ============================================================================
@@ -148,7 +158,8 @@ function broadcastSSE() {
   const payloadObj = {
     timer: timerState,
     leaderboard: publicLeaderboard,
-    adminMatrix: adminMatrix
+    adminMatrix: adminMatrix,
+    domains: domainsState
   };
 
   const payload = `data: ${JSON.stringify(payloadObj)}\n\n`;
@@ -796,6 +807,31 @@ const server = http.createServer(async (req, res) => {
       ok: true,
       state: 'EMBARGOED'
     });
+  }
+
+  // --------------------------------------------------------------------------
+  // API: DOMAINS VISIBILITY (SCRAMBLE / HIDE VS REVEAL)
+  // --------------------------------------------------------------------------
+  if (pathname === '/api/domains/visibility') {
+    if (req.method === 'GET') {
+      return sendJson(res, 200, domainsState);
+    }
+    if (req.method === 'POST') {
+      try {
+        const body = await parseJsonBody(req);
+        if (typeof body.isHidden === 'boolean') {
+          domainsState.isHidden = body.isHidden;
+        } else {
+          domainsState.isHidden = !domainsState.isHidden;
+        }
+        domainsState.updatedAt = Date.now();
+        persistDomainsState();
+        broadcastSSE();
+        return sendJson(res, 200, { ok: true, domains: domainsState });
+      } catch (e) {
+        return sendJson(res, 400, { error: e.message });
+      }
+    }
   }
 
   // --------------------------------------------------------------------------

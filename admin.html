@@ -632,8 +632,97 @@
       transition: all 0.2s;
     }
 
-    .btn-lock-lb:hover {
-      background: #271d05;
+    /* Quick Domains Embargo Banner */
+    .domains-toggle-banner {
+      background: #090b10;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--green);
+      padding: 18px 24px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      border-radius: 4px;
+      transition: all 0.3s ease;
+    }
+
+    .domains-toggle-banner.state-hidden {
+      border-left-color: var(--red);
+      background: #150608;
+      box-shadow: 0 0 20px rgba(255, 42, 43, 0.2);
+    }
+
+    .toggle-banner-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+
+    .domains-badge-revealed {
+      font-size: 11px;
+      background: var(--green-dark);
+      color: var(--green);
+      border: 1px solid var(--green);
+      padding: 2px 8px;
+      border-radius: 2px;
+    }
+
+    .domains-badge-hidden {
+      font-size: 11px;
+      background: var(--red-dark);
+      color: var(--red);
+      border: 1px solid var(--red);
+      padding: 2px 8px;
+      border-radius: 2px;
+    }
+
+    .toggle-banner-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .btn-domains-control {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 800;
+      padding: 13px 22px;
+      border-radius: 3px;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: 0.04em;
+      transition: all 0.2s ease;
+    }
+
+    .btn-state-hide {
+      background: var(--red);
+      color: #ffffff;
+      box-shadow: 0 0 16px rgba(255, 42, 43, 0.35);
+    }
+
+    .btn-state-hide:hover {
+      background: #ff4748;
+      transform: translateY(-1px);
+    }
+
+    .btn-state-reveal {
+      background: var(--green);
+      color: #03140a;
+      box-shadow: 0 0 16px rgba(0, 230, 118, 0.35);
+    }
+
+    .btn-state-reveal:hover {
+      background: #1aff8c;
+      transform: translateY(-1px);
     }
 
     @media (max-width: 720px) {
@@ -676,6 +765,25 @@
         </a>
       </div>
     </header>
+
+    <!-- ============================================================= -->
+    <!-- QUICK EMBARGO CONTROLLER: HIDE / UNHIDE 15 DOMAINS            -->
+    <!-- ============================================================= -->
+    <div class="domains-toggle-banner" id="domains-toggle-banner">
+      <div class="toggle-banner-info">
+        <div class="toggle-banner-title">
+          <span>PARTICIPANT 15 DOMAINS VISIBILITY:</span>
+          <span id="domains-badge-status" class="domains-badge-revealed">👁️ REVEALED (VISIBLE)</span>
+        </div>
+        <p class="toggle-banner-sub">
+          Scramble or blur out the 15 domains on the participant website until kickoff time.
+        </p>
+      </div>
+      <button id="btn-toggle-domains" class="btn-domains-control btn-state-hide">
+        <span class="btn-icon" id="btn-domains-icon">🔒</span>
+        <span id="btn-domains-text">CLICK TO HIDE &amp; SCRAMBLE 15 DOMAINS</span>
+      </button>
+    </div>
 
     <!-- ============================================================= -->
     <!-- 1. MASTER AUTHORITATIVE TIMER CONTROLLER (HH:MM:SS)           -->

@@ -448,6 +448,74 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ==========================================================================
+  // 6B. QUICK 15 DOMAINS HIDE / UNHIDE CONTROLLER
+  // ==========================================================================
+  const domainsToggleBanner = document.getElementById('domains-toggle-banner');
+  const domainsBadgeStatus = document.getElementById('domains-badge-status');
+  const btnToggleDomains = document.getElementById('btn-toggle-domains');
+  const btnDomainsIcon = document.getElementById('btn-domains-icon');
+  const btnDomainsText = document.getElementById('btn-domains-text');
+
+  let isDomainsHidden = false;
+
+  async function loadDomainsState() {
+    try {
+      const res = await fetch('/api/domains/visibility');
+      if (!res.ok) return;
+      const data = await res.json();
+      updateDomainsUI(data.isHidden);
+    } catch (e) {}
+  }
+
+  function updateDomainsUI(hidden) {
+    isDomainsHidden = !!hidden;
+    if (isDomainsHidden) {
+      if (domainsToggleBanner) domainsToggleBanner.classList.add('state-hidden');
+      if (domainsBadgeStatus) {
+        domainsBadgeStatus.className = 'domains-badge-hidden';
+        domainsBadgeStatus.textContent = '🔒 SCRAMBLED / HIDDEN';
+      }
+      if (btnToggleDomains) btnToggleDomains.className = 'btn-domains-control btn-state-reveal';
+      if (btnDomainsIcon) btnDomainsIcon.textContent = '👁️';
+      if (btnDomainsText) btnDomainsText.textContent = 'CLICK TO REVEAL 15 DOMAINS LIVE';
+    } else {
+      if (domainsToggleBanner) domainsToggleBanner.classList.remove('state-hidden');
+      if (domainsBadgeStatus) {
+        domainsBadgeStatus.className = 'domains-badge-revealed';
+        domainsBadgeStatus.textContent = '👁️ REVEALED (VISIBLE)';
+      }
+      if (btnToggleDomains) btnToggleDomains.className = 'btn-domains-control btn-state-hide';
+      if (btnDomainsIcon) btnDomainsIcon.textContent = '🔒';
+      if (btnDomainsText) btnDomainsText.textContent = 'CLICK TO HIDE & SCRAMBLE 15 DOMAINS';
+    }
+  }
+
+  if (btnToggleDomains) {
+    btnToggleDomains.addEventListener('click', async () => {
+      const nextState = !isDomainsHidden;
+      const confirmMsg = nextState
+        ? 'HIDE AND SCRAMBLE all 15 domains on the participant website? (Participants will not be able to read topics)'
+        : 'REVEAL all 15 domains on the participant website? (Topics will be unblurred and readable live)';
+
+      if (confirm(confirmMsg)) {
+        try {
+          const res = await fetch('/api/domains/visibility', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ isHidden: nextState })
+          });
+          const data = await res.json();
+          if (data.ok) {
+            updateDomainsUI(data.domains.isHidden);
+          }
+        } catch (e) {
+          alert('Failed to update domains visibility');
+        }
+      }
+    });
+  }
+
+  // ==========================================================================
   // 7. REAL-TIME SERVER-SENT EVENTS (SSE) LISTENER
   // ==========================================================================
   function initSSE() {
@@ -471,6 +539,9 @@ document.addEventListener('DOMContentLoaded', () => {
           if (data.leaderboard) {
             updateLeaderboardBadge(data.leaderboard.state);
           }
+          if (data.domains) {
+            updateDomainsUI(data.domains.isHidden);
+          }
         } catch (err) {}
       };
       sse.onerror = () => {
@@ -483,5 +554,6 @@ document.addEventListener('DOMContentLoaded', () => {
   loadJudges();
   loadMatrix();
   loadLeaderboardState();
+  loadDomainsState();
   initSSE();
 });

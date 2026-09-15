@@ -91,21 +91,29 @@
     <div class="scroll-progress-line" id="scroll-progress"></div>
   </header>
 
-  <!-- Quick-Jump Section Navigation Bar (Pages / Direct Section Jumps) -->
+  <!-- Quick-Jump Section Navigation Bar (Direct Section Jumps) -->
   <nav class="quick-jump-bar" id="quick-jump-bar" aria-label="Section Quick Navigation">
     <div class="container quick-jump-container">
-      <span class="jump-label">QUICK JUMP:</span>
+      <span class="jump-label">QUICK ACCESS:</span>
       <div class="jump-pills-track">
-        <a href="#hero" class="jump-pill active" data-target="hero">TOP</a>
-        <a href="#domains" class="jump-pill" data-target="domains"><span class="pill-num">01</span> 15 DOMAINS</a>
-        <a href="#directive" class="jump-pill" data-target="directive"><span class="pill-num">02</span> ! MANDATORY</a>
-        <a href="#rules" class="jump-pill" data-target="rules"><span class="pill-num">03</span> RULES</a>
-        <a href="#pitch" class="jump-pill" data-target="pitch"><span class="pill-num">04</span> 5M PITCH</a>
-        <a href="#conduct" class="jump-pill" data-target="conduct"><span class="pill-num">05</span> CONDUCT</a>
-        <a href="#leaderboard" class="jump-pill pill-leaderboard-jump" data-target="leaderboard"><span class="pill-num">06</span> 🔒 LEADERBOARD</a>
+        <a href="#directive" class="jump-action-btn" data-target="directive">
+          <span class="btn-bullet text-red">■</span>
+          <span>MANDATORY</span>
+        </a>
+        <a href="#rules" class="jump-action-btn" data-target="rules">
+          <span class="btn-bullet text-red">■</span>
+          <span>RULES</span>
+        </a>
+        <a href="#leaderboard" class="jump-action-btn pill-leaderboard-jump" data-target="leaderboard">
+          <span>🔒</span>
+          <span>LEADERBOARD</span>
+        </a>
       </div>
     </div>
   </nav>
+
+  <!-- Mobile Drawer Backdrop Overlay -->
+  <div class="drawer-backdrop" id="drawer-backdrop"></div>
 
   <!-- Mobile Drawer Navigation -->
   <div class="mobile-drawer" id="mobile-drawer">
@@ -201,6 +209,20 @@
     <!-- ================================================================= -->
     <section class="section-domains" id="domains">
       <div class="container">
+        <!-- Domains Embargo Banner (Controlled by Admin Desk) -->
+        <div id="domains-embargo-banner" class="domains-embargo-banner" style="display: none;">
+          <div class="deb-inner">
+            <div class="deb-lock-icon">🔒</div>
+            <div class="deb-badge">TOP SECRET // EMBARGO ACTIVE</div>
+            <h3 class="deb-title">15 DOMAINS CONCEALED UNTIL KICKOFF</h3>
+            <p class="deb-desc">The 15 predefined technology problem directives are locked under embargo by the technical evaluation jury. They will be revealed synchronously across all terminals upon official kickoff countdown.</p>
+            <div class="deb-status-pill">
+              <span class="telemetry-live-dot"></span>
+              <span>AWAITING KICKOFF SIGNAL FROM ADMIN CONTROL</span>
+            </div>
+          </div>
+        </div>
+
         <div class="section-header">
           <div class="section-tracker">
             <span class="text-red">// 01. MANDATORY PROBLEM DIRECTIVES</span>
@@ -229,10 +251,6 @@
                 </button>
               </div>
               <h3 class="domain-title">AI AGENTS &amp; AUTONOMOUS SYSTEMS</h3>
-              <p class="domain-summary">Autonomous goal-directed software agents, multi-agent collaboration frameworks, reasoning loops, task planning, and automated workflow agents.</p>
-              <div class="domain-tags">
-                <span>Multi-Agent</span><span>Autonomous Planning</span><span>Tool Use</span>
-              </div>
               <div class="domain-dropdown">
                 <div class="scope-disclaimer">
                   <span class="disclaimer-pill">OPTIONAL GUIDELINE</span>
@@ -261,10 +279,6 @@
                 </button>
               </div>
               <h3 class="domain-title">SMART CITIES &amp; URBAN TECHNOLOGY</h3>
-              <p class="domain-summary">Intelligent transit networks, urban logistics, smart grid monitoring, civic infrastructure automation, waste management, and sustainable municipal solutions.</p>
-              <div class="domain-tags">
-                <span>Urban IoT</span><span>Transit Routing</span><span>Resource Grid</span>
-              </div>
               <div class="domain-dropdown">
                 <div class="scope-disclaimer">
                   <span class="disclaimer-pill">OPTIONAL GUIDELINE</span>
@@ -293,10 +307,6 @@
                 </button>
               </div>
               <h3 class="domain-title">HEALTHCARE &amp; WELLBEING TECHNOLOGY</h3>
-              <p class="domain-summary">Remote patient monitoring, diagnostic triage assistants, mental health support engines, medicine intake verification, and assistive healthcare systems.</p>
-              <div class="domain-tags">
-                <span>Diagnostics</span><span>Vitals Stream</span><span>Patient Care</span>
-              </div>
               <div class="domain-dropdown">
                 <div class="scope-disclaimer">
                   <span class="disclaimer-pill">OPTIONAL GUIDELINE</span>
@@ -325,10 +335,6 @@
                 </button>
               </div>
               <h3 class="domain-title">ROBOTICS, IOT &amp; INTELLIGENT DEVICES</h3>
-              <p class="domain-summary">Sensor-driven microcontrollers, robotic actuators, edge computing devices, telemetry pipelines, smart home hardware, and autonomous embedded machinery.</p>
-              <div class="domain-tags">
-                <span>Edge Microcontrollers</span><span>Sensors</span><span>Actuators</span>
-              </div>
               <div class="domain-dropdown">
                 <div class="scope-disclaimer">
                   <span class="disclaimer-pill">OPTIONAL GUIDELINE</span>
@@ -357,10 +363,6 @@
                 </button>
               </div>
               <h3 class="domain-title">DISASTER MANAGEMENT &amp; EMERGENCY TECH</h3>
-              <p class="domain-summary">Early-warning sensory networks, rapid response coordination dashboards, emergency relief routing, offline communication meshes, and evacuation logistics.</p>
-              <div class="domain-tags">
-                <span>Crisis Triage</span><span>Mesh Routing</span><span>Early Alert</span>
-              </div>
               <div class="domain-dropdown">
                 <div class="scope-disclaimer">
                   <span class="disclaimer-pill">OPTIONAL GUIDELINE</span>
@@ -389,10 +391,6 @@
                 </button>
               </div>
               <h3 class="domain-title">AI-POWERED APPLICATIONS</h3>
-              <p class="domain-summary">Applied machine learning software, automated computer vision pipelines, natural language workflows, voice intelligence, and intelligent document synthesis.</p>
-              <div class="domain-tags">
-                <span>Computer Vision</span><span>NLP Pipelines</span><span>Applied ML</span>
-              </div>
               <div class="domain-dropdown">
                 <div class="scope-disclaimer">
                   <span class="disclaimer-pill">OPTIONAL GUIDELINE</span>
@@ -421,10 +419,6 @@
                 </button>
               </div>
               <h3 class="domain-title">CYBERSECURITY &amp; DIGITAL SAFETY</h3>
-              <p class="domain-summary">Phishing detection, automated vulnerability fuzzers, encrypted communication protocols, digital identity security, threat intelligence, and fraud prevention.</p>
-              <div class="domain-tags">
-                <span>Threat Detection</span><span>Identity Security</span><span>Zero Trust</span>
-              </div>
               <div class="domain-dropdown">
                 <div class="scope-disclaimer">
                   <span class="disclaimer-pill">OPTIONAL GUIDELINE</span>
@@ -453,10 +447,6 @@
                 </button>
               </div>
               <h3 class="domain-title">EDUCATION &amp; LEARNING TECHNOLOGY</h3>
-              <p class="domain-summary">Personalized tutoring engines, interactive concept visualizers, real-time code execution sandboxes, language immersion tools, and automated grading assistants.</p>
-              <div class="domain-tags">
-                <span>Adaptive Learning</span><span>Sandboxes</span><span>Skill Graph</span>
-              </div>
               <div class="domain-dropdown">
                 <div class="scope-disclaimer">
                   <span class="disclaimer-pill">OPTIONAL GUIDELINE</span>
@@ -485,10 +475,6 @@
                 </button>
               </div>
               <h3 class="domain-title">MEDIA, CONTENT &amp; DIGITAL TRUST</h3>
-              <p class="domain-summary">Deepfake identification, digital provenance verification, automated misinformation debunking, copyright attribution, and synthetic content watermarking.</p>
-              <div class="domain-tags">
-                <span>Deepfake Defense</span><span>C2PA Provenance</span><span>Fact Verification</span>
-              </div>
               <div class="domain-dropdown">
                 <div class="scope-disclaimer">
                   <span class="disclaimer-pill">OPTIONAL GUIDELINE</span>
@@ -517,10 +503,6 @@
                 </button>
               </div>
               <h3 class="domain-title">SUSTAINABILITY &amp; RESOURCE MANAGEMENT</h3>
-              <p class="domain-summary">Carbon footprint analyzers, precision irrigation systems, renewable energy storage monitoring, circular economy recyclers, and smart power grids.</p>
-              <div class="domain-tags">
-                <span>Carbon Telemetry</span><span>Resource Audit</span><span>Green Tech</span>
-              </div>
               <div class="domain-dropdown">
                 <div class="scope-disclaimer">
                   <span class="disclaimer-pill">OPTIONAL GUIDELINE</span>
@@ -549,10 +531,6 @@
                 </button>
               </div>
               <h3 class="domain-title">STUDENT PRODUCTIVITY &amp; CAMPUS TECH</h3>
-              <p class="domain-summary">Autonomous academic schedulers, student peer mentorship networks, campus navigation, library resource allocation, and lab booking automation.</p>
-              <div class="domain-tags">
-                <span>Campus Automation</span><span>Peer Sync</span><span>Schedule Solver</span>
-              </div>
               <div class="domain-dropdown">
                 <div class="scope-disclaimer">
                   <span class="disclaimer-pill">OPTIONAL GUIDELINE</span>
@@ -581,10 +559,6 @@
                 </button>
               </div>
               <h3 class="domain-title">ACCESSIBILITY &amp; INCLUSIVE TECH</h3>
-              <p class="domain-summary">Real-time sign language interpreters, computer vision for the visually impaired, voice-driven interfaces, haptic feedback navigation, and neurodivergent tools.</p>
-              <div class="domain-tags">
-                <span>Assistive Audio</span><span>Sign Detection</span><span>Haptic UI</span>
-              </div>
               <div class="domain-dropdown">
                 <div class="scope-disclaimer">
                   <span class="disclaimer-pill">OPTIONAL GUIDELINE</span>
@@ -613,10 +587,6 @@
                 </button>
               </div>
               <h3 class="domain-title">INFORMATION MANAGEMENT</h3>
-              <p class="domain-summary">High-speed semantic search, retrieval-augmented generation (RAG) pipelines, enterprise knowledge graphs, automated archival systems, and data curation.</p>
-              <div class="domain-tags">
-                <span>Vector RAG</span><span>Semantic Index</span><span>Knowledge Graph</span>
-              </div>
               <div class="domain-dropdown">
                 <div class="scope-disclaimer">
                   <span class="disclaimer-pill">OPTIONAL GUIDELINE</span>
@@ -645,10 +615,6 @@
                 </button>
               </div>
               <h3 class="domain-title">CREATIVE TECHNOLOGY &amp; MULTIMEDIA</h3>
-              <p class="domain-summary">Real-time procedural audio synthesis, generative graphics pipelines, interactive 3D WebGL canvases, spatial media tools, and collaborative creative engines.</p>
-              <div class="domain-tags">
-                <span>Procedural Audio</span><span>WebGL Shaders</span><span>Spatial Media</span>
-              </div>
               <div class="domain-dropdown">
                 <div class="scope-disclaimer">
                   <span class="disclaimer-pill">OPTIONAL GUIDELINE</span>
@@ -677,10 +643,6 @@
                 </button>
               </div>
               <h3 class="domain-title">DATA &amp; DECISION INTELLIGENCE</h3>
-              <p class="domain-summary">Real-time streaming analytics, predictive business modeling, automated risk assessment, anomaly forecasting, and executive decision-support engines.</p>
-              <div class="domain-tags">
-                <span>Streaming Telemetry</span><span>Forecasting</span><span>Risk Matrix</span>
-              </div>
               <div class="domain-dropdown">
                 <div class="scope-disclaimer">
                   <span class="disclaimer-pill">OPTIONAL GUIDELINE</span>
@@ -941,7 +903,7 @@
     <section class="section-conduct" id="conduct">
       <div class="container">
         <div class="conduct-panel-wrapper" data-assemble>
-          <div class="conduct-left">
+          <div class="conduct-content">
             <div class="section-tracker">
               <span class="text-red">// 05. ETHICAL CODE OF CONDUCT</span>
             </div>
@@ -986,40 +948,6 @@
                   <p>Judges' evaluations, score tabulations, and rank decisions are conclusive, final, and binding.</p>
                 </div>
               </div>
-            </div>
-          </div>
-
-          <div class="conduct-right">
-            <!-- Simulated Live Git Diff Audit Terminal -->
-            <div class="terminal-box">
-              <div class="terminal-bar">
-                <div class="terminal-dots">
-                  <span></span><span></span><span></span>
-                </div>
-                <div class="terminal-title">COMMIT_AUDIT_DAEMON // GIT DIFF MONITOR</div>
-                <div class="terminal-status">LIVE</div>
-              </div>
-              <div class="terminal-body" id="audit-terminal">
-                <div class="term-line text-muted">// INITIALIZING TECHNICAL INTEGRITY COMMITTEE AUDIT PROTOCOL...</div>
-                <div class="term-line">&gt; git clone --depth=50 repository.git</div>
-                <div class="term-line">&gt; verifying commit timeline timestamps... <span class="text-green">[PASS]</span></div>
-                <div class="term-line">&gt; auditing external dependency licenses... <span class="text-green">[PERMITTED]</span></div>
-                <div class="term-line">&gt; scanning for pre-built repository artifacts... <span class="text-green">[CLEAN]</span></div>
-                <div class="term-line">&gt; inspecting AI-assisted tool adherence... <span class="text-green">[AUTHORIZED]</span></div>
-                <div class="term-line text-red">&gt; WARNING: Zero-tolerance rule active.</div>
-                <div class="term-line text-white">&gt; Diff audits run continuously from kickoff to pitch demo.</div>
-                <div class="term-prompt"><span class="term-cursor">&gt;</span> <span class="term-blinker">_</span></div>
-              </div>
-            </div>
-
-            <!-- Zero Tolerance Callout Card -->
-            <div class="conduct-alert-card">
-              <div class="cac-header">
-                <span class="badge badge-solid-red">[ ZERO TOLERANCE ENFORCEMENT ]</span>
-              </div>
-              <p class="cac-text">
-                Any unauthorized pre-built repositories, cross-team code sharing, or external tampering will result in <strong>INSTANT DISQUALIFICATION</strong> without right of appeal. Automated diff audits will monitor commit histories throughout the event.
-              </p>
             </div>
           </div>
         </div>
