@@ -2,6 +2,10 @@
   "version": 2,
   "builds": [
     {
+      "src": "api/index.js",
+      "use": "@vercel/node"
+    },
+    {
       "src": "*",
       "use": "@vercel/static"
     },
@@ -12,18 +16,31 @@
     {
       "src": "fonts/**/*",
       "use": "@vercel/static"
-    },
-    {
-      "src": "api/**/*",
-      "use": "@vercel/static"
     }
   ],
   "routes": [
-    { "src": "^/admin$", "dest": "/admin.html" },
-    { "src": "^/judge$", "dest": "/judge.html" },
-    { "src": "^/api/domains/visibility$", "dest": "/api/domains/visibility.json" },
-    { "src": "^/api/status$", "dest": "/api/status.json" },
-    { "handle": "filesystem" },
-    { "src": "^/(.*)$", "dest": "/$1" }
+    {
+      "src": "^/admin.*",
+      "status": 404
+    },
+    {
+      "src": "^/baseline$",
+      "dest": "/baseline.html"
+    },
+    {
+      "src": "^/judge$",
+      "dest": "/judge.html"
+    },
+    {
+      "src": "^/api/(.*)$",
+      "dest": "/api/index.js"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "^/(.*)$",
+      "dest": "/$1"
+    }
   ]
 }

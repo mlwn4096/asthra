@@ -221,6 +221,8 @@
           applyTimerState(event.data.state);
         } else if (event.data && event.data.type === 'LEADERBOARD_UPDATE') {
           applyLeaderboardState(event.data.state);
+        } else if (event.data && event.data.type === 'DOMAINS_UPDATE') {
+          applyDomainsVisibility(event.data.state?.isHidden);
         }
       };
     } catch (e) {}
@@ -235,6 +237,10 @@
     } else if (e.key === 'astra_leaderboard_state' && e.newValue) {
       try {
         applyLeaderboardState(JSON.parse(e.newValue));
+      } catch (err) {}
+    } else if (e.key === 'astra_domains_hidden' && e.newValue) {
+      try {
+        applyDomainsVisibility(JSON.parse(e.newValue));
       } catch (err) {}
     }
   });
@@ -459,6 +465,32 @@
   }
   initServerSync();
 
+  // Active REST polling fallback every 2 seconds to ensure 100% sync
+  async function pollServerState() {
+    try {
+      const res = await fetch('/api/timer');
+      if (res.ok) {
+        const payload = await res.json();
+        if (payload.timer) {
+          applyTimerState(payload.timer);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(payload.timer));
+        }
+        if (payload.domains && typeof payload.domains.isHidden === 'boolean') {
+          applyDomainsVisibility(payload.domains.isHidden);
+        }
+      }
+    } catch (e) {}
+
+    try {
+      const resLb = await fetch('/api/leaderboard');
+      if (resLb.ok) {
+        const lbData = await resLb.json();
+        applyLeaderboardState(lbData);
+      }
+    } catch (e) {}
+  }
+  setInterval(pollServerState, 2000);
+
   // ---------------------------------------------------------------------------
   // 06C. DOMAINS VISIBILITY EMBARGO / SCRAMBLE CONTROL
   // ---------------------------------------------------------------------------
@@ -488,6 +520,7 @@
   }
 
   loadDomainsVisibility();
+  setInterval(loadDomainsVisibility, 3000);
 
   // ---------------------------------------------------------------------------
   // 07. QUICK-JUMP TACTICAL ACTION BUTTONS

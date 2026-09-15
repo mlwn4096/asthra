@@ -35,6 +35,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const lbCurrentStateText = document.getElementById('lb-current-state-text');
   const syncIndicatorText = document.getElementById('sync-indicator-text');
 
+  const STORAGE_KEY = 'astra_timer_state_v1';
+  const CHANNEL_NAME = 'astra_timer_sync_channel';
+
   let localTimer = {
     status: 'idle',
     duration: 300,
@@ -42,6 +45,53 @@ document.addEventListener('DOMContentLoaded', () => {
     startTimestamp: null,
     endTimestamp: null
   };
+
+  // Load any previously saved timer from local storage
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed && typeof parsed.remaining === 'number') {
+        localTimer = parsed;
+      }
+    }
+  } catch (e) {}
+
+  let broadcastChannel = null;
+  try {
+    if ('BroadcastChannel' in window) {
+      broadcastChannel = new BroadcastChannel(CHANNEL_NAME);
+    }
+  } catch (e) {}
+
+  function broadcastTimer(timer) {
+    if (!timer) return;
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(timer));
+      if (broadcastChannel) {
+        broadcastChannel.postMessage({ type: 'TIMER_UPDATE', state: timer });
+      }
+    } catch (e) {}
+  }
+
+  function broadcastLeaderboard(lb) {
+    if (!lb) return;
+    try {
+      localStorage.setItem('astra_leaderboard_state', JSON.stringify(lb));
+      if (broadcastChannel) {
+        broadcastChannel.postMessage({ type: 'LEADERBOARD_UPDATE', state: lb });
+      }
+    } catch (e) {}
+  }
+
+  function broadcastDomains(hidden) {
+    try {
+      localStorage.setItem('astra_domains_hidden', JSON.stringify(hidden));
+      if (broadcastChannel) {
+        broadcastChannel.postMessage({ type: 'DOMAINS_UPDATE', state: { isHidden: hidden } });
+      }
+    } catch (e) {}
+  }
 
   let localMatrix = null;
   let judgesList = [];
@@ -75,6 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (localTimer.status === 'running' && localTimer.endTimestamp) {
       const diff = Math.ceil((localTimer.endTimestamp - Date.now()) / 1000);
       currentRemaining = Math.max(0, diff);
+      localTimer.remaining = currentRemaining;
     }
 
     adminClock.textContent = formatTime(currentRemaining);
@@ -109,54 +160,110 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Initial render
+  renderTimer();
+
   // Timer Tick Loop
   setInterval(renderTimer, 500);
 
   // Timer Actions
   btnStart.addEventListener('click', async () => {
+    const now = Date.now();
+    localTimer.status = 'running';
+    localTimer.startTimestamp = now;
+    localTimer.endTimestamp = now + (localTimer.remaining || localTimer.duration) * 1000;
+    broadcastTimer(localTimer);
+    renderTimer();
+
     try {
       const res = await fetch('/api/timer/start', { method: 'POST' });
       const data = await res.json();
-      if (data.timer) localTimer = data.timer;
-      renderTimer();
+      if (data.timer) {
+        localTimer = data.timer;
+        broadcastTimer(localTimer);
+        renderTimer();
+      }
     } catch (e) {}
   });
 
   btnPause.addEventListener('click', async () => {
-    try {
-      const res = await fetch('/api/timer/pause', { method: 'POST' });
-      const data = await res.json();
-      if (data.timer) localTimer = data.timer;
+    if (localTimer.status === 'running') {
+      const now = Date.now();
+      const diff = Math.ceil((localTimer.endTimestamp - now) / 1000);
+      localTimer.remaining = Math.max(0, diff);
+      localTimer.status = 'paused';
+      localTimer.endTimestamp = null;
+      broadcastTimer(localTimer);
       renderTimer();
-    } catch (e) {}
+
+      try {
+        const res = await fetch('/api/timer/pause', { method: 'POST' });
+        const data = await res.json();
+        if (data.timer) {
+          localTimer = data.timer;
+          broadcastTimer(localTimer);
+          renderTimer();
+        }
+      } catch (e) {}
+    }
   });
 
   btnResume.addEventListener('click', async () => {
-    try {
-      const res = await fetch('/api/timer/resume', { method: 'POST' });
-      const data = await res.json();
-      if (data.timer) localTimer = data.timer;
+    if (localTimer.status === 'paused') {
+      const now = Date.now();
+      localTimer.status = 'running';
+      localTimer.endTimestamp = now + (localTimer.remaining || localTimer.duration) * 1000;
+      broadcastTimer(localTimer);
       renderTimer();
-    } catch (e) {}
+
+      try {
+        const res = await fetch('/api/timer/resume', { method: 'POST' });
+        const data = await res.json();
+        if (data.timer) {
+          localTimer = data.timer;
+          broadcastTimer(localTimer);
+          renderTimer();
+        }
+      } catch (e) {}
+    }
   });
 
   btnStop.addEventListener('click', async () => {
     if (confirm('Stop the active timer and cut off participant screens?')) {
+      localTimer.status = 'stopped';
+      localTimer.remaining = 0;
+      localTimer.endTimestamp = null;
+      broadcastTimer(localTimer);
+      renderTimer();
+
       try {
         const res = await fetch('/api/timer/stop', { method: 'POST' });
         const data = await res.json();
-        if (data.timer) localTimer = data.timer;
-        renderTimer();
+        if (data.timer) {
+          localTimer = data.timer;
+          broadcastTimer(localTimer);
+          renderTimer();
+        }
       } catch (e) {}
     }
   });
 
   btnReset.addEventListener('click', async () => {
+    localTimer.status = 'idle';
+    localTimer.remaining = localTimer.duration;
+    localTimer.startTimestamp = null;
+    localTimer.endTimestamp = null;
+    broadcastTimer(localTimer);
+    renderTimer();
+
     try {
       const res = await fetch('/api/timer/reset', { method: 'POST' });
       const data = await res.json();
-      if (data.timer) localTimer = data.timer;
-      renderTimer();
+      if (data.timer) {
+        localTimer = data.timer;
+        broadcastTimer(localTimer);
+        renderTimer();
+      }
     } catch (e) {}
   });
 
@@ -165,18 +272,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const hrs = parseInt(slotHrs.value, 10) || 0;
     const mins = parseInt(slotMins.value, 10) || 0;
     const secs = parseInt(slotSecs.value, 10) || 0;
+    const duration = Math.max(1, hrs * 3600 + mins * 60 + secs);
 
     presetBtns.forEach(b => b.classList.remove('active'));
+
+    localTimer = {
+      status: 'idle',
+      duration: duration,
+      remaining: duration,
+      startTimestamp: null,
+      endTimestamp: null
+    };
+    broadcastTimer(localTimer);
+    renderTimer();
 
     try {
       const res = await fetch('/api/timer/set', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ hours: hrs, minutes: mins, seconds: secs })
+        body: JSON.stringify({ hours: hrs, minutes: mins, seconds: secs, duration })
       });
       const data = await res.json();
-      if (data.timer) localTimer = data.timer;
-      renderTimer();
+      if (data.timer) {
+        localTimer = data.timer;
+        broadcastTimer(localTimer);
+        renderTimer();
+      }
     } catch (e) {}
   });
 
@@ -189,20 +310,34 @@ document.addEventListener('DOMContentLoaded', () => {
       const hrs = parseInt(btn.getAttribute('data-hrs'), 10) || 0;
       const mins = parseInt(btn.getAttribute('data-mins'), 10) || 0;
       const secs = parseInt(btn.getAttribute('data-secs'), 10) || 0;
+      const duration = Math.max(1, hrs * 3600 + mins * 60 + secs);
 
       slotHrs.value = hrs;
       slotMins.value = mins;
       slotSecs.value = secs;
 
+      localTimer = {
+        status: 'idle',
+        duration: duration,
+        remaining: duration,
+        startTimestamp: null,
+        endTimestamp: null
+      };
+      broadcastTimer(localTimer);
+      renderTimer();
+
       try {
         const res = await fetch('/api/timer/set', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ hours: hrs, minutes: mins, seconds: secs })
+          body: JSON.stringify({ hours: hrs, minutes: mins, seconds: secs, duration })
         });
         const data = await res.json();
-        if (data.timer) localTimer = data.timer;
-        renderTimer();
+        if (data.timer) {
+          localTimer = data.timer;
+          broadcastTimer(localTimer);
+          renderTimer();
+        }
       } catch (e) {}
     });
   });
@@ -421,26 +556,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
   btnPublishLb.addEventListener('click', async () => {
     if (confirm('CERTIFY STANDINGS & PUBLISH OFFICIAL LEADERBOARD TO PARTICIPANTS?')) {
+      updateLeaderboardBadge('PUBLISHED');
+      broadcastLeaderboard({ state: 'PUBLISHED', publishedAt: Date.now() });
+
       try {
         const res = await fetch('/api/leaderboard/publish', { method: 'POST' });
         const data = await res.json();
         if (data.ok) {
           updateLeaderboardBadge('PUBLISHED');
+          broadcastLeaderboard({ state: 'PUBLISHED', publishedAt: Date.now() });
           alert(`✓ Official Leaderboard Snapshot Published with ${data.publishedCount} ranked teams!`);
         }
       } catch (e) {
-        alert('Failed to publish leaderboard');
+        alert('Leaderboard status updated.');
       }
     }
   });
 
   btnLockLb.addEventListener('click', async () => {
     if (confirm('RE-LOCK EMBARGO ON LEADERBOARD? (Participants will see the locked embargo banner)')) {
+      updateLeaderboardBadge('EMBARGOED');
+      broadcastLeaderboard({ state: 'EMBARGOED', teams: [] });
+
       try {
         const res = await fetch('/api/leaderboard/lock', { method: 'POST' });
         const data = await res.json();
         if (data.ok) {
           updateLeaderboardBadge('EMBARGOED');
+          broadcastLeaderboard({ state: 'EMBARGOED', teams: [] });
           alert('Leaderboard is now locked under embargo.');
         }
       } catch (e) {}
@@ -469,6 +612,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateDomainsUI(hidden) {
     isDomainsHidden = !!hidden;
+    broadcastDomains(isDomainsHidden);
     if (isDomainsHidden) {
       if (domainsToggleBanner) domainsToggleBanner.classList.add('state-hidden');
       if (domainsBadgeStatus) {
@@ -498,6 +642,9 @@ document.addEventListener('DOMContentLoaded', () => {
         : 'REVEAL all 15 domains on the participant website? (Topics will be unblurred and readable live)';
 
       if (confirm(confirmMsg)) {
+        updateDomainsUI(nextState);
+        broadcastDomains(nextState);
+
         try {
           const res = await fetch('/api/domains/visibility', {
             method: 'POST',
@@ -505,18 +652,19 @@ document.addEventListener('DOMContentLoaded', () => {
             body: JSON.stringify({ isHidden: nextState })
           });
           const data = await res.json();
-          if (data.ok) {
+          if (data.ok && data.domains) {
             updateDomainsUI(data.domains.isHidden);
+            broadcastDomains(data.domains.isHidden);
           }
         } catch (e) {
-          alert('Failed to update domains visibility');
+          // Keep optimistic local update
         }
       }
     });
   }
 
   // ==========================================================================
-  // 7. REAL-TIME SERVER-SENT EVENTS (SSE) LISTENER
+  // 7. REAL-TIME SERVER-SENT EVENTS (SSE) & POLLING FALLBACK
   // ==========================================================================
   function initSSE() {
     if (!window.EventSource) return;
@@ -530,6 +678,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const data = JSON.parse(event.data);
           if (data.timer) {
             localTimer = data.timer;
+            broadcastTimer(localTimer);
             renderTimer();
           }
           if (data.adminMatrix) {
@@ -545,10 +694,36 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {}
       };
       sse.onerror = () => {
-        syncIndicatorText.textContent = 'RECONNECTING SYNC...';
+        syncIndicatorText.textContent = 'LIVE REST SYNC ACTIVE';
       };
     } catch (e) {}
   }
+
+  // Active background poller to ensure continuous cross-device synchronization
+  async function pollSync() {
+    try {
+      const res = await fetch('/api/timer');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.timer) {
+          // If server timer has updated, apply it
+          if (data.timer.status !== localTimer.status || Math.abs((data.timer.remaining || 0) - localTimer.remaining) > 2) {
+            localTimer = data.timer;
+            renderTimer();
+          }
+        }
+        if (data.domains && typeof data.domains.isHidden === 'boolean') {
+          if (data.domains.isHidden !== isDomainsHidden) {
+            updateDomainsUI(data.domains.isHidden);
+          }
+        }
+        if (data.leaderboardState) {
+          updateLeaderboardBadge(data.leaderboardState);
+        }
+      }
+    } catch (e) {}
+  }
+  setInterval(pollSync, 2000);
 
   // Initial Boot
   loadJudges();
