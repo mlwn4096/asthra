@@ -172,13 +172,18 @@ document.addEventListener('DOMContentLoaded', () => {
     localTimer.status = 'running';
     localTimer.startTimestamp = now;
     localTimer.endTimestamp = now + (localTimer.remaining || localTimer.duration) * 1000;
+    localTimer.lastUpdated = now;
     broadcastTimer(localTimer);
     renderTimer();
 
     try {
-      const res = await fetch('/api/timer/start', { method: 'POST' });
+      const res = await fetch('/api/timer/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(localTimer)
+      });
       const data = await res.json();
-      if (data.timer) {
+      if (data.timer && (!localTimer.lastUpdated || data.timer.lastUpdated >= localTimer.lastUpdated)) {
         localTimer = data.timer;
         broadcastTimer(localTimer);
         renderTimer();
@@ -193,13 +198,18 @@ document.addEventListener('DOMContentLoaded', () => {
       localTimer.remaining = Math.max(0, diff);
       localTimer.status = 'paused';
       localTimer.endTimestamp = null;
+      localTimer.lastUpdated = now;
       broadcastTimer(localTimer);
       renderTimer();
 
       try {
-        const res = await fetch('/api/timer/pause', { method: 'POST' });
+        const res = await fetch('/api/timer/pause', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(localTimer)
+        });
         const data = await res.json();
-        if (data.timer) {
+        if (data.timer && (!localTimer.lastUpdated || data.timer.lastUpdated >= localTimer.lastUpdated)) {
           localTimer = data.timer;
           broadcastTimer(localTimer);
           renderTimer();
@@ -213,13 +223,18 @@ document.addEventListener('DOMContentLoaded', () => {
       const now = Date.now();
       localTimer.status = 'running';
       localTimer.endTimestamp = now + (localTimer.remaining || localTimer.duration) * 1000;
+      localTimer.lastUpdated = now;
       broadcastTimer(localTimer);
       renderTimer();
 
       try {
-        const res = await fetch('/api/timer/resume', { method: 'POST' });
+        const res = await fetch('/api/timer/resume', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(localTimer)
+        });
         const data = await res.json();
-        if (data.timer) {
+        if (data.timer && (!localTimer.lastUpdated || data.timer.lastUpdated >= localTimer.lastUpdated)) {
           localTimer = data.timer;
           broadcastTimer(localTimer);
           renderTimer();
@@ -230,16 +245,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
   btnStop.addEventListener('click', async () => {
     if (confirm('Stop the active timer and cut off participant screens?')) {
+      const now = Date.now();
       localTimer.status = 'stopped';
       localTimer.remaining = 0;
       localTimer.endTimestamp = null;
+      localTimer.lastUpdated = now;
       broadcastTimer(localTimer);
       renderTimer();
 
       try {
-        const res = await fetch('/api/timer/stop', { method: 'POST' });
+        const res = await fetch('/api/timer/stop', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(localTimer)
+        });
         const data = await res.json();
-        if (data.timer) {
+        if (data.timer && (!localTimer.lastUpdated || data.timer.lastUpdated >= localTimer.lastUpdated)) {
           localTimer = data.timer;
           broadcastTimer(localTimer);
           renderTimer();
@@ -249,17 +270,23 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   btnReset.addEventListener('click', async () => {
+    const now = Date.now();
     localTimer.status = 'idle';
     localTimer.remaining = localTimer.duration;
     localTimer.startTimestamp = null;
     localTimer.endTimestamp = null;
+    localTimer.lastUpdated = now;
     broadcastTimer(localTimer);
     renderTimer();
 
     try {
-      const res = await fetch('/api/timer/reset', { method: 'POST' });
+      const res = await fetch('/api/timer/reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(localTimer)
+      });
       const data = await res.json();
-      if (data.timer) {
+      if (data.timer && (!localTimer.lastUpdated || data.timer.lastUpdated >= localTimer.lastUpdated)) {
         localTimer = data.timer;
         broadcastTimer(localTimer);
         renderTimer();
@@ -273,6 +300,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const mins = parseInt(slotMins.value, 10) || 0;
     const secs = parseInt(slotSecs.value, 10) || 0;
     const duration = Math.max(1, hrs * 3600 + mins * 60 + secs);
+    const now = Date.now();
 
     presetBtns.forEach(b => b.classList.remove('active'));
 
@@ -281,7 +309,8 @@ document.addEventListener('DOMContentLoaded', () => {
       duration: duration,
       remaining: duration,
       startTimestamp: null,
-      endTimestamp: null
+      endTimestamp: null,
+      lastUpdated: now
     };
     broadcastTimer(localTimer);
     renderTimer();
@@ -290,10 +319,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const res = await fetch('/api/timer/set', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ hours: hrs, minutes: mins, seconds: secs, duration })
+        body: JSON.stringify({ hours: hrs, minutes: mins, seconds: secs, duration, lastUpdated: now })
       });
       const data = await res.json();
-      if (data.timer) {
+      if (data.timer && (!localTimer.lastUpdated || data.timer.lastUpdated >= localTimer.lastUpdated)) {
         localTimer = data.timer;
         broadcastTimer(localTimer);
         renderTimer();
@@ -311,6 +340,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const mins = parseInt(btn.getAttribute('data-mins'), 10) || 0;
       const secs = parseInt(btn.getAttribute('data-secs'), 10) || 0;
       const duration = Math.max(1, hrs * 3600 + mins * 60 + secs);
+      const now = Date.now();
 
       slotHrs.value = hrs;
       slotMins.value = mins;
@@ -321,7 +351,8 @@ document.addEventListener('DOMContentLoaded', () => {
         duration: duration,
         remaining: duration,
         startTimestamp: null,
-        endTimestamp: null
+        endTimestamp: null,
+        lastUpdated: now
       };
       broadcastTimer(localTimer);
       renderTimer();
@@ -330,10 +361,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const res = await fetch('/api/timer/set', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ hours: hrs, minutes: mins, seconds: secs, duration })
+          body: JSON.stringify({ hours: hrs, minutes: mins, seconds: secs, duration, lastUpdated: now })
         });
         const data = await res.json();
-        if (data.timer) {
+        if (data.timer && (!localTimer.lastUpdated || data.timer.lastUpdated >= localTimer.lastUpdated)) {
           localTimer = data.timer;
           broadcastTimer(localTimer);
           renderTimer();
@@ -599,14 +630,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnDomainsIcon = document.getElementById('btn-domains-icon');
   const btnDomainsText = document.getElementById('btn-domains-text');
 
-  let isDomainsHidden = false;
+  let isDomainsHidden = true;
+  let lastDomainsUpdatedAt = 0;
 
   async function loadDomainsState() {
     try {
       const res = await fetch('/api/domains/visibility');
       if (!res.ok) return;
       const data = await res.json();
-      updateDomainsUI(data.isHidden);
+      if (typeof data.isHidden === 'boolean') {
+        const time = data.updatedAt || data.lastUpdated || 0;
+        if (!lastDomainsUpdatedAt || time >= lastDomainsUpdatedAt) {
+          if (time) lastDomainsUpdatedAt = time;
+          updateDomainsUI(data.isHidden);
+        }
+      }
     } catch (e) {}
   }
 
@@ -617,7 +655,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (domainsToggleBanner) domainsToggleBanner.classList.add('state-hidden');
       if (domainsBadgeStatus) {
         domainsBadgeStatus.className = 'domains-badge-hidden';
-        domainsBadgeStatus.textContent = '🔒 SCRAMBLED / HIDDEN';
+        domainsBadgeStatus.textContent = '🔒 SCRAMBLED / HIDDEN (LOCKED)';
       }
       if (btnToggleDomains) btnToggleDomains.className = 'btn-domains-control btn-state-reveal';
       if (btnDomainsIcon) btnDomainsIcon.textContent = '👁️';
@@ -638,10 +676,12 @@ document.addEventListener('DOMContentLoaded', () => {
     btnToggleDomains.addEventListener('click', async () => {
       const nextState = !isDomainsHidden;
       const confirmMsg = nextState
-        ? 'HIDE AND SCRAMBLE all 15 domains on the participant website? (Participants will not be able to read topics)'
-        : 'REVEAL all 15 domains on the participant website? (Topics will be unblurred and readable live)';
+        ? 'HIDE AND SCRAMBLE all 15 domains on the participant website? (Topics will be concealed and blurred on all screens)'
+        : 'REVEAL all 15 domains on the participant website? (Topics will be unblurred and readable live for all participants)';
 
       if (confirm(confirmMsg)) {
+        const now = Date.now();
+        lastDomainsUpdatedAt = now;
         updateDomainsUI(nextState);
         broadcastDomains(nextState);
 
@@ -649,12 +689,14 @@ document.addEventListener('DOMContentLoaded', () => {
           const res = await fetch('/api/domains/visibility', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ isHidden: nextState })
+            body: JSON.stringify({ isHidden: nextState, updatedAt: now })
           });
           const data = await res.json();
           if (data.ok && data.domains) {
-            updateDomainsUI(data.domains.isHidden);
-            broadcastDomains(data.domains.isHidden);
+            const time = data.domains.updatedAt || data.domains.lastUpdated || 0;
+            if (!lastDomainsUpdatedAt || time >= lastDomainsUpdatedAt) {
+              updateDomainsUI(data.domains.isHidden);
+            }
           }
         } catch (e) {
           // Keep optimistic local update
@@ -664,7 +706,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================================================================
-  // 7. REAL-TIME SERVER-SENT EVENTS (SSE) & POLLING FALLBACK
+  // 7. REAL-TIME SERVER-SENT EVENTS (SSE) & MATRIX REFRESH
   // ==========================================================================
   function initSSE() {
     if (!window.EventSource) return;
@@ -676,20 +718,12 @@ document.addEventListener('DOMContentLoaded', () => {
       sse.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          if (data.timer) {
-            localTimer = data.timer;
-            broadcastTimer(localTimer);
-            renderTimer();
-          }
           if (data.adminMatrix) {
             localMatrix = data.adminMatrix;
             renderMatrix(localMatrix);
           }
           if (data.leaderboard) {
             updateLeaderboardBadge(data.leaderboard.state);
-          }
-          if (data.domains) {
-            updateDomainsUI(data.domains.isHidden);
           }
         } catch (err) {}
       };
@@ -699,31 +733,20 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (e) {}
   }
 
-  // Active background poller to ensure continuous cross-device synchronization
-  async function pollSync() {
+  // Background poller to refresh jury evaluation matrix without disrupting active admin timer
+  async function pollMatrix() {
     try {
-      const res = await fetch('/api/timer');
+      const res = await fetch('/api/admin/preview');
       if (res.ok) {
         const data = await res.json();
-        if (data.timer) {
-          // If server timer has updated, apply it
-          if (data.timer.status !== localTimer.status || Math.abs((data.timer.remaining || 0) - localTimer.remaining) > 2) {
-            localTimer = data.timer;
-            renderTimer();
-          }
-        }
-        if (data.domains && typeof data.domains.isHidden === 'boolean') {
-          if (data.domains.isHidden !== isDomainsHidden) {
-            updateDomainsUI(data.domains.isHidden);
-          }
-        }
-        if (data.leaderboardState) {
-          updateLeaderboardBadge(data.leaderboardState);
+        if (data.teams) {
+          localMatrix = data;
+          renderMatrix(localMatrix);
         }
       }
     } catch (e) {}
   }
-  setInterval(pollSync, 2000);
+  setInterval(pollMatrix, 3500);
 
   // Initial Boot
   loadJudges();

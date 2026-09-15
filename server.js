@@ -141,7 +141,7 @@ function persistLeaderboardState() {
 
 // Domains Visibility State (Scrambled / Hidden vs Revealed)
 let domainsState = getEventState('domains_state', {
-  isHidden: false,
+  isHidden: true,
   updatedAt: Date.now()
 });
 
@@ -470,60 +470,80 @@ async function handleRequest(req, res) {
   }
 
   if (pathname === '/api/timer/start' && req.method === 'POST') {
-    if (timerState.status !== 'running') {
-      const now = Date.now();
-      timerState.status = 'running';
-      timerState.startTimestamp = now;
-      timerState.endTimestamp = now + timerState.remaining * 1000;
-      timerState.lastUpdated = now;
-      persistTimerState();
-      broadcastSSE();
+    let body = {};
+    try { body = await parseJsonBody(req); } catch (e) {}
+    const now = Date.now();
+    timerState.status = 'running';
+    if (typeof body.duration === 'number' && body.duration > 0) {
+      timerState.duration = body.duration;
     }
+    if (typeof body.remaining === 'number') {
+      timerState.remaining = body.remaining;
+    }
+    timerState.startTimestamp = body.startTimestamp || now;
+    timerState.endTimestamp = body.endTimestamp || (now + (timerState.remaining || timerState.duration) * 1000);
+    timerState.lastUpdated = body.lastUpdated || now;
+    persistTimerState();
+    broadcastSSE();
     return sendJson(res, 200, { ok: true, timer: timerState });
   }
 
   if (pathname === '/api/timer/pause' && req.method === 'POST') {
-    if (timerState.status === 'running') {
-      const now = Date.now();
+    let body = {};
+    try { body = await parseJsonBody(req); } catch (e) {}
+    const now = Date.now();
+    timerState.status = 'paused';
+    if (typeof body.remaining === 'number') {
+      timerState.remaining = body.remaining;
+    } else if (timerState.endTimestamp) {
       const diff = Math.ceil((timerState.endTimestamp - now) / 1000);
       timerState.remaining = Math.max(0, diff);
-      timerState.status = 'paused';
-      timerState.endTimestamp = null;
-      timerState.lastUpdated = now;
-      persistTimerState();
-      broadcastSSE();
     }
+    timerState.endTimestamp = null;
+    timerState.lastUpdated = body.lastUpdated || now;
+    persistTimerState();
+    broadcastSSE();
     return sendJson(res, 200, { ok: true, timer: timerState });
   }
 
   if (pathname === '/api/timer/resume' && req.method === 'POST') {
-    if (timerState.status === 'paused') {
-      const now = Date.now();
-      timerState.status = 'running';
-      timerState.endTimestamp = now + timerState.remaining * 1000;
-      timerState.lastUpdated = now;
-      persistTimerState();
-      broadcastSSE();
+    let body = {};
+    try { body = await parseJsonBody(req); } catch (e) {}
+    const now = Date.now();
+    timerState.status = 'running';
+    if (typeof body.remaining === 'number') {
+      timerState.remaining = body.remaining;
     }
+    timerState.endTimestamp = body.endTimestamp || (now + (timerState.remaining || timerState.duration) * 1000);
+    timerState.lastUpdated = body.lastUpdated || now;
+    persistTimerState();
+    broadcastSSE();
     return sendJson(res, 200, { ok: true, timer: timerState });
   }
 
   if (pathname === '/api/timer/stop' && req.method === 'POST') {
+    let body = {};
+    try { body = await parseJsonBody(req); } catch (e) {}
     timerState.status = 'stopped';
     timerState.remaining = 0;
     timerState.endTimestamp = null;
-    timerState.lastUpdated = Date.now();
+    timerState.lastUpdated = body.lastUpdated || Date.now();
     persistTimerState();
     broadcastSSE();
     return sendJson(res, 200, { ok: true, timer: timerState });
   }
 
   if (pathname === '/api/timer/reset' && req.method === 'POST') {
+    let body = {};
+    try { body = await parseJsonBody(req); } catch (e) {}
     timerState.status = 'idle';
+    if (typeof body.duration === 'number' && body.duration > 0) {
+      timerState.duration = body.duration;
+    }
     timerState.remaining = timerState.duration;
     timerState.startTimestamp = null;
     timerState.endTimestamp = null;
-    timerState.lastUpdated = Date.now();
+    timerState.lastUpdated = body.lastUpdated || Date.now();
     persistTimerState();
     broadcastSSE();
     return sendJson(res, 200, { ok: true, timer: timerState });
@@ -840,9 +860,22 @@ async function handleRequest(req, res) {
   }
 
   // --------------------------------------------------------------------------
-  // STATIC FILE SERVING
+  // STATIC FILE SERVING & ROUTE PROTECTION
   // --------------------------------------------------------------------------
-  let filePath = path.join(PUBLIC_DIR, pathname === '/' ? 'index.html' : pathname);
+  // Disallow /admin or /admin.html (return 404 for security)
+  if (pathname === '/admin' || pathname === '/admin.html') {
+    res.writeHead(404, { 'Content-Type': 'text/plain' });
+    return res.end('404 Not Found');
+  }
+
+  let normalizedPath = pathname;
+  if (normalizedPath === '/') {
+    normalizedPath = 'index.html';
+  } else if (normalizedPath === '/baseline') {
+    normalizedPath = 'baseline.html';
+  }
+
+  let filePath = path.join(PUBLIC_DIR, normalizedPath);
 
   // Directory traversal prevention
   if (!filePath.startsWith(PUBLIC_DIR)) {
@@ -893,7 +926,7 @@ if (require.main === module && !isVercel) {
     console.log('================================================================');
     console.log(`  > Participant Portal:   http://${localIP}:${PORT}`);
     console.log(`  > Judge Evaluation:     http://${localIP}:${PORT}/judge.html`);
-    console.log(`  > Admin Control Deck:   http://${localIP}:${PORT}/admin.html`);
+    console.log(`  > Admin Control Deck:   http://${localIP}:${PORT}/baseline`);
     console.log('----------------------------------------------------------------');
     console.log(`  > Database Engine:      Native SQLite (${isVercel ? 'Memory' : 'WAL'} Mode)`);
     console.log(`  > Database File:        ${dbPath}`);

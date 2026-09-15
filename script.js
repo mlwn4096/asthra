@@ -317,6 +317,11 @@
 
   function applyTimerState(newState) {
     if (!newState) return;
+    if (localTimerState && localTimerState.lastUpdated && newState.lastUpdated) {
+      if (newState.lastUpdated < localTimerState.lastUpdated) {
+        return; // Discard stale state from out-of-sync or cold container
+      }
+    }
     localTimerState = Object.assign({}, newState);
     renderTimerUI();
   }
@@ -457,7 +462,7 @@
             localStorage.setItem('astra_leaderboard_state', JSON.stringify(payload.leaderboard));
           }
           if (payload.domains && typeof payload.domains.isHidden === 'boolean') {
-            applyDomainsVisibility(payload.domains.isHidden);
+            applyDomainsVisibility(payload.domains.isHidden, payload.domains.updatedAt || payload.domains.lastUpdated || 0);
           }
         } catch (err) {}
       };
@@ -476,7 +481,7 @@
           localStorage.setItem(STORAGE_KEY, JSON.stringify(payload.timer));
         }
         if (payload.domains && typeof payload.domains.isHidden === 'boolean') {
-          applyDomainsVisibility(payload.domains.isHidden);
+          applyDomainsVisibility(payload.domains.isHidden, payload.domains.updatedAt || payload.domains.lastUpdated || 0);
         }
       }
     } catch (e) {}
@@ -494,17 +499,25 @@
   // ---------------------------------------------------------------------------
   // 06C. DOMAINS VISIBILITY EMBARGO / SCRAMBLE CONTROL
   // ---------------------------------------------------------------------------
+  let lastDomainsUpdatedAt = 0;
+
   async function loadDomainsVisibility() {
     try {
       const res = await fetch('/api/domains/visibility');
       if (res.ok) {
         const data = await res.json();
-        applyDomainsVisibility(data.isHidden);
+        applyDomainsVisibility(data.isHidden, data.updatedAt || data.lastUpdated || 0);
       }
     } catch (e) {}
   }
 
-  function applyDomainsVisibility(isHidden) {
+  function applyDomainsVisibility(isHidden, updatedAt = 0) {
+    if (updatedAt && lastDomainsUpdatedAt && updatedAt < lastDomainsUpdatedAt) {
+      return; // Ignore stale state from older container
+    }
+    if (updatedAt) {
+      lastDomainsUpdatedAt = updatedAt;
+    }
     const grid = document.getElementById('domains-grid');
     const banner = document.getElementById('domains-embargo-banner');
     if (grid) {

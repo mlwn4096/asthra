@@ -15,17 +15,18 @@ const STATE_FILE = path.join(os.tmpdir(), 'asthra_state_v1.json');
 // Default initial state
 function getDefaultState() {
   return {
+    lastUpdated: 0,
     timer: {
       status: 'idle', // 'idle' | 'running' | 'paused' | 'stopped'
       duration: 300,
       remaining: 300,
       startTimestamp: null,
       endTimestamp: null,
-      lastUpdated: Date.now()
+      lastUpdated: 0
     },
     domains: {
-      isHidden: false,
-      updatedAt: Date.now()
+      isHidden: true, // Concealed by default under jury embargo until kickoff
+      updatedAt: 0
     },
     leaderboard: {
       state: 'EMBARGOED', // 'EMBARGOED' | 'PUBLISHED'
@@ -38,7 +39,7 @@ function getDefaultState() {
         name: 'Chief Jury Alpha',
         key_hash: crypto.createHash('sha256').update('J-1001').digest('hex'),
         active: 1,
-        created_at: Date.now()
+        created_at: 0
       }
     ],
     sessions: {},
@@ -77,6 +78,33 @@ if (!global.__ASTRA_STATE) {
 }
 
 function getState() {
+  try {
+    if (fs.existsSync(STATE_FILE)) {
+      const disk = JSON.parse(fs.readFileSync(STATE_FILE, 'utf8'));
+      if (disk) {
+        const diskTime = Math.max(
+          disk.lastUpdated || 0,
+          disk.timer?.lastUpdated || 0,
+          disk.domains?.updatedAt || 0,
+          disk.leaderboard?.publishedAt || 0
+        );
+        const memTime = Math.max(
+          global.__ASTRA_STATE?.lastUpdated || 0,
+          global.__ASTRA_STATE?.timer?.lastUpdated || 0,
+          global.__ASTRA_STATE?.domains?.updatedAt || 0,
+          global.__ASTRA_STATE?.leaderboard?.publishedAt || 0
+        );
+        if (diskTime >= memTime) {
+          global.__ASTRA_STATE = disk;
+        }
+      }
+    }
+  } catch (e) {}
+
+  if (!global.__ASTRA_STATE) {
+    global.__ASTRA_STATE = getDefaultState();
+  }
+
   // Sync live timer ticks
   const timer = global.__ASTRA_STATE.timer;
   if (timer.status === 'running' && timer.endTimestamp) {
@@ -96,7 +124,10 @@ function getState() {
 
 function persistState() {
   try {
-    fs.writeFileSync(STATE_FILE, JSON.stringify(global.__ASTRA_STATE), 'utf8');
+    if (global.__ASTRA_STATE) {
+      global.__ASTRA_STATE.lastUpdated = Date.now();
+      fs.writeFileSync(STATE_FILE, JSON.stringify(global.__ASTRA_STATE), 'utf8');
+    }
   } catch (e) {}
 }
 
@@ -261,54 +292,76 @@ module.exports = async function handler(req, res) {
   }
 
   if (pathname === '/api/timer/start' && req.method === 'POST') {
+    let body = {};
+    try { body = await parseJsonBody(req); } catch (e) {}
     const now = Date.now();
     state.timer.status = 'running';
-    state.timer.startTimestamp = now;
-    state.timer.endTimestamp = now + (state.timer.remaining || state.timer.duration) * 1000;
-    state.timer.lastUpdated = now;
+    if (typeof body.duration === 'number' && body.duration > 0) {
+      state.timer.duration = body.duration;
+    }
+    if (typeof body.remaining === 'number') {
+      state.timer.remaining = body.remaining;
+    }
+    state.timer.startTimestamp = body.startTimestamp || now;
+    state.timer.endTimestamp = body.endTimestamp || (now + (state.timer.remaining || state.timer.duration) * 1000);
+    state.timer.lastUpdated = body.lastUpdated || now;
     persistState();
     return sendJson(res, 200, { ok: true, timer: state.timer });
   }
 
   if (pathname === '/api/timer/pause' && req.method === 'POST') {
-    if (state.timer.status === 'running') {
-      const now = Date.now();
+    let body = {};
+    try { body = await parseJsonBody(req); } catch (e) {}
+    const now = Date.now();
+    state.timer.status = 'paused';
+    if (typeof body.remaining === 'number') {
+      state.timer.remaining = body.remaining;
+    } else if (state.timer.endTimestamp) {
       const diff = Math.ceil((state.timer.endTimestamp - now) / 1000);
       state.timer.remaining = Math.max(0, diff);
-      state.timer.status = 'paused';
-      state.timer.endTimestamp = null;
-      state.timer.lastUpdated = now;
-      persistState();
     }
+    state.timer.endTimestamp = null;
+    state.timer.lastUpdated = body.lastUpdated || now;
+    persistState();
     return sendJson(res, 200, { ok: true, timer: state.timer });
   }
 
   if (pathname === '/api/timer/resume' && req.method === 'POST') {
-    if (state.timer.status === 'paused') {
-      const now = Date.now();
-      state.timer.status = 'running';
-      state.timer.endTimestamp = now + (state.timer.remaining || state.timer.duration) * 1000;
-      state.timer.lastUpdated = now;
-      persistState();
+    let body = {};
+    try { body = await parseJsonBody(req); } catch (e) {}
+    const now = Date.now();
+    state.timer.status = 'running';
+    if (typeof body.remaining === 'number') {
+      state.timer.remaining = body.remaining;
     }
+    state.timer.endTimestamp = body.endTimestamp || (now + (state.timer.remaining || state.timer.duration) * 1000);
+    state.timer.lastUpdated = body.lastUpdated || now;
+    persistState();
     return sendJson(res, 200, { ok: true, timer: state.timer });
   }
 
   if (pathname === '/api/timer/stop' && req.method === 'POST') {
+    let body = {};
+    try { body = await parseJsonBody(req); } catch (e) {}
     state.timer.status = 'stopped';
     state.timer.remaining = 0;
     state.timer.endTimestamp = null;
-    state.timer.lastUpdated = Date.now();
+    state.timer.lastUpdated = body.lastUpdated || Date.now();
     persistState();
     return sendJson(res, 200, { ok: true, timer: state.timer });
   }
 
   if (pathname === '/api/timer/reset' && req.method === 'POST') {
+    let body = {};
+    try { body = await parseJsonBody(req); } catch (e) {}
     state.timer.status = 'idle';
+    if (typeof body.duration === 'number' && body.duration > 0) {
+      state.timer.duration = body.duration;
+    }
     state.timer.remaining = state.timer.duration;
     state.timer.startTimestamp = null;
     state.timer.endTimestamp = null;
-    state.timer.lastUpdated = Date.now();
+    state.timer.lastUpdated = body.lastUpdated || Date.now();
     persistState();
     return sendJson(res, 200, { ok: true, timer: state.timer });
   }
@@ -331,7 +384,7 @@ module.exports = async function handler(req, res) {
         remaining: duration,
         startTimestamp: null,
         endTimestamp: null,
-        lastUpdated: Date.now()
+        lastUpdated: body.lastUpdated || Date.now()
       };
       persistState();
       return sendJson(res, 200, { ok: true, timer: state.timer });
@@ -355,7 +408,7 @@ module.exports = async function handler(req, res) {
         } else {
           state.domains.isHidden = !state.domains.isHidden;
         }
-        state.domains.updatedAt = Date.now();
+        state.domains.updatedAt = typeof body.updatedAt === 'number' ? body.updatedAt : Date.now();
         persistState();
         return sendJson(res, 200, { ok: true, domains: state.domains });
       } catch (e) {
