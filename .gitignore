@@ -13,3 +13,4 @@ node_modules/
 # SQLite runtime databases
 data/*.db*
 
+.vercel

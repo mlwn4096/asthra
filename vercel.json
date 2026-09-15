@@ -1,8 +1,29 @@
 {
-  "cleanUrls": true,
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api" },
-    { "source": "/admin", "destination": "/admin.html" },
-    { "source": "/judge", "destination": "/judge.html" }
+  "version": 2,
+  "builds": [
+    {
+      "src": "*",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "assets/**/*",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "fonts/**/*",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "api/**/*",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    { "src": "^/admin$", "dest": "/admin.html" },
+    { "src": "^/judge$", "dest": "/judge.html" },
+    { "src": "^/api/domains/visibility$", "dest": "/api/domains/visibility.json" },
+    { "src": "^/api/status$", "dest": "/api/status.json" },
+    { "handle": "filesystem" },
+    { "src": "^/(.*)$", "dest": "/$1" }
   ]
 }
