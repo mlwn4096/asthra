@@ -249,7 +249,7 @@ module.exports = async function handler(req, res) {
   // 1. TIMER ENDPOINTS
   // --------------------------------------------------------------------------
   if (pathname === '/api/timer' || pathname === '/api/status') {
-    if (req.method === 'GET') {
+    if (req.method === 'GET' || req.method === 'HEAD') {
       return sendJson(res, 200, {
         ok: true,
         online: true,
