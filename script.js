@@ -439,6 +439,36 @@
     }
   } catch (e) {}
 
+  // Cross-tab local synchronization via BroadcastChannel and Storage Event
+  try {
+    if ('BroadcastChannel' in window) {
+      const syncBc = new BroadcastChannel('astra_timer_sync_channel');
+      syncBc.onmessage = (e) => {
+        if (e.data) {
+          if (e.data.type === 'TIMER_UPDATE' && e.data.state) {
+            applyTimerState(e.data.state);
+          } else if (e.data.type === 'DOMAINS_UPDATE' && e.data.state) {
+            applyDomainsVisibility(e.data.state.isHidden, Date.now());
+          } else if (e.data.type === 'LEADERBOARD_UPDATE' && e.data.state) {
+            applyLeaderboardState(e.data.state);
+          }
+        }
+      };
+    }
+  } catch (err) {}
+
+  window.addEventListener('storage', (e) => {
+    try {
+      if (e.key === STORAGE_KEY && e.newValue) {
+        applyTimerState(JSON.parse(e.newValue));
+      } else if (e.key === 'astra_leaderboard_state' && e.newValue) {
+        applyLeaderboardState(JSON.parse(e.newValue));
+      } else if (e.key === 'astra_domains_hidden' && e.newValue) {
+        applyDomainsVisibility(JSON.parse(e.newValue), Date.now());
+      }
+    } catch (err) {}
+  });
+
   // ---------------------------------------------------------------------------
   // 06. SERVER SYNC FOR BOTH TIMER & LEADERBOARD (SSE STREAM)
   // ---------------------------------------------------------------------------

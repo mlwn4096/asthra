@@ -748,7 +748,25 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   setInterval(pollMatrix, 3500);
 
+  async function loadTimerState() {
+    try {
+      const res = await fetch('/api/timer');
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.timer && typeof data.timer.remaining === 'number') {
+        const srvTime = data.timer.lastUpdated || 0;
+        const localTime = localTimer.lastUpdated || 0;
+        if (srvTime > localTime) {
+          localTimer = data.timer;
+          broadcastTimer(localTimer);
+          renderTimer();
+        }
+      }
+    } catch (e) {}
+  }
+
   // Initial Boot
+  loadTimerState();
   loadJudges();
   loadMatrix();
   loadLeaderboardState();
