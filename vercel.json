@@ -1,5 +1,4 @@
 {
-  "name": "buildabot",
   "cleanUrls": true,
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api" },
