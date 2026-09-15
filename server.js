@@ -23,7 +23,8 @@ const { DatabaseSync } = require('node:sqlite');
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = __dirname;
-const DATA_DIR = path.join(__dirname, 'data');
+const isVercel = Boolean(process.env.VERCEL);
+const DATA_DIR = isVercel ? '/tmp' : path.join(__dirname, 'data');
 
 if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -35,8 +36,12 @@ if (!fs.existsSync(DATA_DIR)) {
 const dbPath = path.join(DATA_DIR, 'asthra.db');
 const db = new DatabaseSync(dbPath);
 
-// Enable Write-Ahead Logging for high-concurrency read/write & Foreign Keys
-db.exec('PRAGMA journal_mode = WAL;');
+// Enable Write-Ahead Logging or In-Memory journaling for serverless, and Foreign Keys
+if (isVercel) {
+  db.exec('PRAGMA journal_mode = MEMORY;');
+} else {
+  db.exec('PRAGMA journal_mode = WAL;');
+}
 db.exec('PRAGMA foreign_keys = ON;');
 
 // Initialize Tables
@@ -383,8 +388,8 @@ const MIME_TYPES = {
   '.md': 'text/markdown; charset=utf-8'
 };
 
-const server = http.createServer(async (req, res) => {
-  const urlObj = new URL(req.url, `http://${req.headers.host}`);
+async function handleRequest(req, res) {
+  const urlObj = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   const pathname = urlObj.pathname;
 
   // Handle CORS preflight
@@ -863,7 +868,9 @@ const server = http.createServer(async (req, res) => {
     const stream = fs.createReadStream(filePath);
     stream.pipe(res);
   });
-});
+}
+
+const server = http.createServer(handleRequest);
 
 function getLocalIP() {
   const interfaces = os.networkInterfaces();
@@ -878,17 +885,21 @@ function getLocalIP() {
   return 'localhost';
 }
 
-server.listen(PORT, '0.0.0.0', () => {
-  const localIP = getLocalIP();
-  console.log('================================================================');
-  console.log('  ASTRA 11.0 // BUILD-A-BOT PRODUCTION SERVER ONLINE');
-  console.log('================================================================');
-  console.log(`  > Participant Portal:   http://${localIP}:${PORT}`);
-  console.log(`  > Judge Evaluation:     http://${localIP}:${PORT}/judge.html`);
-  console.log(`  > Admin Control Deck:   http://${localIP}:${PORT}/admin.html`);
-  console.log('----------------------------------------------------------------');
-  console.log(`  > Database Engine:      Native SQLite (WAL Mode)`);
-  console.log(`  > Database File:        ${dbPath}`);
-  console.log('  Ready. Multi-Judge & Timer live synchronization active.');
-  console.log('================================================================');
-});
+if (require.main === module && !isVercel) {
+  server.listen(PORT, '0.0.0.0', () => {
+    const localIP = getLocalIP();
+    console.log('================================================================');
+    console.log('  ASTRA 11.0 // BUILD-A-BOT PRODUCTION SERVER ONLINE');
+    console.log('================================================================');
+    console.log(`  > Participant Portal:   http://${localIP}:${PORT}`);
+    console.log(`  > Judge Evaluation:     http://${localIP}:${PORT}/judge.html`);
+    console.log(`  > Admin Control Deck:   http://${localIP}:${PORT}/admin.html`);
+    console.log('----------------------------------------------------------------');
+    console.log(`  > Database Engine:      Native SQLite (${isVercel ? 'Memory' : 'WAL'} Mode)`);
+    console.log(`  > Database File:        ${dbPath}`);
+    console.log('  Ready. Multi-Judge & Timer live synchronization active.');
+    console.log('================================================================');
+  });
+}
+
+module.exports = handleRequest;
