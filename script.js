@@ -89,7 +89,7 @@
 
   // Attach hover & click sound to interactive elements
   function attachSounds() {
-    document.querySelectorAll('.btn, .nav-item, .domain-card, .domain-plus-btn, .theme-btn, .jump-pill, .move-to-top-btn').forEach(el => {
+    document.querySelectorAll('.btn, .nav-item, .domain-card, .rule-accordion-header, .theme-btn, .jump-pill, .jump-action-btn, .move-to-top-btn').forEach(el => {
       el.addEventListener('mouseenter', () => playSound('hover'));
       el.addEventListener('click', () => playSound('click'));
     });
@@ -157,51 +157,36 @@
   }
 
   // ---------------------------------------------------------------------------
-  // 03. 15 DOMAINS ACCORDION DROPDOWNS (PLUS TOGGLE)
+  // 03. SPRINT RULES & DIRECTIVES EXPANDABLE ACCORDIONS
   // ---------------------------------------------------------------------------
-  const domainCards = document.querySelectorAll('.domain-card');
+  const ruleAccordionCards = document.querySelectorAll('.rule-accordion-card');
 
-  domainCards.forEach(card => {
-    if (card.classList.contains('domain-card-alert')) return;
+  ruleAccordionCards.forEach(card => {
+    const headerBtn = card.querySelector('.rule-accordion-header');
+    if (!headerBtn) return;
 
-    const plusBtn = card.querySelector('.domain-plus-btn');
-    const header = card.querySelector('.domain-card-header');
-
-    function toggleCard(e) {
-      if (e.target.tagName.toLowerCase() === 'a') return;
-
+    headerBtn.addEventListener('click', () => {
       const wasActive = card.classList.contains('active');
 
-      // Collapse other open cards for clean reading
-      domainCards.forEach(c => {
-        if (c !== card && !c.classList.contains('domain-card-alert')) {
+      // Collapse other open accordions for clean focus
+      ruleAccordionCards.forEach(c => {
+        if (c !== card) {
           c.classList.remove('active');
-          const btn = c.querySelector('.domain-plus-btn');
+          const btn = c.querySelector('.rule-accordion-header');
           if (btn) btn.setAttribute('aria-expanded', 'false');
         }
       });
 
       if (!wasActive) {
         card.classList.add('active');
-        if (plusBtn) plusBtn.setAttribute('aria-expanded', 'true');
+        headerBtn.setAttribute('aria-expanded', 'true');
         playSound('click');
       } else {
         card.classList.remove('active');
-        if (plusBtn) plusBtn.setAttribute('aria-expanded', 'false');
+        headerBtn.setAttribute('aria-expanded', 'false');
         playSound('click');
       }
-    }
-
-    if (plusBtn) {
-      plusBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleCard(e);
-      });
-    }
-
-    if (header) {
-      header.addEventListener('click', toggleCard);
-    }
+    });
   });
 
   // ---------------------------------------------------------------------------
@@ -369,11 +354,11 @@
       if (leaderboardTrackerStatus) leaderboardTrackerStatus.textContent = 'EMBARGO STATUS: RELEASED ●';
 
       if (leaderboardJumpPill) {
-        leaderboardJumpPill.innerHTML = '<span class="pill-num">06</span> 🏆 LEADERBOARD';
+        leaderboardJumpPill.innerHTML = '<span class="pill-num">03</span> 🏆 LEADERBOARD';
         leaderboardJumpPill.classList.add('active-result');
       }
       if (leaderboardNavPill) {
-        leaderboardNavPill.innerHTML = '<span class="nav-num">06</span>🏆 LEADERBOARD';
+        leaderboardNavPill.innerHTML = '<span class="nav-num">03</span>🏆 LEADERBOARD';
       }
 
       if (leaderboardReleasedTime && lbState.publishedAt) {
@@ -426,11 +411,11 @@
       if (leaderboardTrackerStatus) leaderboardTrackerStatus.textContent = 'EMBARGO STATUS: LOCKED 🔒';
 
       if (leaderboardJumpPill) {
-        leaderboardJumpPill.innerHTML = '<span class="pill-num">06</span> 🔒 LEADERBOARD';
+        leaderboardJumpPill.innerHTML = '<span class="pill-num">03</span> 🔒 LEADERBOARD';
         leaderboardJumpPill.classList.remove('active-result');
       }
       if (leaderboardNavPill) {
-        leaderboardNavPill.innerHTML = '<span class="nav-num">06</span>🔒 LEADERBOARD';
+        leaderboardNavPill.innerHTML = '<span class="nav-num">03</span>🔒 LEADERBOARD';
       }
     }
   }

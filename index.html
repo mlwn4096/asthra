@@ -16,25 +16,27 @@
 <body class="theme-dark">
 
   <!-- ================================================================= -->
-  <!-- FIXED TOP SYNCHRONIZED PITCH TIMER BAR (ADMIN CONTROLLED)         -->
+  <!-- FIXED RECTANGULAR PITCH TIMER WIDGET (TOP RIGHT CORNER)           -->
   <!-- ================================================================= -->
-  <div id="top-sync-timer" class="top-sync-timer timer-standby" aria-live="polite">
-    <div class="top-timer-container">
-      <div class="top-timer-status-col">
-        <span class="timer-live-dot" id="top-timer-dot"></span>
-        <span class="top-timer-label" id="top-timer-status-text">PITCH TIMER // STANDBY</span>
+  <aside id="top-sync-timer" class="corner-sync-timer timer-standby" aria-live="polite">
+    <div class="corner-timer-card">
+      <div class="corner-timer-header">
+        <div class="corner-timer-status">
+          <span class="timer-live-dot" id="top-timer-dot"></span>
+          <span class="top-timer-label" id="top-timer-status-text">PITCH TIMER // STANDBY</span>
+        </div>
       </div>
-      <div class="top-timer-digits-col">
-        <span class="top-timer-clock" id="top-sync-clock">05:00</span>
+      <div class="corner-timer-display">
+        <span class="corner-timer-digits" id="top-sync-clock">05:00</span>
       </div>
-      <div class="top-timer-phase-col">
-        <span class="top-timer-phase-badge" id="top-sync-phase">AWAITING ADMIN KICKOFF</span>
+      <div class="corner-timer-footer">
+        <span class="corner-timer-phase-badge" id="top-sync-phase">AWAITING ADMIN KICKOFF</span>
+      </div>
+      <div class="corner-timer-progress-track">
+        <div class="corner-timer-progress-fill" id="top-sync-progress"></div>
       </div>
     </div>
-    <div class="top-timer-progress-track">
-      <div class="top-timer-progress-fill" id="top-sync-progress"></div>
-    </div>
-  </div>
+  </aside>
 
   <!-- Ambient Telemetry & Controls Bar -->
   <div class="telemetry-bar">
@@ -71,11 +73,8 @@
 
       <nav class="nav-links">
         <a href="#domains" class="nav-item highlight-nav"><span class="nav-num">01</span>DOMAINS (15)</a>
-        <a href="#directive" class="nav-item"><span class="nav-num">02</span>! MANDATORY</a>
-        <a href="#rules" class="nav-item"><span class="nav-num">03</span>RULES</a>
-        <a href="#pitch" class="nav-item"><span class="nav-num">04</span>PITCH (5M)</a>
-        <a href="#conduct" class="nav-item"><span class="nav-num">05</span>CONDUCT</a>
-        <a href="#leaderboard" class="nav-item pill-leaderboard-nav"><span class="nav-num">06</span>🔒 LEADERBOARD</a>
+        <a href="#rules" class="nav-item"><span class="nav-num">02</span>RULES &amp; DIRECTIVES</a>
+        <a href="#leaderboard" class="nav-item pill-leaderboard-nav"><span class="nav-num">03</span>🔒 LEADERBOARD</a>
       </nav>
 
       <div class="nav-actions">
@@ -96,17 +95,21 @@
     <div class="container quick-jump-container">
       <span class="jump-label">QUICK ACCESS:</span>
       <div class="jump-pills-track">
-        <a href="#directive" class="jump-action-btn" data-target="directive">
+        <a href="#domains" class="jump-action-btn" data-target="domains">
           <span class="btn-bullet text-red">■</span>
-          <span>MANDATORY</span>
+          <span>15 DOMAINS</span>
         </a>
         <a href="#rules" class="jump-action-btn" data-target="rules">
           <span class="btn-bullet text-red">■</span>
-          <span>RULES</span>
+          <span>RULES &amp; DIRECTIVES</span>
         </a>
         <a href="#leaderboard" class="jump-action-btn pill-leaderboard-jump" data-target="leaderboard">
           <span>🔒</span>
           <span>LEADERBOARD</span>
+        </a>
+        <a href="participate.pdf" download="participate.pdf" class="jump-action-btn">
+          <span>⬇</span>
+          <span>PARTICIPATE.PDF</span>
         </a>
       </div>
     </div>
@@ -123,11 +126,8 @@
     </div>
     <div class="drawer-links">
       <a href="#domains" class="drawer-item"><span class="nav-num">01</span> 15 PREDEFINED DOMAINS</a>
-      <a href="#directive" class="drawer-item drawer-alert"><span class="nav-num">02</span> ! MANDATORY DIRECTIVE</a>
-      <a href="#rules" class="drawer-item"><span class="nav-num">03</span> RULES &amp; CODE INTEGRITY</a>
-      <a href="#pitch" class="drawer-item"><span class="nav-num">04</span> 5-MINUTE PITCH PROTOCOL</a>
-      <a href="#conduct" class="drawer-item"><span class="nav-num">05</span> ZERO TOLERANCE CONDUCT</a>
-      <a href="#leaderboard" class="drawer-item drawer-leaderboard"><span class="nav-num">06</span> 🔒 LEADERBOARD</a>
+      <a href="#rules" class="drawer-item drawer-alert"><span class="nav-num">02</span> ! RULES &amp; DIRECTIVES</a>
+      <a href="#leaderboard" class="drawer-item drawer-leaderboard"><span class="nav-num">03</span> 🔒 LEADERBOARD</a>
     </div>
     <div class="drawer-footer">
       <button id="drawer-theme-toggle" class="btn btn-outline btn-block mb-3">
@@ -194,7 +194,7 @@
             <span class="btn-arrow">↓</span>
           </a>
           <a href="#rules" class="btn btn-outline btn-lg">
-            <span>EVENT RULES</span>
+            <span>RULES &amp; DIRECTIVES</span>
           </a>
           <a href="participate.pdf" download class="btn btn-subtle btn-lg">
             <span>DOWNLOAD PARTICIPATE.PDF</span>
@@ -231,7 +231,7 @@
           </div>
           <h2 class="section-title">15 PREDEFINED TECHNOLOGY DOMAINS</h2>
           <p class="section-subtext">
-            Every team must select their problem statement exclusively from one of the 15 Predefined Technology Domains listed below. Open choosing is strictly prohibited. Click the plus (<span class="text-red">+</span>) icon on any domain card to view optional prototype scope and conceptual ideas.
+            Every team must select their problem statement exclusively from one of the 15 Predefined Technology Domains listed below. Open choosing is strictly prohibited.
           </p>
         </div>
 
@@ -242,27 +242,10 @@
           <div class="domain-card" data-domain="1">
             <div class="domain-card-inner">
               <div class="domain-card-header">
-                <div class="domain-header-left">
-                  <span class="domain-badge">01</span>
-                  <span class="domain-tag">INTELLIGENCE</span>
-                </div>
-                <button class="domain-plus-btn" aria-label="Toggle Scope Details" title="Expand Scope">
-                  <span class="plus-icon">+</span>
-                </button>
+                <span class="domain-badge">01</span>
+                <span class="domain-tag">INTELLIGENCE</span>
               </div>
               <h3 class="domain-title">AI AGENTS &amp; AUTONOMOUS SYSTEMS</h3>
-              <div class="domain-dropdown">
-                <div class="scope-disclaimer">
-                  <span class="disclaimer-pill">OPTIONAL GUIDELINE</span>
-                  <p><strong>NOTE:</strong> The suggested scope and focus below are <strong>completely optional</strong> and not mandatory. They are provided solely for conceptual understanding and inspiration.</p>
-                </div>
-                <div class="scope-content">
-                  <h4 class="scope-subtitle">SUGGESTED PROTOTYPE SCOPE:</h4>
-                  <p>Build practical autonomous workflows where agents perceive input, decompose tasks, query tools/APIs, and execute verifiable actions without manual prompting.</p>
-                  <h4 class="scope-subtitle mt-2">TECHNICAL VECTORS:</h4>
-                  <p>Agentic loop frameworks (LangGraph, CrewAI, AutoGen), tool calling, autonomous triage bots, local model orchestration.</p>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -270,27 +253,10 @@
           <div class="domain-card" data-domain="2">
             <div class="domain-card-inner">
               <div class="domain-card-header">
-                <div class="domain-header-left">
-                  <span class="domain-badge">02</span>
-                  <span class="domain-tag">CIVIC TECH</span>
-                </div>
-                <button class="domain-plus-btn" aria-label="Toggle Scope Details" title="Expand Scope">
-                  <span class="plus-icon">+</span>
-                </button>
+                <span class="domain-badge">02</span>
+                <span class="domain-tag">CIVIC TECH</span>
               </div>
               <h3 class="domain-title">SMART CITIES &amp; URBAN TECHNOLOGY</h3>
-              <div class="domain-dropdown">
-                <div class="scope-disclaimer">
-                  <span class="disclaimer-pill">OPTIONAL GUIDELINE</span>
-                  <p><strong>NOTE:</strong> The suggested scope and focus below are <strong>completely optional</strong> and not mandatory. They are provided solely for conceptual understanding and inspiration.</p>
-                </div>
-                <div class="scope-content">
-                  <h4 class="scope-subtitle">SUGGESTED PROTOTYPE SCOPE:</h4>
-                  <p>Simulate or implement live urban telemetry, civic crowd-reporting, sensor-driven energy optimization, or dynamic congestion control systems.</p>
-                  <h4 class="scope-subtitle mt-2">TECHNICAL VECTORS:</h4>
-                  <p>Civic issue reporting with geo-fencing, dynamic traffic signal controllers, smart waste route solvers, grid telemetry visualizers.</p>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -298,27 +264,10 @@
           <div class="domain-card" data-domain="3">
             <div class="domain-card-inner">
               <div class="domain-card-header">
-                <div class="domain-header-left">
-                  <span class="domain-badge">03</span>
-                  <span class="domain-tag">HEALTH</span>
-                </div>
-                <button class="domain-plus-btn" aria-label="Toggle Scope Details" title="Expand Scope">
-                  <span class="plus-icon">+</span>
-                </button>
+                <span class="domain-badge">03</span>
+                <span class="domain-tag">HEALTH</span>
               </div>
               <h3 class="domain-title">HEALTHCARE &amp; WELLBEING TECHNOLOGY</h3>
-              <div class="domain-dropdown">
-                <div class="scope-disclaimer">
-                  <span class="disclaimer-pill">OPTIONAL GUIDELINE</span>
-                  <p><strong>NOTE:</strong> The suggested scope and focus below are <strong>completely optional</strong> and not mandatory. They are provided solely for conceptual understanding and inspiration.</p>
-                </div>
-                <div class="scope-content">
-                  <h4 class="scope-subtitle">SUGGESTED PROTOTYPE SCOPE:</h4>
-                  <p>Deliver working diagnostic tools, telemedicine schedulers, wearable health telemetry pipelines, or accessible wellness trackers.</p>
-                  <h4 class="scope-subtitle mt-2">TECHNICAL VECTORS:</h4>
-                  <p>Prescription OCR and intake reminders, vitals anomaly detection, automated symptom triage, elderly motion/fall alert monitors.</p>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -326,27 +275,10 @@
           <div class="domain-card" data-domain="4">
             <div class="domain-card-inner">
               <div class="domain-card-header">
-                <div class="domain-header-left">
-                  <span class="domain-badge">04</span>
-                  <span class="domain-tag">HARDWARE / EMBEDDED</span>
-                </div>
-                <button class="domain-plus-btn" aria-label="Toggle Scope Details" title="Expand Scope">
-                  <span class="plus-icon">+</span>
-                </button>
+                <span class="domain-badge">04</span>
+                <span class="domain-tag">HARDWARE / EMBEDDED</span>
               </div>
               <h3 class="domain-title">ROBOTICS, IOT &amp; INTELLIGENT DEVICES</h3>
-              <div class="domain-dropdown">
-                <div class="scope-disclaimer">
-                  <span class="disclaimer-pill">OPTIONAL GUIDELINE</span>
-                  <p><strong>NOTE:</strong> The suggested scope and focus below are <strong>completely optional</strong> and not mandatory. They are provided solely for conceptual understanding and inspiration.</p>
-                </div>
-                <div class="scope-content">
-                  <h4 class="scope-subtitle">SUGGESTED PROTOTYPE SCOPE:</h4>
-                  <p>Present a physical or simulated hardware-in-the-loop prototype running embedded firmware, sensor polling, or autonomous kinetic movements.</p>
-                  <h4 class="scope-subtitle mt-2">TECHNICAL VECTORS:</h4>
-                  <p>ESP32 / Arduino sensor telemetry, robotic kinematics simulators, edge computer vision appliances, MQTT hardware pipelines.</p>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -354,27 +286,10 @@
           <div class="domain-card" data-domain="5">
             <div class="domain-card-inner">
               <div class="domain-card-header">
-                <div class="domain-header-left">
-                  <span class="domain-badge">05</span>
-                  <span class="domain-tag">RESILIENCE</span>
-                </div>
-                <button class="domain-plus-btn" aria-label="Toggle Scope Details" title="Expand Scope">
-                  <span class="plus-icon">+</span>
-                </button>
+                <span class="domain-badge">05</span>
+                <span class="domain-tag">RESILIENCE</span>
               </div>
               <h3 class="domain-title">DISASTER MANAGEMENT &amp; EMERGENCY TECH</h3>
-              <div class="domain-dropdown">
-                <div class="scope-disclaimer">
-                  <span class="disclaimer-pill">OPTIONAL GUIDELINE</span>
-                  <p><strong>NOTE:</strong> The suggested scope and focus below are <strong>completely optional</strong> and not mandatory. They are provided solely for conceptual understanding and inspiration.</p>
-                </div>
-                <div class="scope-content">
-                  <h4 class="scope-subtitle">SUGGESTED PROTOTYPE SCOPE:</h4>
-                  <p>Build resilient crisis dispatch platforms, automated geo-fenced SOS routing, or real-time flood/landslide telemetry visualizers.</p>
-                  <h4 class="scope-subtitle mt-2">TECHNICAL VECTORS:</h4>
-                  <p>Offline peer-to-peer distress relays, emergency supply chain dispatchers, hazard shelter route solvers, satellite flood map parsers.</p>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -382,27 +297,10 @@
           <div class="domain-card" data-domain="6">
             <div class="domain-card-inner">
               <div class="domain-card-header">
-                <div class="domain-header-left">
-                  <span class="domain-badge">06</span>
-                  <span class="domain-tag">APPLIED AI</span>
-                </div>
-                <button class="domain-plus-btn" aria-label="Toggle Scope Details" title="Expand Scope">
-                  <span class="plus-icon">+</span>
-                </button>
+                <span class="domain-badge">06</span>
+                <span class="domain-tag">APPLIED AI</span>
               </div>
               <h3 class="domain-title">AI-POWERED APPLICATIONS</h3>
-              <div class="domain-dropdown">
-                <div class="scope-disclaimer">
-                  <span class="disclaimer-pill">OPTIONAL GUIDELINE</span>
-                  <p><strong>NOTE:</strong> The suggested scope and focus below are <strong>completely optional</strong> and not mandatory. They are provided solely for conceptual understanding and inspiration.</p>
-                </div>
-                <div class="scope-content">
-                  <h4 class="scope-subtitle">SUGGESTED PROTOTYPE SCOPE:</h4>
-                  <p>Working functional software with demonstrable AI inference, real-time visual parsing, semantic embeddings, or automated domain assistants.</p>
-                  <h4 class="scope-subtitle mt-2">TECHNICAL VECTORS:</h4>
-                  <p>Visual defect inspectors, multimodal research assistants, natural language querying over tabular datasets, audio transcription extractors.</p>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -410,27 +308,10 @@
           <div class="domain-card" data-domain="7">
             <div class="domain-card-inner">
               <div class="domain-card-header">
-                <div class="domain-header-left">
-                  <span class="domain-badge">07</span>
-                  <span class="domain-tag">SECURITY</span>
-                </div>
-                <button class="domain-plus-btn" aria-label="Toggle Scope Details" title="Expand Scope">
-                  <span class="plus-icon">+</span>
-                </button>
+                <span class="domain-badge">07</span>
+                <span class="domain-tag">SECURITY</span>
               </div>
               <h3 class="domain-title">CYBERSECURITY &amp; DIGITAL SAFETY</h3>
-              <div class="domain-dropdown">
-                <div class="scope-disclaimer">
-                  <span class="disclaimer-pill">OPTIONAL GUIDELINE</span>
-                  <p><strong>NOTE:</strong> The suggested scope and focus below are <strong>completely optional</strong> and not mandatory. They are provided solely for conceptual understanding and inspiration.</p>
-                </div>
-                <div class="scope-content">
-                  <h4 class="scope-subtitle">SUGGESTED PROTOTYPE SCOPE:</h4>
-                  <p>Demonstrate live attack simulation defense, malicious payload interceptors, automated anomaly detection, or privacy-preserving credentials.</p>
-                  <h4 class="scope-subtitle mt-2">TECHNICAL VECTORS:</h4>
-                  <p>Automated API security audit fuzzers, live phishing URL detectors, credential stuffing visualizers, zero-knowledge auth proofs.</p>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -438,27 +319,10 @@
           <div class="domain-card" data-domain="8">
             <div class="domain-card-inner">
               <div class="domain-card-header">
-                <div class="domain-header-left">
-                  <span class="domain-badge">08</span>
-                  <span class="domain-tag">EDTECH</span>
-                </div>
-                <button class="domain-plus-btn" aria-label="Toggle Scope Details" title="Expand Scope">
-                  <span class="plus-icon">+</span>
-                </button>
+                <span class="domain-badge">08</span>
+                <span class="domain-tag">EDTECH</span>
               </div>
               <h3 class="domain-title">EDUCATION &amp; LEARNING TECHNOLOGY</h3>
-              <div class="domain-dropdown">
-                <div class="scope-disclaimer">
-                  <span class="disclaimer-pill">OPTIONAL GUIDELINE</span>
-                  <p><strong>NOTE:</strong> The suggested scope and focus below are <strong>completely optional</strong> and not mandatory. They are provided solely for conceptual understanding and inspiration.</p>
-                </div>
-                <div class="scope-content">
-                  <h4 class="scope-subtitle">SUGGESTED PROTOTYPE SCOPE:</h4>
-                  <p>Working learning environment that dynamically alters curriculum difficulty, visualizes complex algorithms, or generates interactive practice quizzes.</p>
-                  <h4 class="scope-subtitle mt-2">TECHNICAL VECTORS:</h4>
-                  <p>Socratic AI tutor engines, dynamic interactive code sandboxes, algorithm step-by-step visualizers, personalized student mastery graphs.</p>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -466,27 +330,10 @@
           <div class="domain-card" data-domain="9">
             <div class="domain-card-inner">
               <div class="domain-card-header">
-                <div class="domain-header-left">
-                  <span class="domain-badge">09</span>
-                  <span class="domain-tag">INTEGRITY</span>
-                </div>
-                <button class="domain-plus-btn" aria-label="Toggle Scope Details" title="Expand Scope">
-                  <span class="plus-icon">+</span>
-                </button>
+                <span class="domain-badge">09</span>
+                <span class="domain-tag">INTEGRITY</span>
               </div>
               <h3 class="domain-title">MEDIA, CONTENT &amp; DIGITAL TRUST</h3>
-              <div class="domain-dropdown">
-                <div class="scope-disclaimer">
-                  <span class="disclaimer-pill">OPTIONAL GUIDELINE</span>
-                  <p><strong>NOTE:</strong> The suggested scope and focus below are <strong>completely optional</strong> and not mandatory. They are provided solely for conceptual understanding and inspiration.</p>
-                </div>
-                <div class="scope-content">
-                  <h4 class="scope-subtitle">SUGGESTED PROTOTYPE SCOPE:</h4>
-                  <p>Present a live content verification engine that tests media files against manipulated visual artifacts or cryptographic signatures.</p>
-                  <h4 class="scope-subtitle mt-2">TECHNICAL VECTORS:</h4>
-                  <p>Facial tampering detection models, audio voice-clone verifiers, automated fact-checking claim scrapers, cryptographic provenance stampers.</p>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -494,27 +341,10 @@
           <div class="domain-card" data-domain="10">
             <div class="domain-card-inner">
               <div class="domain-card-header">
-                <div class="domain-header-left">
-                  <span class="domain-badge">10</span>
-                  <span class="domain-tag">CLEANTECH</span>
-                </div>
-                <button class="domain-plus-btn" aria-label="Toggle Scope Details" title="Expand Scope">
-                  <span class="plus-icon">+</span>
-                </button>
+                <span class="domain-badge">10</span>
+                <span class="domain-tag">CLEANTECH</span>
               </div>
               <h3 class="domain-title">SUSTAINABILITY &amp; RESOURCE MANAGEMENT</h3>
-              <div class="domain-dropdown">
-                <div class="scope-disclaimer">
-                  <span class="disclaimer-pill">OPTIONAL GUIDELINE</span>
-                  <p><strong>NOTE:</strong> The suggested scope and focus below are <strong>completely optional</strong> and not mandatory. They are provided solely for conceptual understanding and inspiration.</p>
-                </div>
-                <div class="scope-content">
-                  <h4 class="scope-subtitle">SUGGESTED PROTOTYPE SCOPE:</h4>
-                  <p>Deliver actionable sustainability dashboards with verifiable energy audit models, real-time smart water monitoring, or waste-stream classifiers.</p>
-                  <h4 class="scope-subtitle mt-2">TECHNICAL VECTORS:</h4>
-                  <p>Precision soil moisture telemetry controllers, e-waste lifecycle trackers, building power consumption anomaly auditors, solar yield optimizers.</p>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -522,27 +352,10 @@
           <div class="domain-card" data-domain="11">
             <div class="domain-card-inner">
               <div class="domain-card-header">
-                <div class="domain-header-left">
-                  <span class="domain-badge">11</span>
-                  <span class="domain-tag">CAMPUS LIFE</span>
-                </div>
-                <button class="domain-plus-btn" aria-label="Toggle Scope Details" title="Expand Scope">
-                  <span class="plus-icon">+</span>
-                </button>
+                <span class="domain-badge">11</span>
+                <span class="domain-tag">CAMPUS LIFE</span>
               </div>
               <h3 class="domain-title">STUDENT PRODUCTIVITY &amp; CAMPUS TECH</h3>
-              <div class="domain-dropdown">
-                <div class="scope-disclaimer">
-                  <span class="disclaimer-pill">OPTIONAL GUIDELINE</span>
-                  <p><strong>NOTE:</strong> The suggested scope and focus below are <strong>completely optional</strong> and not mandatory. They are provided solely for conceptual understanding and inspiration.</p>
-                </div>
-                <div class="scope-content">
-                  <h4 class="scope-subtitle">SUGGESTED PROTOTYPE SCOPE:</h4>
-                  <p>Practical software solving real daily campus bottlenecks, automated attendance loggers, or multi-user study room collaboration spaces.</p>
-                  <h4 class="scope-subtitle mt-2">TECHNICAL VECTORS:</h4>
-                  <p>Academic timetable conflict solvers, campus navigation &amp; lost property matching, laboratory equipment booking queues, peer study groups.</p>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -550,27 +363,10 @@
           <div class="domain-card" data-domain="12">
             <div class="domain-card-inner">
               <div class="domain-card-header">
-                <div class="domain-header-left">
-                  <span class="domain-badge">12</span>
-                  <span class="domain-tag">ACCESSIBILITY</span>
-                </div>
-                <button class="domain-plus-btn" aria-label="Toggle Scope Details" title="Expand Scope">
-                  <span class="plus-icon">+</span>
-                </button>
+                <span class="domain-badge">12</span>
+                <span class="domain-tag">ACCESSIBILITY</span>
               </div>
               <h3 class="domain-title">ACCESSIBILITY &amp; INCLUSIVE TECH</h3>
-              <div class="domain-dropdown">
-                <div class="scope-disclaimer">
-                  <span class="disclaimer-pill">OPTIONAL GUIDELINE</span>
-                  <p><strong>NOTE:</strong> The suggested scope and focus below are <strong>completely optional</strong> and not mandatory. They are provided solely for conceptual understanding and inspiration.</p>
-                </div>
-                <div class="scope-content">
-                  <h4 class="scope-subtitle">SUGGESTED PROTOTYPE SCOPE:</h4>
-                  <p>Demonstrable inclusive software/hardware translating real-world inputs into accessible audio, tactile, or simplified high-contrast UI outputs.</p>
-                  <h4 class="scope-subtitle mt-2">TECHNICAL VECTORS:</h4>
-                  <p>Webcam gesture/sign language classifier, voice-driven headless navigation, high-contrast audio-guided screen readers, cognitive pacing aids.</p>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -578,27 +374,10 @@
           <div class="domain-card" data-domain="13">
             <div class="domain-card-inner">
               <div class="domain-card-header">
-                <div class="domain-header-left">
-                  <span class="domain-badge">13</span>
-                  <span class="domain-tag">DATA RETRIEVAL</span>
-                </div>
-                <button class="domain-plus-btn" aria-label="Toggle Scope Details" title="Expand Scope">
-                  <span class="plus-icon">+</span>
-                </button>
+                <span class="domain-badge">13</span>
+                <span class="domain-tag">DATA RETRIEVAL</span>
               </div>
               <h3 class="domain-title">INFORMATION MANAGEMENT</h3>
-              <div class="domain-dropdown">
-                <div class="scope-disclaimer">
-                  <span class="disclaimer-pill">OPTIONAL GUIDELINE</span>
-                  <p><strong>NOTE:</strong> The suggested scope and focus below are <strong>completely optional</strong> and not mandatory. They are provided solely for conceptual understanding and inspiration.</p>
-                </div>
-                <div class="scope-content">
-                  <h4 class="scope-subtitle">SUGGESTED PROTOTYPE SCOPE:</h4>
-                  <p>Working knowledge index with verified vector retrieval, instant citation extraction, or automated structured data normalization.</p>
-                  <h4 class="scope-subtitle mt-2">TECHNICAL VECTORS:</h4>
-                  <p>Local vector embeddings pipeline, automated citation extractors, hybrid dense/sparse search engines, structured entity graph synthesizers.</p>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -606,27 +385,10 @@
           <div class="domain-card" data-domain="14">
             <div class="domain-card-inner">
               <div class="domain-card-header">
-                <div class="domain-header-left">
-                  <span class="domain-badge">14</span>
-                  <span class="domain-tag">CREATIVE</span>
-                </div>
-                <button class="domain-plus-btn" aria-label="Toggle Scope Details" title="Expand Scope">
-                  <span class="plus-icon">+</span>
-                </button>
+                <span class="domain-badge">14</span>
+                <span class="domain-tag">CREATIVE</span>
               </div>
               <h3 class="domain-title">CREATIVE TECHNOLOGY &amp; MULTIMEDIA</h3>
-              <div class="domain-dropdown">
-                <div class="scope-disclaimer">
-                  <span class="disclaimer-pill">OPTIONAL GUIDELINE</span>
-                  <p><strong>NOTE:</strong> The suggested scope and focus below are <strong>completely optional</strong> and not mandatory. They are provided solely for conceptual understanding and inspiration.</p>
-                </div>
-                <div class="scope-content">
-                  <h4 class="scope-subtitle">SUGGESTED PROTOTYPE SCOPE:</h4>
-                  <p>An operational interactive application generating dynamic visual art, responsive music, spatial media canvas, or game-engine procedural tools.</p>
-                  <h4 class="scope-subtitle mt-2">TECHNICAL VECTORS:</h4>
-                  <p>Interactive WebGL shader sandboxes, Web Audio synthesizer engines, real-time collaborative generative canvas, procedural map generators.</p>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -634,27 +396,10 @@
           <div class="domain-card" data-domain="15">
             <div class="domain-card-inner">
               <div class="domain-card-header">
-                <div class="domain-header-left">
-                  <span class="domain-badge">15</span>
-                  <span class="domain-tag">INTELLIGENCE</span>
-                </div>
-                <button class="domain-plus-btn" aria-label="Toggle Scope Details" title="Expand Scope">
-                  <span class="plus-icon">+</span>
-                </button>
+                <span class="domain-badge">15</span>
+                <span class="domain-tag">INTELLIGENCE</span>
               </div>
               <h3 class="domain-title">DATA &amp; DECISION INTELLIGENCE</h3>
-              <div class="domain-dropdown">
-                <div class="scope-disclaimer">
-                  <span class="disclaimer-pill">OPTIONAL GUIDELINE</span>
-                  <p><strong>NOTE:</strong> The suggested scope and focus below are <strong>completely optional</strong> and not mandatory. They are provided solely for conceptual understanding and inspiration.</p>
-                </div>
-                <div class="scope-content">
-                  <h4 class="scope-subtitle">SUGGESTED PROTOTYPE SCOPE:</h4>
-                  <p>Working live telemetry or ingest pipeline executing real-time statistical inference, interactive parameter scenario modeling, or anomaly detection.</p>
-                  <h4 class="scope-subtitle mt-2">TECHNICAL VECTORS:</h4>
-                  <p>Streaming data pipelines, what-if scenario forecasting simulators, financial risk matrix engines, automated metric anomaly monitors.</p>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -662,21 +407,15 @@
           <div class="domain-card domain-card-alert" data-domain="16">
             <div class="domain-card-inner">
               <div class="domain-card-header">
-                <div class="domain-header-left">
-                  <span class="domain-badge badge-red-solid">!</span>
-                  <span class="domain-tag badge-red-solid">RULE OF LAW</span>
-                </div>
+                <span class="domain-badge badge-red-solid">!</span>
+                <span class="domain-tag badge-red-solid">RULE OF LAW</span>
               </div>
               <h3 class="domain-title text-red">NO OPEN TOPICS ALLOWED</h3>
               <p class="domain-summary">
                 Every team must pick strictly from domains 01 to 15. Outside projects will be disqualified on sight.
               </p>
-              <div class="domain-tags">
-                <span class="badge-pill-red">Zero Open Choicing</span>
-                <span class="badge-pill-red">Immediate DQ</span>
-              </div>
               <div class="alert-slot-action">
-                <a href="#rules" class="btn btn-sm btn-primary">READ OPERATIONAL RULES →</a>
+                <a href="#rules" class="btn btn-sm btn-primary">VIEW SPRINT RULES →</a>
               </div>
             </div>
           </div>
@@ -686,270 +425,116 @@
     </section>
 
     <!-- ================================================================= -->
-    <!-- UNMISSABLE MANDATORY DIRECTIVE SECTION                            -->
-    <!-- ================================================================= -->
-    <section class="section-directive" id="directive">
-      <div class="container">
-        <!-- Massive High-Alert Banner -->
-        <div class="alert-box-major" data-assemble>
-          <div class="alert-major-header">
-            <div class="alert-title-group">
-              <span class="alert-icon-pulse">⚠</span>
-              <div>
-                <span class="alert-tracker">// CRITICAL OPERATIONAL DIRECTIVE // ZERO OPEN TOPICS</span>
-                <h2 class="alert-heading">MANDATORY DOMAIN SELECTION RULE</h2>
-              </div>
-            </div>
-            <div class="alert-badge-group">
-              <span class="badge badge-solid-red">[ OPEN CHOOSING STRICTLY PROHIBITED ]</span>
-            </div>
-          </div>
-
-          <div class="alert-major-body">
-            <p class="alert-lead">
-              <strong>ATTENTION ALL PARTICIPANTS:</strong> You <u>MUST</u> select your project domain exclusively from the <strong>15 Predefined Technology Domains</strong> listed above. Open problem choosing, unlisted domains, or generic out-of-scope ideas are <strong>STRICTLY NOT PERMITTED</strong> under any circumstances.
-            </p>
-
-            <div class="directive-clauses-grid">
-              <div class="clause-card">
-                <div class="clause-num">01</div>
-                <div class="clause-content">
-                  <h3>EXCLUSIVE 15 DOMAINS LIST</h3>
-                  <p>Every team must select their problem statement exclusively from one of the 15 Predefined Technology Domains. Teams will officially lock in and log their single chosen domain at kickoff.</p>
-                </div>
-              </div>
-
-              <div class="clause-card clause-card-warning">
-                <div class="clause-num">02</div>
-                <div class="clause-content">
-                  <h3>OPEN CHOOSING STRICTLY BARRED</h3>
-                  <p>Selecting outside these 15 domains will result in <strong>IMMEDIATE DISQUALIFICATION</strong>. The evaluation jury will NOT review or score any submission that is not rooted within the 15 predefined domains.</p>
-                </div>
-              </div>
-
-              <div class="clause-card">
-                <div class="clause-num">03</div>
-                <div class="clause-content">
-                  <h3>PROTOTYPE DELIVERABLE MANDATE</h3>
-                  <p>Formulate an original, practical problem statement within your domain. The final deliverable must be an <strong>operational, testable software/hardware prototype</strong> presented within the 5-minute live demo (no static mockups or slides-only submissions).</p>
-                </div>
-              </div>
-            </div>
-
-            <!-- Verification Status Badges -->
-            <div class="directive-checklist">
-              <div class="check-item">
-                <span class="check-box">✔</span>
-                <span class="check-text">Must Select From Domains 01–15</span>
-              </div>
-              <div class="check-item">
-                <span class="check-box">✔</span>
-                <span class="check-text">Single Domain Declared at Kickoff</span>
-              </div>
-              <div class="check-item">
-                <span class="check-box">✔</span>
-                <span class="check-text">In-Event Core Development Only</span>
-              </div>
-              <div class="check-item">
-                <span class="check-box">✔</span>
-                <span class="check-text">AI Tools &amp; Public APIs Permitted</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ================================================================= -->
-    <!-- EVENT GUIDELINES & REGULATIONS                                    -->
+    <!-- SPRINT RULES & DIRECTIVES (BRIEF QUICK-LOOK ACCORDIONS)           -->
     <!-- ================================================================= -->
     <section class="section-rules" id="rules">
       <div class="container">
         <div class="section-header">
           <div class="section-tracker">
-            <span class="text-red">// 03. EVENT GUIDELINES &amp; REGULATIONS</span>
+            <span class="text-red">// 02. SPRINT PROTOCOL &amp; RULES</span>
             <span class="section-sep">//</span>
-            <span class="telemetry-mono">MANDATORY PROTOCOL FROM KICKOFF TO DEMO</span>
+            <span class="telemetry-mono">QUICK-REFERENCE SUMMARY</span>
           </div>
-          <h2 class="section-title">CORE OPERATIONAL RULES</h2>
+          <h2 class="section-title">RULES &amp; DIRECTIVES</h2>
           <p class="section-subtext">
-            Build-a-Bot celebrates authentic, hands-on engineering and practical execution. Review the mandatory rules governing codebase integrity, prototype deliverables, iterative refinement, and time allocation.
+            Quick operational reference for Build-a-Bot. All exhaustive sprint regulations, scoring rubrics, and Git commit audit rights are detailed in the official <code>participate.pdf</code> handbook.
           </p>
         </div>
 
-        <div class="rules-grid">
-          <!-- Card 1: Prototype Requirements (with Iterative Refinement) -->
-          <div class="rule-card" data-assemble>
-            <div class="rule-card-header">
-              <div class="rule-index">01</div>
-              <div class="rule-header-content">
-                <span class="badge badge-subtle">[ DELIVERABLE ]</span>
-                <h3 class="rule-title">PROTOTYPE REQUIREMENTS</h3>
-              </div>
-            </div>
-            <ul class="rule-list">
-              <li>
-                <span class="rule-kw">Functional Deliverable:</span>
-                <span class="rule-txt">Every team must produce a fully operational, testable prototype.</span>
-              </li>
-              <li>
-                <span class="rule-kw">Core Architecture:</span>
-                <span class="rule-txt">Must demonstrate: Problem &rarr; Solution &rarr; Working Implementation.</span>
-              </li>
-              <li>
-                <span class="rule-kw">No Static Mocks:</span>
-                <span class="rule-txt">A concept, mockup, wireframe, or slides-only solution is <strong>not</strong> a prototype.</span>
-              </li>
-              <li>
-                <span class="rule-kw">Demo Readiness:</span>
-                <span class="rule-txt">The prototype must run live and be demonstrative in the 5-minute evaluation window.</span>
-              </li>
-              <li>
-                <span class="rule-kw">Iterative Refinement:</span>
-                <span class="rule-txt">Teams may refine their problem statement as practical development evolves.</span>
-              </li>
-            </ul>
-          </div>
-
-          <!-- Card 2: Development Rules -->
-          <div class="rule-card" data-assemble>
-            <div class="rule-card-header">
-              <div class="rule-index">02</div>
-              <div class="rule-header-content">
-                <span class="badge badge-subtle">[ CODE INTEGRITY ]</span>
-                <h3 class="rule-title">DEVELOPMENT RULES</h3>
-              </div>
-            </div>
-            <ul class="rule-list">
-              <li>
-                <span class="rule-kw">In-Event Build:</span>
-                <span class="rule-txt">All core development work must be completed during the event.</span>
-              </li>
-              <li>
-                <span class="rule-kw">Zero Pre-Built Code:</span>
-                <span class="rule-txt">Pre-built repositories or code prepared beforehand are strictly barred.</span>
-              </li>
-              <li>
-                <span class="rule-kw">Allowed Foundations:</span>
-                <span class="rule-txt">General-purpose boilerplates, open-source libraries, frameworks, and tools are permitted.</span>
-              </li>
-              <li>
-                <span class="rule-kw">AI Code Policy:</span>
-                <span class="rule-txt">AI-assisted tools (Copilot, Cursor, ChatGPT, etc.) and AI-generated code are <strong>fully allowed</strong>.</span>
-              </li>
-              <li>
-                <span class="rule-kw">Code Mastery:</span>
-                <span class="rule-txt">Teams must thoroughly understand and defend every line of implementation during evaluation.</span>
-              </li>
-              <li>
-                <span class="rule-kw">APIs &amp; Datasets:</span>
-                <span class="rule-txt">Public APIs and datasets are allowed, provided licensing terms are respected.</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ================================================================= -->
-    <!-- 5-MINUTE PITCH TIMELINE & SYNC MONITOR (3M PITCH + 2M Q&A)        -->
-    <!-- ================================================================= -->
-    <section class="section-pitch" id="pitch">
-      <div class="container">
-        <div class="section-header">
-          <div class="section-tracker">
-            <span class="text-red">// 04. PITCH PROTOCOL</span>
-            <span class="section-sep">//</span>
-            <span class="telemetry-mono">PRECISION TIME MANAGEMENT</span>
-          </div>
-          <h2 class="section-title">THE 5-MINUTE SPRINT PITCH</h2>
-          <p class="section-subtext">
-            Judges evaluate your build in a strict 300-second window: strictly 3 minutes for participant presentation &amp; live prototype demonstration, followed by 2 minutes for jury technical Q&amp;A. The master timer on the top of this portal is synchronized live with the admin desk.
+        <!-- Prominent participate.pdf Download Card -->
+        <div class="pdf-callout-card" data-assemble>
+          <div class="pdf-callout-badge">[ OFFICIAL SPECIFICATION ]</div>
+          <h3 class="pdf-callout-title">COMPLETE PARTICIPANT GUIDELINES HANDBOOK</h3>
+          <p class="pdf-callout-desc">
+            The official <code>participate.pdf</code> provides in-depth documentation for all event directives, domain guidelines, repository commit audit procedures, and exhaustive jury scoring criteria.
           </p>
+          <a href="participate.pdf" download="participate.pdf" class="btn btn-primary btn-lg pdf-download-cta">
+            <span class="btn-icon">⬇</span>
+            <span>DOWNLOAD PARTICIPATE.PDF (FULL HANDBOOK)</span>
+          </a>
         </div>
 
-        <div class="pitch-visualizer-container" data-assemble>
-          <div class="pitch-bar-visual">
-            <div class="pitch-seg seg-intro">
-              <div class="seg-label">01 // PARTICIPANT PRESENTATION &amp; LIVE DEMO (3 MIN / 60%)</div>
-              <div class="seg-sub">Problem context • Target user relevance • Working prototype demonstration</div>
-            </div>
-            <div class="pitch-seg seg-demo">
-              <div class="seg-label">02 // JURY TECHNICAL Q&amp;A &amp; DEFENSE (2 MIN / 40%)</div>
-              <div class="seg-sub">Jury technical inquiries • Implementation defense • Feasibility Q&amp;A</div>
+        <!-- Expandable Brief Accordion Blocks (Click '+' To Reveal) -->
+        <div class="rules-accordions-wrap">
+
+          <!-- Accordion 01: Mandatory Domain Selection Rule -->
+          <div class="rule-accordion-card" id="directive">
+            <button class="rule-accordion-header" aria-expanded="false">
+              <div class="accordion-header-left">
+                <span class="accordion-num">01</span>
+                <div class="accordion-title-group">
+                  <span class="accordion-badge text-red">[ MANDATORY DIRECTIVE ]</span>
+                  <h3 class="accordion-title">MANDATORY DOMAIN SELECTION RULE</h3>
+                </div>
+              </div>
+              <div class="accordion-plus-circle" title="Click to Expand">
+                <span class="plus-symbol">+</span>
+              </div>
+            </button>
+            <div class="rule-accordion-body">
+              <div class="accordion-content-inner">
+                <ul class="brief-bullet-list">
+                  <li><strong>Exclusive 15 Domains:</strong> Every team must build strictly within one of the 15 Predefined Technology Domains listed above. Open problem choosing is barred with immediate disqualification.</li>
+                  <li><strong>Lock-in at Kickoff:</strong> Each team's chosen domain is officially recorded and locked in at the sprint kickoff.</li>
+                  <li><strong>Deliverable Requirement:</strong> Submissions must be an operational, working software or hardware prototype demonstrated live (static mockups or slides-only presentations are not accepted).</li>
+                  <li><strong>Full Guidance:</strong> Consult <code>participate.pdf</code> for comprehensive domain boundaries.</li>
+                </ul>
+              </div>
             </div>
           </div>
 
-          <!-- Section Synchronized Pitch Timer Box -->
-          <div class="interactive-timer-box">
-            <div class="timer-display">
-              <span class="timer-time" id="demo-timer">05:00</span>
-              <span class="timer-phase" id="timer-phase-lbl">PHASE: STANDBY (AWAITING ADMIN KICKOFF)</span>
-            </div>
-            <div class="timer-note-bar">
-              <span class="timer-sync-badge"><span class="timer-live-dot"></span> SYNCHRONIZED WITH JURY MASTER TIMER</span>
-              <p class="timer-hint">
-                * The evaluation timer is triggered directly by the admin desk. When started, it pins to the top of your screen throughout your presentation. An audio transition cue triggers at 02:00 (switch to jury Q&amp;A) and 00:00 (strict cutoff).
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ================================================================= -->
-    <!-- FAIRNESS, ETHICS & CODE OF CONDUCT (ZERO TOLERANCE)               -->
-    <!-- ================================================================= -->
-    <section class="section-conduct" id="conduct">
-      <div class="container">
-        <div class="conduct-panel-wrapper" data-assemble>
-          <div class="conduct-content">
-            <div class="section-tracker">
-              <span class="text-red">// 05. ETHICAL CODE OF CONDUCT</span>
-            </div>
-            <h2 class="conduct-title">FAIRNESS, ETHICS &amp; INTEGRITY</h2>
-            <p class="conduct-intro">
-              Build-a-Bot maintains zero tolerance for dishonesty. Authentic engineering and genuine innovation are strictly enforced.
-            </p>
-
-            <div class="conduct-rules-list">
-              <div class="conduct-item">
-                <span class="conduct-icon">01</span>
-                <div>
-                  <strong>Independent Work:</strong>
-                  <p>Teams must build their solutions completely independently without external hands-on coding assistance.</p>
+          <!-- Accordion 02: Development & Code Integrity -->
+          <div class="rule-accordion-card">
+            <button class="rule-accordion-header" aria-expanded="false">
+              <div class="accordion-header-left">
+                <span class="accordion-num">02</span>
+                <div class="accordion-title-group">
+                  <span class="accordion-badge">[ CODE INTEGRITY ]</span>
+                  <h3 class="accordion-title">DEVELOPMENT &amp; INTEGRITY DIRECTIVES</h3>
                 </div>
               </div>
-              <div class="conduct-item">
-                <span class="conduct-icon">02</span>
-                <div>
-                  <strong>No Cross-Team Sharing:</strong>
-                  <p>Sharing code, files, assets, or substantial implementation help between competing teams is barred.</p>
-                </div>
+              <div class="accordion-plus-circle" title="Click to Expand">
+                <span class="plus-symbol">+</span>
               </div>
-              <div class="conduct-item">
-                <span class="conduct-icon">03</span>
-                <div>
-                  <strong>Integrity &amp; Anti-Plagiarism:</strong>
-                  <p>Plagiarism, impersonation, or presenting pre-built solutions will result in permanent disqualification.</p>
-                </div>
-              </div>
-              <div class="conduct-item">
-                <span class="conduct-icon">04</span>
-                <div>
-                  <strong>Audit Rights:</strong>
-                  <p>The technical committee reserves full authority to inspect Git commit logs, commit timestamps, and code history.</p>
-                </div>
-              </div>
-              <div class="conduct-item">
-                <span class="conduct-icon">05</span>
-                <div>
-                  <strong>Final Authority:</strong>
-                  <p>Judges' evaluations, score tabulations, and rank decisions are conclusive, final, and binding.</p>
-                </div>
+            </button>
+            <div class="rule-accordion-body">
+              <div class="accordion-content-inner">
+                <ul class="brief-bullet-list">
+                  <li><strong>In-Event Development:</strong> All core logic and code must be authored during the event timeframe. Pre-built repositories are strictly prohibited.</li>
+                  <li><strong>Permitted Foundations:</strong> Standard boilerplates, open-source libraries, UI frameworks, and public APIs/datasets are fully allowed.</li>
+                  <li><strong>AI Coding Policy:</strong> AI-assisted tools (Copilot, Cursor, ChatGPT, etc.) are allowed. Teams must thoroughly understand and defend every implementation detail during jury defense.</li>
+                  <li><strong>Commit Audits:</strong> The technical committee reserves full authority to inspect Git commit logs and timestamps. Full audit terms in <code>participate.pdf</code>.</li>
+                </ul>
               </div>
             </div>
           </div>
+
+          <!-- Accordion 03: 5-Minute Evaluation & Scoring Overview -->
+          <div class="rule-accordion-card">
+            <button class="rule-accordion-header" aria-expanded="false">
+              <div class="accordion-header-left">
+                <span class="accordion-num">03</span>
+                <div class="accordion-title-group">
+                  <span class="accordion-badge">[ EVALUATION SUMMARY ]</span>
+                  <h3 class="accordion-title">5-MINUTE DEMO &amp; EVALUATION PROTOCOL</h3>
+                </div>
+              </div>
+              <div class="accordion-plus-circle" title="Click to Expand">
+                <span class="plus-symbol">+</span>
+              </div>
+            </button>
+            <div class="rule-accordion-body">
+              <div class="accordion-content-inner">
+                <ul class="brief-bullet-list">
+                  <li><strong>5-Minute Evaluation Window:</strong> 3 minutes for live participant prototype demonstration + 2 minutes for jury technical Q&amp;A.</li>
+                  <li><strong>Master Timer Sync:</strong> Live countdown is synchronized in real time with the jury desk via the top-right master clock widget.</li>
+                  <li><strong>Judging Rubric (100 pts total):</strong> Problem Relevance (20), Innovation (20), Technical Architecture (20), Working Prototype Functionality (25), Presentation (10), Code Mastery (5).</li>
+                  <li><strong>Official Criteria:</strong> Refer to <code>participate.pdf</code> for official scoring bins and deterministic tie-breaker hierarchy.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
     </section>
@@ -961,7 +546,7 @@
       <div class="container">
         <div class="section-header">
           <div class="section-tracker">
-            <span class="text-red">// 06. OFFICIAL EVALUATION STANDINGS</span>
+            <span class="text-red">// 03. OFFICIAL EVALUATION STANDINGS</span>
             <span class="section-sep">//</span>
             <span class="telemetry-mono" id="leaderboard-tracker-status">EMBARGO STATUS: LOCKED 🔒</span>
           </div>
