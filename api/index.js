@@ -31,6 +31,7 @@ function getDefaultState() {
     leaderboard: {
       state: 'EMBARGOED', // 'EMBARGOED' | 'PUBLISHED'
       publishedAt: null,
+      updatedAt: 0,
       snapshot: []
     },
     judges: [
@@ -209,6 +210,10 @@ function computeMatrix(state) {
 function sendJson(res, statusCode, data) {
   res.writeHead(statusCode, {
     'Content-Type': 'application/json; charset=utf-8',
+    'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0, s-maxage=0',
+    'Pragma': 'no-cache',
+    'Expires': '0',
+    'Surrogate-Control': 'no-store',
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, DELETE',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization'
@@ -286,6 +291,12 @@ module.exports = async function handler(req, res) {
         online: true,
         timer: state.timer,
         domains: state.domains,
+        leaderboard: {
+          state: state.leaderboard.state,
+          updatedAt: state.leaderboard.updatedAt || state.leaderboard.publishedAt || 0,
+          publishedAt: state.leaderboard.publishedAt,
+          teams: state.leaderboard.state === 'PUBLISHED' ? (state.leaderboard.snapshot || []) : []
+        },
         leaderboardState: state.leaderboard.state
       });
     }
@@ -425,12 +436,14 @@ module.exports = async function handler(req, res) {
       if (state.leaderboard.state === 'PUBLISHED') {
         return sendJson(res, 200, {
           state: 'PUBLISHED',
+          updatedAt: state.leaderboard.updatedAt || state.leaderboard.publishedAt || 0,
           publishedAt: state.leaderboard.publishedAt,
-          teams: state.leaderboard.snapshot
+          teams: state.leaderboard.snapshot || []
         });
       } else {
         return sendJson(res, 200, {
           state: 'EMBARGOED',
+          updatedAt: state.leaderboard.updatedAt || 0,
           teams: []
         });
       }
@@ -460,9 +473,11 @@ module.exports = async function handler(req, res) {
       ];
     }
 
+    const now = Date.now();
     state.leaderboard = {
       state: 'PUBLISHED',
-      publishedAt: Date.now(),
+      publishedAt: now,
+      updatedAt: now,
       snapshot: snapshot
     };
     persistState();
@@ -470,18 +485,23 @@ module.exports = async function handler(req, res) {
     return sendJson(res, 200, {
       ok: true,
       state: 'PUBLISHED',
-      publishedCount: snapshot.length
+      publishedAt: now,
+      updatedAt: now,
+      publishedCount: snapshot.length,
+      teams: snapshot
     });
   }
 
   if (pathname === '/api/leaderboard/lock' && req.method === 'POST') {
+    const now = Date.now();
     state.leaderboard = {
       state: 'EMBARGOED',
       publishedAt: null,
+      updatedAt: now,
       snapshot: []
     };
     persistState();
-    return sendJson(res, 200, { ok: true, state: 'EMBARGOED' });
+    return sendJson(res, 200, { ok: true, state: 'EMBARGOED', updatedAt: now, publishedAt: null, teams: [] });
   }
 
   // --------------------------------------------------------------------------

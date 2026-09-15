@@ -177,17 +177,11 @@ document.addEventListener('DOMContentLoaded', () => {
     renderTimer();
 
     try {
-      const res = await fetch('/api/timer/start', {
+      await fetch('/api/timer/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(localTimer)
       });
-      const data = await res.json();
-      if (data.timer && (!localTimer.lastUpdated || data.timer.lastUpdated >= localTimer.lastUpdated)) {
-        localTimer = data.timer;
-        broadcastTimer(localTimer);
-        renderTimer();
-      }
     } catch (e) {}
   });
 
@@ -203,17 +197,11 @@ document.addEventListener('DOMContentLoaded', () => {
       renderTimer();
 
       try {
-        const res = await fetch('/api/timer/pause', {
+        await fetch('/api/timer/pause', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(localTimer)
         });
-        const data = await res.json();
-        if (data.timer && (!localTimer.lastUpdated || data.timer.lastUpdated >= localTimer.lastUpdated)) {
-          localTimer = data.timer;
-          broadcastTimer(localTimer);
-          renderTimer();
-        }
       } catch (e) {}
     }
   });
@@ -228,17 +216,11 @@ document.addEventListener('DOMContentLoaded', () => {
       renderTimer();
 
       try {
-        const res = await fetch('/api/timer/resume', {
+        await fetch('/api/timer/resume', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(localTimer)
         });
-        const data = await res.json();
-        if (data.timer && (!localTimer.lastUpdated || data.timer.lastUpdated >= localTimer.lastUpdated)) {
-          localTimer = data.timer;
-          broadcastTimer(localTimer);
-          renderTimer();
-        }
       } catch (e) {}
     }
   });
@@ -254,17 +236,11 @@ document.addEventListener('DOMContentLoaded', () => {
       renderTimer();
 
       try {
-        const res = await fetch('/api/timer/stop', {
+        await fetch('/api/timer/stop', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(localTimer)
         });
-        const data = await res.json();
-        if (data.timer && (!localTimer.lastUpdated || data.timer.lastUpdated >= localTimer.lastUpdated)) {
-          localTimer = data.timer;
-          broadcastTimer(localTimer);
-          renderTimer();
-        }
       } catch (e) {}
     }
   });
@@ -280,17 +256,11 @@ document.addEventListener('DOMContentLoaded', () => {
     renderTimer();
 
     try {
-      const res = await fetch('/api/timer/reset', {
+      await fetch('/api/timer/reset', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(localTimer)
       });
-      const data = await res.json();
-      if (data.timer && (!localTimer.lastUpdated || data.timer.lastUpdated >= localTimer.lastUpdated)) {
-        localTimer = data.timer;
-        broadcastTimer(localTimer);
-        renderTimer();
-      }
     } catch (e) {}
   });
 
@@ -316,17 +286,11 @@ document.addEventListener('DOMContentLoaded', () => {
     renderTimer();
 
     try {
-      const res = await fetch('/api/timer/set', {
+      await fetch('/api/timer/set', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ hours: hrs, minutes: mins, seconds: secs, duration, lastUpdated: now })
       });
-      const data = await res.json();
-      if (data.timer && (!localTimer.lastUpdated || data.timer.lastUpdated >= localTimer.lastUpdated)) {
-        localTimer = data.timer;
-        broadcastTimer(localTimer);
-        renderTimer();
-      }
     } catch (e) {}
   });
 
@@ -358,17 +322,11 @@ document.addEventListener('DOMContentLoaded', () => {
       renderTimer();
 
       try {
-        const res = await fetch('/api/timer/set', {
+        await fetch('/api/timer/set', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ hours: hrs, minutes: mins, seconds: secs, duration, lastUpdated: now })
         });
-        const data = await res.json();
-        if (data.timer && (!localTimer.lastUpdated || data.timer.lastUpdated >= localTimer.lastUpdated)) {
-          localTimer = data.timer;
-          broadcastTimer(localTimer);
-          renderTimer();
-        }
       } catch (e) {}
     });
   });
@@ -562,12 +520,17 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================================================
   // 6. LEADERBOARD PUBLISH & EMBARGO CONTROLS
   // ==========================================================================
+  let lastAdminLbUpdatedAt = 0;
   async function loadLeaderboardState() {
     try {
       const res = await fetch('/api/leaderboard');
       if (!res.ok) return;
       const data = await res.json();
-      updateLeaderboardBadge(data.state);
+      const time = data.updatedAt || data.publishedAt || 0;
+      if (!lastAdminLbUpdatedAt || time >= lastAdminLbUpdatedAt) {
+        if (time) lastAdminLbUpdatedAt = time;
+        updateLeaderboardBadge(data.state);
+      }
     } catch (e) {}
   }
 
@@ -587,15 +550,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   btnPublishLb.addEventListener('click', async () => {
     if (confirm('CERTIFY STANDINGS & PUBLISH OFFICIAL LEADERBOARD TO PARTICIPANTS?')) {
-      updateLeaderboardBadge('PUBLISHED');
-      broadcastLeaderboard({ state: 'PUBLISHED', publishedAt: Date.now() });
-
       try {
         const res = await fetch('/api/leaderboard/publish', { method: 'POST' });
         const data = await res.json();
         if (data.ok) {
           updateLeaderboardBadge('PUBLISHED');
-          broadcastLeaderboard({ state: 'PUBLISHED', publishedAt: Date.now() });
+          broadcastLeaderboard({
+            state: 'PUBLISHED',
+            publishedAt: data.publishedAt || Date.now(),
+            updatedAt: data.updatedAt || Date.now(),
+            teams: data.teams || []
+          });
           alert(`✓ Official Leaderboard Snapshot Published with ${data.publishedCount} ranked teams!`);
         }
       } catch (e) {
@@ -606,15 +571,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   btnLockLb.addEventListener('click', async () => {
     if (confirm('RE-LOCK EMBARGO ON LEADERBOARD? (Participants will see the locked embargo banner)')) {
-      updateLeaderboardBadge('EMBARGOED');
-      broadcastLeaderboard({ state: 'EMBARGOED', teams: [] });
-
       try {
         const res = await fetch('/api/leaderboard/lock', { method: 'POST' });
         const data = await res.json();
         if (data.ok) {
           updateLeaderboardBadge('EMBARGOED');
-          broadcastLeaderboard({ state: 'EMBARGOED', teams: [] });
+          broadcastLeaderboard({
+            state: 'EMBARGOED',
+            updatedAt: data.updatedAt || Date.now(),
+            publishedAt: null,
+            teams: []
+          });
           alert('Leaderboard is now locked under embargo.');
         }
       } catch (e) {}

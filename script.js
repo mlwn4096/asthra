@@ -266,6 +266,14 @@
       const now = Date.now();
       const diffMs = localTimerState.endTimestamp - now;
       currentRemaining = Math.max(0, Math.ceil(diffMs / 1000));
+      if (currentRemaining === 0) {
+        localTimerState.status = 'stopped';
+        localTimerState.remaining = 0;
+        if (!lastAlertPlayedAt) {
+          lastAlertPlayedAt = Date.now();
+          playSound('alert');
+        }
+      }
     }
 
     const timeString = formatTime(currentRemaining);
@@ -322,6 +330,22 @@
         return; // Discard stale state from out-of-sync or cold container
       }
     }
+
+    // Anti-jitter: If both states are actively running with the exact same timestamp, let local clock count down smoothly
+    if (
+      localTimerState &&
+      localTimerState.status === 'running' &&
+      newState.status === 'running' &&
+      localTimerState.lastUpdated === newState.lastUpdated &&
+      localTimerState.endTimestamp === newState.endTimestamp
+    ) {
+      return;
+    }
+
+    if (newState.status !== 'stopped') {
+      lastAlertPlayedAt = null;
+    }
+
     localTimerState = Object.assign({}, newState);
     renderTimerUI();
   }
@@ -354,10 +378,23 @@
   const leaderboardJumpPill = document.querySelector('.pill-leaderboard-jump');
   const leaderboardNavPill = document.querySelector('.pill-leaderboard-nav');
 
+  let lastLeaderboardUpdatedAt = 0;
+
   function applyLeaderboardState(lbState) {
     if (!lbState) return;
 
+    const time = lbState.updatedAt || lbState.publishedAt || 0;
+    if (time && lastLeaderboardUpdatedAt && time < lastLeaderboardUpdatedAt) {
+      return; // Discard stale state from older container
+    }
+    if (time) {
+      lastLeaderboardUpdatedAt = time;
+    }
+
     const isPublished = lbState.isUnlocked || lbState.state === 'PUBLISHED';
+    try {
+      localStorage.setItem('astra_leaderboard_state', JSON.stringify(lbState));
+    } catch (e) {}
 
     if (isPublished) {
       if (leaderboardLockedView) leaderboardLockedView.style.display = 'none';
@@ -439,36 +476,6 @@
     }
   } catch (e) {}
 
-  // Cross-tab local synchronization via BroadcastChannel and Storage Event
-  try {
-    if ('BroadcastChannel' in window) {
-      const syncBc = new BroadcastChannel('astra_timer_sync_channel');
-      syncBc.onmessage = (e) => {
-        if (e.data) {
-          if (e.data.type === 'TIMER_UPDATE' && e.data.state) {
-            applyTimerState(e.data.state);
-          } else if (e.data.type === 'DOMAINS_UPDATE' && e.data.state) {
-            applyDomainsVisibility(e.data.state.isHidden, Date.now());
-          } else if (e.data.type === 'LEADERBOARD_UPDATE' && e.data.state) {
-            applyLeaderboardState(e.data.state);
-          }
-        }
-      };
-    }
-  } catch (err) {}
-
-  window.addEventListener('storage', (e) => {
-    try {
-      if (e.key === STORAGE_KEY && e.newValue) {
-        applyTimerState(JSON.parse(e.newValue));
-      } else if (e.key === 'astra_leaderboard_state' && e.newValue) {
-        applyLeaderboardState(JSON.parse(e.newValue));
-      } else if (e.key === 'astra_domains_hidden' && e.newValue) {
-        applyDomainsVisibility(JSON.parse(e.newValue), Date.now());
-      }
-    } catch (err) {}
-  });
-
   // ---------------------------------------------------------------------------
   // 06. SERVER SYNC FOR BOTH TIMER & LEADERBOARD (SSE STREAM)
   // ---------------------------------------------------------------------------
@@ -481,15 +488,14 @@
           const payload = JSON.parse(event.data);
           if (payload.timer) {
             applyTimerState(payload.timer);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(payload.timer));
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(payload.timer)); } catch (e) {}
           } else if (payload.status) {
             // legacy timer-only payload
             applyTimerState(payload);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(payload)); } catch (e) {}
           }
           if (payload.leaderboard) {
             applyLeaderboardState(payload.leaderboard);
-            localStorage.setItem('astra_leaderboard_state', JSON.stringify(payload.leaderboard));
           }
           if (payload.domains && typeof payload.domains.isHidden === 'boolean') {
             applyDomainsVisibility(payload.domains.isHidden, payload.domains.updatedAt || payload.domains.lastUpdated || 0);
@@ -500,7 +506,7 @@
   }
   initServerSync();
 
-  // Active REST polling fallback every 2 seconds to ensure 100% sync
+  // Active REST polling fallback every 1500ms to ensure atomic sync across all platforms
   async function pollServerState() {
     try {
       const res = await fetch('/api/timer');
@@ -508,10 +514,13 @@
         const payload = await res.json();
         if (payload.timer) {
           applyTimerState(payload.timer);
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(payload.timer));
+          try { localStorage.setItem(STORAGE_KEY, JSON.stringify(payload.timer)); } catch (e) {}
         }
         if (payload.domains && typeof payload.domains.isHidden === 'boolean') {
           applyDomainsVisibility(payload.domains.isHidden, payload.domains.updatedAt || payload.domains.lastUpdated || 0);
+        }
+        if (payload.leaderboard) {
+          applyLeaderboardState(payload.leaderboard);
         }
       }
     } catch (e) {}
@@ -524,7 +533,7 @@
       }
     } catch (e) {}
   }
-  setInterval(pollServerState, 2000);
+  setInterval(pollServerState, 1500);
 
   // ---------------------------------------------------------------------------
   // 06C. DOMAINS VISIBILITY EMBARGO / SCRAMBLE CONTROL
