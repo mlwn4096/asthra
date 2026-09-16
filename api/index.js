@@ -39,7 +39,7 @@ async function fetchSupabaseState() {
 async function persistSupabaseState(state) {
   if (!SUPABASE_URL || !SUPABASE_KEY) return;
   try {
-    await fetch(`${SUPABASE_URL}/rest/v1/asthra_state`, {
+    await fetch(`${SUPABASE_URL}/rest/v1/asthra_state?on_conflict=key`, {
       method: 'POST',
       headers: {
         'apikey': SUPABASE_KEY,
