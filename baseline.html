@@ -542,11 +542,54 @@
       padding: 4px 8px;
       border-radius: 2px;
       cursor: pointer;
+      transition: all 0.15s;
     }
 
     .btn-deact-judge:hover {
-      border-color: var(--red);
+      border-color: var(--amber);
+      color: var(--amber);
+    }
+
+    .btn-delete-judge, .btn-delete-team {
+      background: rgba(255, 42, 43, 0.12);
+      border: 1px solid rgba(255, 42, 43, 0.4);
       color: var(--red);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-delete-judge:hover, .btn-delete-team:hover {
+      background: var(--red);
+      color: #ffffff;
+      border-color: var(--red);
+      box-shadow: 0 0 10px rgba(255, 42, 43, 0.4);
+    }
+
+    .btn-clear-danger {
+      background: rgba(255, 42, 43, 0.12);
+      border: 1px solid var(--red);
+      color: var(--red);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 3px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-clear-danger:hover {
+      background: var(--red);
+      color: #ffffff;
+      box-shadow: 0 0 12px rgba(255, 42, 43, 0.5);
     }
 
     /* Live Jury Matrix */
@@ -703,25 +746,25 @@
       transition: all 0.2s ease;
     }
 
-    .btn-state-hide {
-      background: var(--red);
-      color: #ffffff;
-      box-shadow: 0 0 16px rgba(255, 42, 43, 0.35);
-    }
-
-    .btn-state-hide:hover {
-      background: #ff4748;
-      transform: translateY(-1px);
-    }
-
-    .btn-state-reveal {
-      background: var(--green);
+    .btn-action-unlock, .btn-state-reveal {
+      background: #00e676;
       color: #03140a;
       box-shadow: 0 0 16px rgba(0, 230, 118, 0.35);
     }
 
-    .btn-state-reveal:hover {
+    .btn-action-unlock:hover, .btn-state-reveal:hover {
       background: #1aff8c;
+      transform: translateY(-1px);
+    }
+
+    .btn-action-lock, .btn-state-hide {
+      background: #ff2a2b;
+      color: #ffffff;
+      box-shadow: 0 0 16px rgba(255, 42, 43, 0.35);
+    }
+
+    .btn-action-lock:hover, .btn-state-hide:hover {
+      background: #ff4748;
       transform: translateY(-1px);
     }
 
@@ -772,16 +815,16 @@
     <div class="domains-toggle-banner state-hidden" id="domains-toggle-banner">
       <div class="toggle-banner-info">
         <div class="toggle-banner-title">
-          <span>PARTICIPANT 15 DOMAINS VISIBILITY:</span>
-          <span id="domains-badge-status" class="domains-badge-hidden">🔒 SCRAMBLED / HIDDEN (LOCKED)</span>
+          <span>PARTICIPANT 15 DOMAINS DIRECTIVES:</span>
+          <span id="domains-badge-status" class="domains-badge-hidden">🔒 CURRENT STATUS: LOCKED &amp; EMBARGOED</span>
         </div>
-        <p class="toggle-banner-sub">
-          15 problem statements are currently concealed and blurred on participant terminals. Click to reveal.
+        <p class="toggle-banner-sub" id="domains-sub-status">
+          15 problem directives are currently concealed &amp; blurred on participant screens. Embargo banner is active.
         </p>
       </div>
-      <button id="btn-toggle-domains" class="btn-domains-control btn-state-reveal">
-        <span class="btn-icon" id="btn-domains-icon">👁️</span>
-        <span id="btn-domains-text">CLICK TO REVEAL 15 DOMAINS LIVE</span>
+      <button id="btn-toggle-domains" class="btn-domains-control btn-action-unlock">
+        <span class="btn-icon" id="btn-domains-icon">🔓</span>
+        <span id="btn-domains-text">UNLOCK &amp; REVEAL 15 DOMAINS</span>
       </button>
     </div>
 
@@ -938,7 +981,12 @@
     <section class="card">
       <div class="card-heading">
         <span>03. LIVE JURY EVALUATION MATRIX &amp; SCORE AVERAGING (PREVIEW)</span>
-        <span id="matrix-status-text" style="color: var(--green);">REAL-TIME SYNC</span>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <button id="btn-clear-all-teams" class="btn-clear-danger" title="Permanently delete all registered teams and evaluations before pushing">
+            <span>🗑️</span> <span>CLEAR ALL TEAMS</span>
+          </button>
+          <span id="matrix-status-text" style="color: var(--green);">REAL-TIME SYNC</span>
+        </div>
       </div>
 
       <p style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 16px;">
@@ -957,11 +1005,12 @@
               <th>AVG C4 (25)</th>
               <th>AWARD TITLE</th>
               <th>FEEDBACK</th>
+              <th>ACTION</th>
             </tr>
           </thead>
           <tbody id="jury-matrix-tbody">
             <tr>
-              <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 24px;">
+              <td colspan="9" style="text-align: center; color: var(--text-muted); padding: 24px;">
                 Awaiting judge evaluations... Scores will populate here live as judges upload marks.
               </td>
             </tr>

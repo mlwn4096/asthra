@@ -222,7 +222,10 @@
         } else if (event.data && event.data.type === 'LEADERBOARD_UPDATE') {
           applyLeaderboardState(event.data.state);
         } else if (event.data && event.data.type === 'DOMAINS_UPDATE') {
-          applyDomainsVisibility(event.data.state?.isHidden);
+          const state = event.data.state;
+          const isHidden = typeof state === 'boolean' ? state : state?.isHidden;
+          const updatedAt = state?.updatedAt || Date.now();
+          applyDomainsVisibility(isHidden, updatedAt);
         }
       };
     } catch (e) {}
@@ -240,7 +243,10 @@
       } catch (err) {}
     } else if (e.key === 'astra_domains_hidden' && e.newValue) {
       try {
-        applyDomainsVisibility(JSON.parse(e.newValue));
+        const parsed = JSON.parse(e.newValue);
+        const isHidden = typeof parsed === 'boolean' ? parsed : parsed.isHidden;
+        const updatedAt = parsed.updatedAt || Date.now();
+        applyDomainsVisibility(isHidden, updatedAt);
       } catch (err) {}
     }
   });
@@ -551,6 +557,7 @@
   }
 
   function applyDomainsVisibility(isHidden, updatedAt = 0) {
+    const hidden = Boolean(isHidden);
     if (updatedAt && lastDomainsUpdatedAt && updatedAt < lastDomainsUpdatedAt) {
       return; // Ignore stale state from older container
     }
@@ -560,14 +567,14 @@
     const grid = document.getElementById('domains-grid');
     const banner = document.getElementById('domains-embargo-banner');
     if (grid) {
-      if (isHidden) {
+      if (hidden) {
         grid.classList.add('domains-scrambled');
       } else {
         grid.classList.remove('domains-scrambled');
       }
     }
     if (banner) {
-      banner.style.display = isHidden ? 'block' : 'none';
+      banner.style.display = hidden ? 'block' : 'none';
     }
   }
 

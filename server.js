@@ -619,15 +619,31 @@ async function handleRequest(req, res) {
     }
   }
 
-  if (pathname.startsWith('/api/judges/') && req.method === 'DELETE') {
-    const judgeId = pathname.split('/')[3];
+  if (pathname === '/api/judges/delete' && req.method === 'POST') {
     try {
-      // Delete sessions and judge
+      const body = await parseJsonBody(req);
+      const judgeId = body.id || body.judgeId;
+      if (!judgeId) return sendJson(res, 400, { error: 'Judge ID is required' });
+
       db.prepare('DELETE FROM sessions WHERE judge_id = ?').run(judgeId);
       db.prepare('DELETE FROM evaluations WHERE judge_id = ?').run(judgeId);
       db.prepare('DELETE FROM judges WHERE id = ?').run(judgeId);
       broadcastSSE();
-      return sendJson(res, 200, { ok: true });
+      return sendJson(res, 200, { ok: true, message: 'Judge successfully deleted' });
+    } catch (e) {
+      return sendJson(res, 400, { error: e.message });
+    }
+  }
+
+  if (pathname.startsWith('/api/judges/') && req.method === 'DELETE') {
+    const judgeId = pathname.split('/')[3];
+    if (!judgeId || judgeId === 'delete') return sendJson(res, 400, { error: 'Judge ID is required' });
+    try {
+      db.prepare('DELETE FROM sessions WHERE judge_id = ?').run(judgeId);
+      db.prepare('DELETE FROM evaluations WHERE judge_id = ?').run(judgeId);
+      db.prepare('DELETE FROM judges WHERE id = ?').run(judgeId);
+      broadcastSSE();
+      return sendJson(res, 200, { ok: true, message: 'Judge successfully deleted' });
     } catch (e) {
       return sendJson(res, 400, { error: e.message });
     }
@@ -775,6 +791,69 @@ async function handleRequest(req, res) {
       } catch (e) {
         return sendJson(res, 400, { error: e.message });
       }
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // API: TEAM DELETION & RESET (BEFORE PUSHING TO LEADERBOARD)
+  // --------------------------------------------------------------------------
+  if (pathname === '/api/teams/delete' && req.method === 'POST') {
+    try {
+      const body = await parseJsonBody(req);
+      const teamId = body.id || body.teamId;
+      if (!teamId) return sendJson(res, 400, { error: 'Team ID is required' });
+
+      db.prepare('DELETE FROM evaluations WHERE team_id = ?').run(teamId);
+      db.prepare('DELETE FROM teams WHERE id = ?').run(teamId);
+
+      if (leaderboardState && Array.isArray(leaderboardState.snapshot)) {
+        leaderboardState.snapshot = leaderboardState.snapshot.filter(t => t.teamId !== teamId && t.teamName !== teamId);
+        persistLeaderboardState();
+      }
+
+      broadcastSSE();
+      return sendJson(res, 200, { ok: true, message: 'Team successfully deleted' });
+    } catch (e) {
+      return sendJson(res, 400, { error: e.message });
+    }
+  }
+
+  if (pathname.startsWith('/api/teams/') && req.method === 'DELETE') {
+    const teamId = pathname.split('/')[3];
+    if (!teamId || teamId === 'delete') return sendJson(res, 400, { error: 'Team ID is required' });
+    try {
+      db.prepare('DELETE FROM evaluations WHERE team_id = ?').run(teamId);
+      db.prepare('DELETE FROM teams WHERE id = ?').run(teamId);
+
+      if (leaderboardState && Array.isArray(leaderboardState.snapshot)) {
+        leaderboardState.snapshot = leaderboardState.snapshot.filter(t => t.teamId !== teamId && t.teamName !== teamId);
+        persistLeaderboardState();
+      }
+
+      broadcastSSE();
+      return sendJson(res, 200, { ok: true, message: 'Team successfully deleted' });
+    } catch (e) {
+      return sendJson(res, 400, { error: e.message });
+    }
+  }
+
+  if (pathname === '/api/teams/clear' && req.method === 'POST') {
+    try {
+      // Clear all evaluations and teams
+      db.prepare('DELETE FROM evaluations').run();
+      db.prepare('DELETE FROM teams').run();
+
+      // Reset leaderboard snapshot as well
+      if (leaderboardState) {
+        leaderboardState.snapshot = [];
+        leaderboardState.updatedAt = Date.now();
+        persistLeaderboardState();
+      }
+
+      broadcastSSE();
+      return sendJson(res, 200, { ok: true, message: 'All teams and scores successfully cleared' });
+    } catch (e) {
+      return sendJson(res, 400, { error: e.message });
     }
   }
 

@@ -61,8 +61,34 @@ document.addEventListener('DOMContentLoaded', () => {
   try {
     if ('BroadcastChannel' in window) {
       broadcastChannel = new BroadcastChannel(CHANNEL_NAME);
+      broadcastChannel.onmessage = (event) => {
+        if (event.data && event.data.type === 'DOMAINS_UPDATE') {
+          const d = event.data.state;
+          if (d && typeof d.isHidden === 'boolean') {
+            const t = d.updatedAt || 0;
+            if (!lastDomainsUpdatedAt || t >= lastDomainsUpdatedAt) {
+              if (t) lastDomainsUpdatedAt = t;
+              updateDomainsUI(d.isHidden, false);
+            }
+          }
+        }
+      };
     }
   } catch (e) {}
+
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'astra_domains_hidden' && e.newValue) {
+      try {
+        const parsed = JSON.parse(e.newValue);
+        const isHidden = typeof parsed === 'boolean' ? parsed : parsed.isHidden;
+        const t = parsed.updatedAt || 0;
+        if (!lastDomainsUpdatedAt || t >= lastDomainsUpdatedAt) {
+          if (t) lastDomainsUpdatedAt = t;
+          updateDomainsUI(isHidden, false);
+        }
+      } catch (err) {}
+    }
+  });
 
   function broadcastTimer(timer) {
     if (!timer) return;
@@ -84,11 +110,12 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (e) {}
   }
 
-  function broadcastDomains(hidden) {
+  function broadcastDomains(hidden, updatedAt = 0) {
     try {
-      localStorage.setItem('astra_domains_hidden', JSON.stringify(hidden));
+      const time = updatedAt || Date.now();
+      localStorage.setItem('astra_domains_hidden', JSON.stringify({ isHidden: hidden, updatedAt: time }));
       if (broadcastChannel) {
-        broadcastChannel.postMessage({ type: 'DOMAINS_UPDATE', state: { isHidden: hidden } });
+        broadcastChannel.postMessage({ type: 'DOMAINS_UPDATE', state: { isHidden: hidden, updatedAt: time } });
       }
     } catch (e) {}
   }
@@ -388,9 +415,14 @@ document.addEventListener('DOMContentLoaded', () => {
               </a>
             </td>
             <td>
-              <button class="btn-deact-judge" data-id="${j.id}" data-active="${j.active}">
-                ${j.active ? 'DEACTIVATE' : 'ACTIVATE'}
-              </button>
+              <div style="display: inline-flex; gap: 6px;">
+                <button class="btn-deact-judge" data-id="${j.id}" data-active="${j.active}">
+                  ${j.active ? 'DEACTIVATE' : 'ACTIVATE'}
+                </button>
+                <button class="btn-delete-judge" data-id="${j.id}" data-name="${escapeHtml(j.name)}">
+                  🗑️ DELETE
+                </button>
+              </div>
             </td>
           </tr>
         `;
@@ -407,6 +439,33 @@ document.addEventListener('DOMContentLoaded', () => {
             body: JSON.stringify({ id: id, active: !currentActive })
           });
           loadJudges();
+        });
+      });
+
+      // Bind delete buttons
+      document.querySelectorAll('.btn-delete-judge').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = btn.getAttribute('data-id');
+          const name = btn.getAttribute('data-name');
+          if (!confirm(`Permanently delete Judge "${name}"?\n\nThis will remove their login access credentials and any submitted scores.`)) {
+            return;
+          }
+          try {
+            const res = await fetch('/api/judges/delete', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id: id })
+            });
+            if (res.ok) {
+              loadJudges();
+              loadMatrix();
+            } else {
+              const err = await res.json();
+              alert(err.error || 'Failed to delete judge');
+            }
+          } catch (e) {
+            alert('Network error deleting judge');
+          }
         });
       });
     } catch (e) {}
@@ -460,7 +519,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!matrix || !matrix.teams || matrix.teams.length === 0) {
       juryMatrixTbody.innerHTML = `
         <tr>
-          <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 24px;">
+          <td colspan="9" style="text-align: center; color: var(--text-muted); padding: 24px;">
             Awaiting judge evaluations... Scores will populate here live as judges upload marks.
           </td>
         </tr>
@@ -512,9 +571,66 @@ document.addEventListener('DOMContentLoaded', () => {
             ${escapeHtml(t.award)}
           </td>
           <td>${feedbackHtml}</td>
+          <td>
+            <button class="btn-delete-team" data-id="${escapeHtml(t.teamId)}" data-name="${escapeHtml(t.teamName)}">
+              🗑️ DELETE
+            </button>
+          </td>
         </tr>
       `;
     }).join('');
+
+    // Bind team delete buttons
+    document.querySelectorAll('.btn-delete-team').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.getAttribute('data-id');
+        const name = btn.getAttribute('data-name');
+        if (!confirm(`Permanently delete team "${name}" and all associated judge evaluations?\n\nThis action cannot be undone.`)) {
+          return;
+        }
+        try {
+          const res = await fetch('/api/teams/delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: id })
+          });
+          if (res.ok) {
+            loadMatrix();
+            loadJudges();
+          } else {
+            const err = await res.json();
+            alert(err.error || 'Failed to delete team');
+          }
+        } catch (e) {
+          alert('Network error deleting team');
+        }
+      });
+    });
+  }
+
+  // Clear all teams handler
+  const btnClearAllTeams = document.getElementById('btn-clear-all-teams');
+  if (btnClearAllTeams) {
+    btnClearAllTeams.addEventListener('click', async () => {
+      if (!confirm('⚠️ WARNING: Are you sure you want to delete ALL registered teams and reset all jury evaluation scores before pushing?\n\nThis will permanently wipe all team evaluations. This action cannot be undone.')) {
+        return;
+      }
+      try {
+        const res = await fetch('/api/teams/clear', {
+          method: 'POST'
+        });
+        if (res.ok) {
+          alert('All teams and scores have been cleared.');
+          loadMatrix();
+          loadJudges();
+        } else {
+          const err = await res.json();
+          alert(err.error || 'Failed to clear teams');
+        }
+      } catch (e) {
+        alert('Network error clearing teams');
+      }
+    });
   }
 
   // ==========================================================================
@@ -593,6 +709,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================================================
   const domainsToggleBanner = document.getElementById('domains-toggle-banner');
   const domainsBadgeStatus = document.getElementById('domains-badge-status');
+  const domainsSubStatus = document.getElementById('domains-sub-status');
   const btnToggleDomains = document.getElementById('btn-toggle-domains');
   const btnDomainsIcon = document.getElementById('btn-domains-icon');
   const btnDomainsText = document.getElementById('btn-domains-text');
@@ -609,33 +726,41 @@ document.addEventListener('DOMContentLoaded', () => {
         const time = data.updatedAt || data.lastUpdated || 0;
         if (!lastDomainsUpdatedAt || time >= lastDomainsUpdatedAt) {
           if (time) lastDomainsUpdatedAt = time;
-          updateDomainsUI(data.isHidden);
+          updateDomainsUI(data.isHidden, false);
         }
       }
     } catch (e) {}
   }
 
-  function updateDomainsUI(hidden) {
+  function updateDomainsUI(hidden, doBroadcast = true) {
     isDomainsHidden = !!hidden;
-    broadcastDomains(isDomainsHidden);
+    if (doBroadcast) {
+      broadcastDomains(isDomainsHidden, lastDomainsUpdatedAt || Date.now());
+    }
     if (isDomainsHidden) {
       if (domainsToggleBanner) domainsToggleBanner.classList.add('state-hidden');
       if (domainsBadgeStatus) {
         domainsBadgeStatus.className = 'domains-badge-hidden';
-        domainsBadgeStatus.textContent = '🔒 SCRAMBLED / HIDDEN (LOCKED)';
+        domainsBadgeStatus.textContent = '🔒 CURRENT STATUS: LOCKED & EMBARGOED';
       }
-      if (btnToggleDomains) btnToggleDomains.className = 'btn-domains-control btn-state-reveal';
-      if (btnDomainsIcon) btnDomainsIcon.textContent = '👁️';
-      if (btnDomainsText) btnDomainsText.textContent = 'CLICK TO REVEAL 15 DOMAINS LIVE';
+      if (domainsSubStatus) {
+        domainsSubStatus.textContent = '15 problem directives are currently concealed & blurred on participant screens. Embargo banner is active.';
+      }
+      if (btnToggleDomains) btnToggleDomains.className = 'btn-domains-control btn-action-unlock';
+      if (btnDomainsIcon) btnDomainsIcon.textContent = '🔓';
+      if (btnDomainsText) btnDomainsText.textContent = 'UNLOCK & REVEAL 15 DOMAINS';
     } else {
       if (domainsToggleBanner) domainsToggleBanner.classList.remove('state-hidden');
       if (domainsBadgeStatus) {
         domainsBadgeStatus.className = 'domains-badge-revealed';
-        domainsBadgeStatus.textContent = '👁️ REVEALED (VISIBLE)';
+        domainsBadgeStatus.textContent = '🔓 CURRENT STATUS: UNLOCKED & REVEALED';
       }
-      if (btnToggleDomains) btnToggleDomains.className = 'btn-domains-control btn-state-hide';
+      if (domainsSubStatus) {
+        domainsSubStatus.textContent = 'All 15 problem directives are unblurred and fully visible live to all participants.';
+      }
+      if (btnToggleDomains) btnToggleDomains.className = 'btn-domains-control btn-action-lock';
       if (btnDomainsIcon) btnDomainsIcon.textContent = '🔒';
-      if (btnDomainsText) btnDomainsText.textContent = 'CLICK TO HIDE & SCRAMBLE 15 DOMAINS';
+      if (btnDomainsText) btnDomainsText.textContent = 'LOCK & EMBARGO 15 DOMAINS';
     }
   }
 
@@ -643,14 +768,13 @@ document.addEventListener('DOMContentLoaded', () => {
     btnToggleDomains.addEventListener('click', async () => {
       const nextState = !isDomainsHidden;
       const confirmMsg = nextState
-        ? 'HIDE AND SCRAMBLE all 15 domains on the participant website? (Topics will be concealed and blurred on all screens)'
-        : 'REVEAL all 15 domains on the participant website? (Topics will be unblurred and readable live for all participants)';
+        ? 'LOCK & EMBARGO all 15 domains on participant terminals? (Topics will be concealed and blurred across all screens)'
+        : 'UNLOCK & REVEAL all 15 domains live to participants? (Topics will be unblurred and instantly readable across all terminals)';
 
       if (confirm(confirmMsg)) {
         const now = Date.now();
         lastDomainsUpdatedAt = now;
-        updateDomainsUI(nextState);
-        broadcastDomains(nextState);
+        updateDomainsUI(nextState, true);
 
         try {
           const res = await fetch('/api/domains/visibility', {
@@ -662,7 +786,7 @@ document.addEventListener('DOMContentLoaded', () => {
           if (data.ok && data.domains) {
             const time = data.domains.updatedAt || data.domains.lastUpdated || 0;
             if (!lastDomainsUpdatedAt || time >= lastDomainsUpdatedAt) {
-              updateDomainsUI(data.domains.isHidden);
+              updateDomainsUI(data.domains.isHidden, false);
             }
           }
         } catch (e) {
@@ -692,6 +816,13 @@ document.addEventListener('DOMContentLoaded', () => {
           if (data.leaderboard) {
             updateLeaderboardBadge(data.leaderboard.state);
           }
+          if (data.domains && typeof data.domains.isHidden === 'boolean') {
+            const time = data.domains.updatedAt || data.domains.lastUpdated || 0;
+            if (!lastDomainsUpdatedAt || time >= lastDomainsUpdatedAt) {
+              if (time) lastDomainsUpdatedAt = time;
+              updateDomainsUI(data.domains.isHidden, false);
+            }
+          }
         } catch (err) {}
       };
       sse.onerror = () => {
@@ -712,6 +843,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
     } catch (e) {}
+
+    // Periodic domains sync check
+    loadDomainsState();
   }
   setInterval(pollMatrix, 3500);
 
