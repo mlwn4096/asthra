@@ -410,7 +410,7 @@ document.addEventListener('DOMContentLoaded', () => {
               ${j.evaluated_count || 0} teams
             </td>
             <td>
-              <a href="/judge.html" target="_blank" class="btn-copy-link" style="text-decoration: none; margin-right: 4px;">
+              <a href="judge.html" target="_blank" class="btn-copy-link" style="text-decoration: none; margin-right: 4px;">
                 OPEN PORTAL ↗
               </a>
             </td>
@@ -508,7 +508,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================================================
   async function loadMatrix() {
     try {
-      const res = await fetch('/api/admin/preview');
+      const res = await fetch('/api/baseline/preview');
       if (!res.ok) return;
       localMatrix = await res.json();
       renderMatrix(localMatrix);
@@ -544,9 +544,8 @@ document.addEventListener('DOMContentLoaded', () => {
       // Remarks button or text
       let feedbackHtml = '—';
       if (t.remarks && t.remarks.length > 0) {
-        const feedbackSummary = t.remarks.map(r => `[${r.judgeName}]: "${r.text}"`).join('\n\n');
         feedbackHtml = `
-          <button class="btn-copy-link" onclick="alert(\`FEEDBACK FOR ${escapeHtml(t.teamName)}:\\n\\n${escapeHtml(feedbackSummary)}\`)">
+          <button class="btn-copy-link btn-view-feedback" data-index="${matrix.teams.indexOf(t)}">
             💬 VIEW (${t.remarks.length})
           </button>
         `;
@@ -579,6 +578,18 @@ document.addEventListener('DOMContentLoaded', () => {
         </tr>
       `;
     }).join('');
+
+    // Bind remarks view buttons safely
+    document.querySelectorAll('.btn-view-feedback').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = parseInt(btn.getAttribute('data-index'), 10);
+        const teamData = matrix.teams && matrix.teams[idx];
+        if (teamData && teamData.remarks && teamData.remarks.length > 0) {
+          const feedbackSummary = teamData.remarks.map(r => `[${r.judgeName}]: "${r.text}"`).join('\n\n');
+          alert(`FEEDBACK FOR ${teamData.teamName}:\n\n${feedbackSummary}`);
+        }
+      });
+    });
 
     // Bind team delete buttons
     document.querySelectorAll('.btn-delete-team').forEach(btn => {
@@ -867,7 +878,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Background poller to refresh jury evaluation matrix without disrupting active admin timer
   async function pollMatrix() {
     try {
-      const res = await fetch('/api/admin/preview');
+      const res = await fetch('/api/baseline/preview');
       if (res.ok) {
         const data = await res.json();
         if (data.teams) {

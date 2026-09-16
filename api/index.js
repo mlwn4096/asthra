@@ -338,6 +338,42 @@ function sanitizeText(str) {
   return str.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').trim();
 }
 
+const JWT_SECRET = SUPABASE_KEY || 'asthra_secret_jury_token_key';
+
+function resolveAuthenticatedJudge(req, state) {
+  const authHeader = req.headers['authorization'] || '';
+  const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+  if (!token) return null;
+
+  // 1. Check self-verifying HMAC token (cross-container resilient)
+  if (token.startsWith('jtok_')) {
+    try {
+      const parts = token.slice(5).split('.');
+      if (parts.length === 2) {
+        const [b64, sig] = parts;
+        const sigData = Buffer.from(b64, 'base64url').toString('utf8');
+        const expectedSig = crypto.createHmac('sha256', JWT_SECRET).update(sigData).digest('hex');
+        if (sig === expectedSig) {
+          const [judgeId, expiresAtStr] = sigData.split('.');
+          const expiresAt = parseInt(expiresAtStr, 10);
+          if (expiresAt > Date.now()) {
+            const judge = (state.judges || []).find(j => j.id === judgeId);
+            if (judge && judge.active) return judge;
+          }
+        }
+      }
+    } catch (e) {}
+  }
+
+  // 2. Fallback to state.sessions lookup
+  const session = state.sessions && state.sessions[token];
+  if (session && session.expires_at > Date.now()) {
+    const judge = (state.judges || []).find(j => j.id === session.judge_id);
+    if (judge && judge.active) return judge;
+  }
+  return null;
+}
+
 module.exports = async function handler(req, res) {
   // CORS Preflight
   if (req.method === 'OPTIONS') {
@@ -535,6 +571,7 @@ module.exports = async function handler(req, res) {
       .filter(t => t.evalCount > 0)
       .map(t => ({
         rank: t.rank,
+        teamId: t.teamId,
         teamName: t.teamName,
         domain: t.domain,
         avgFunctionality: t.avgC4,
@@ -688,12 +725,17 @@ module.exports = async function handler(req, res) {
         return sendJson(res, 401, { error: 'Invalid or deactivated jury key.' });
       }
 
-      const token = 'token_' + crypto.randomBytes(16).toString('hex');
       const now = Date.now();
+      const expiresAt = now + 7 * 24 * 3600 * 1000; // 7 days
+      const sigData = `${judge.id}.${expiresAt}`;
+      const sig = crypto.createHmac('sha256', JWT_SECRET).update(sigData).digest('hex');
+      const token = `jtok_${Buffer.from(sigData).toString('base64url')}.${sig}`;
+
+      if (!state.sessions) state.sessions = {};
       state.sessions[token] = {
         judge_id: judge.id,
         created_at: now,
-        expires_at: now + 24 * 3600 * 1000
+        expires_at: expiresAt
       };
       await persistState();
 
@@ -708,15 +750,9 @@ module.exports = async function handler(req, res) {
   }
 
   if (pathname === '/api/judges/me' && req.method === 'GET') {
-    const authHeader = req.headers['authorization'] || '';
-    const token = authHeader.replace(/^Bearer\s+/i, '').trim();
-    const session = state.sessions[token];
-
-    if (session && session.expires_at > Date.now()) {
-      const judge = state.judges.find(j => j.id === session.judge_id);
-      if (judge && judge.active) {
-        return sendJson(res, 200, { ok: true, judge: { id: judge.id, name: judge.name } });
-      }
+    const judge = resolveAuthenticatedJudge(req, state);
+    if (judge) {
+      return sendJson(res, 200, { ok: true, judge: { id: judge.id, name: judge.name } });
     }
     return sendJson(res, 401, { error: 'Unauthorized or expired session' });
   }
@@ -731,17 +767,13 @@ module.exports = async function handler(req, res) {
 
   if (pathname === '/api/submissions' || pathname === '/api/evaluations') {
     if (req.method === 'GET') {
-      const authHeader = req.headers['authorization'] || '';
-      const token = authHeader.replace(/^Bearer\s+/i, '').trim();
-      const session = state.sessions[token];
-      const judgeId = session && session.expires_at > Date.now() ? session.judge_id : null;
-
-      if (!judgeId) {
+      const judge = resolveAuthenticatedJudge(req, state);
+      if (!judge) {
         return sendJson(res, 401, { error: 'Unauthorized or expired judge session' });
       }
 
       const rows = (state.evaluations || [])
-        .filter(e => e.judge_id === judgeId)
+        .filter(e => e.judge_id === judge.id)
         .sort((a, b) => (b.updated_at || 0) - (a.updated_at || 0));
 
       return sendJson(res, 200, { submissions: rows, evaluations: rows });
@@ -749,13 +781,7 @@ module.exports = async function handler(req, res) {
 
     if (req.method === 'POST') {
       try {
-        const authHeader = req.headers['authorization'] || '';
-        const token = authHeader.replace(/^Bearer\s+/i, '').trim();
-        const session = state.sessions[token];
-        const judge = session && session.expires_at > Date.now()
-          ? state.judges.find(j => j.id === session.judge_id)
-          : null;
-
+        const judge = resolveAuthenticatedJudge(req, state);
         if (!judge) {
           return sendJson(res, 401, { error: 'Unauthorized: Invalid or expired jury session. Please re-enter your key.' });
         }
@@ -769,12 +795,12 @@ module.exports = async function handler(req, res) {
           return sendJson(res, 400, { error: 'Team name is required' });
         }
 
-        const c1 = Number(body.scores?.c1) || 0;
-        const c2 = Number(body.scores?.c2) || 0;
-        const c3 = Number(body.scores?.c3) || 0;
-        const c4 = Number(body.scores?.c4) || 0;
-        const c5 = Number(body.scores?.c5) || 0;
-        const c6 = Number(body.scores?.c6) || 0;
+        const c1 = Math.min(20, Math.max(0, Math.round((Number(body.scores?.c1) || 0) * 2) / 2));
+        const c2 = Math.min(20, Math.max(0, Math.round((Number(body.scores?.c2) || 0) * 2) / 2));
+        const c3 = Math.min(20, Math.max(0, Math.round((Number(body.scores?.c3) || 0) * 2) / 2));
+        const c4 = Math.min(25, Math.max(0, Math.round((Number(body.scores?.c4) || 0) * 2) / 2));
+        const c5 = Math.min(10, Math.max(0, Math.round((Number(body.scores?.c5) || 0) * 2) / 2));
+        const c6 = Math.min(5, Math.max(0, Math.round((Number(body.scores?.c6) || 0) * 2) / 2));
         const total = Number((c1 + c2 + c3 + c4 + c5 + c6).toFixed(1));
         const remarks = sanitizeText(body.remarks || '');
         const now = Date.now();
@@ -861,10 +887,11 @@ module.exports = async function handler(req, res) {
       const teamId = body.id || body.teamId;
       if (!teamId) return sendJson(res, 400, { error: 'Team ID is required' });
 
+      const targetTeam = (state.teams || []).find(t => t.id === teamId);
       state.teams = (state.teams || []).filter(t => t.id !== teamId);
       state.evaluations = (state.evaluations || []).filter(e => e.team_id !== teamId);
       if (state.leaderboard && Array.isArray(state.leaderboard.snapshot)) {
-        state.leaderboard.snapshot = state.leaderboard.snapshot.filter(t => t.teamId !== teamId && t.teamName !== teamId);
+        state.leaderboard.snapshot = state.leaderboard.snapshot.filter(t => t.teamId !== teamId && (!targetTeam || t.teamName !== targetTeam.name));
       }
       await persistState();
       return sendJson(res, 200, { ok: true, message: 'Team successfully deleted' });
@@ -877,10 +904,11 @@ module.exports = async function handler(req, res) {
     const teamId = pathname.split('/')[3];
     if (!teamId || teamId === 'delete') return sendJson(res, 400, { error: 'Team ID is required' });
     try {
+      const targetTeam = (state.teams || []).find(t => t.id === teamId);
       state.teams = (state.teams || []).filter(t => t.id !== teamId);
       state.evaluations = (state.evaluations || []).filter(e => e.team_id !== teamId);
       if (state.leaderboard && Array.isArray(state.leaderboard.snapshot)) {
-        state.leaderboard.snapshot = state.leaderboard.snapshot.filter(t => t.teamId !== teamId && t.teamName !== teamId);
+        state.leaderboard.snapshot = state.leaderboard.snapshot.filter(t => t.teamId !== teamId && (!targetTeam || t.teamName !== targetTeam.name));
       }
       await persistState();
       return sendJson(res, 200, { ok: true, message: 'Team successfully deleted' });

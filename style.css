@@ -1235,6 +1235,109 @@ body.theme-light .hero-params-line {
 }
 
 /* --------------------------------------------------------------------------
+   08B. DOMAINS EMBARGO CALLOUT BANNER & CONCEALED GRID STYLING
+   -------------------------------------------------------------------------- */
+.domains-embargo-banner {
+  background: #140d05;
+  border: 1px solid rgba(255, 179, 0, 0.4);
+  border-left: 4px solid var(--amber-warn);
+  padding: 24px 28px;
+  border-radius: 4px;
+  margin-bottom: 28px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  animation: pulse-amber 3s infinite ease-in-out;
+}
+
+body.theme-light .domains-embargo-banner {
+  background: #fff9eb;
+  border-color: rgba(217, 119, 6, 0.4);
+  border-left-color: #d97706;
+}
+
+.deb-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.deb-lock-icon {
+  font-size: 28px;
+  margin-bottom: 2px;
+}
+
+.deb-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--amber-warn);
+  letter-spacing: 0.08em;
+}
+
+body.theme-light .deb-badge {
+  color: #b45309;
+}
+
+.deb-title {
+  font-family: var(--font-display);
+  font-size: clamp(20px, 2.5vw, 24px);
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.02em;
+}
+
+body.theme-light .deb-title {
+  color: #1a1505;
+}
+
+.deb-desc {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  max-width: 860px;
+}
+
+.deb-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 179, 0, 0.12);
+  border: 1px solid rgba(255, 179, 0, 0.25);
+  padding: 4px 12px;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--amber-warn);
+  font-weight: 700;
+  width: fit-content;
+  margin-top: 6px;
+}
+
+body.theme-light .deb-status-pill {
+  background: #fef3c7;
+  border-color: #f59e0b;
+  color: #92400e;
+}
+
+.telemetry-live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--amber-warn);
+  box-shadow: 0 0 8px var(--amber-warn);
+  animation: pulse-amber 1.2s infinite;
+  display: inline-block;
+}
+
+/* Scrambled / Embargoed Domains Grid Blur */
+.domains-grid.domains-scrambled {
+  filter: blur(10px);
+  opacity: 0.25;
+  pointer-events: none;
+  user-select: none;
+  transition: filter 0.4s ease, opacity 0.4s ease;
+}
+
+/* --------------------------------------------------------------------------
    09. SPRINT RULES & DIRECTIVES ACCORDIONS (BRIEF QUICK-LOOK PROTOCOL)
    -------------------------------------------------------------------------- */
 .section-rules {
@@ -1640,6 +1743,52 @@ body.theme-light .rule-accordion-header:hover {
   font-weight: 800;
   font-size: 15px;
   color: var(--green-pass);
+}
+
+/* Leaderboard Award Badges & Pill Styling */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.badge-solid-red {
+  background: var(--red-primary);
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(255, 42, 43, 0.5);
+}
+
+.badge-red-glow {
+  background: rgba(255, 42, 43, 0.15);
+  color: #ff5252;
+  border: 1px solid rgba(255, 42, 43, 0.4);
+}
+
+.badge-subtle {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-muted);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+body.theme-light .badge-subtle {
+  background: rgba(0, 0, 0, 0.05);
+  color: #64748b;
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.badge-pill-red {
+  background: rgba(255, 42, 43, 0.12);
+  color: #ff5252;
+  border: 1px solid rgba(255, 42, 43, 0.35);
+  padding: 4px 12px;
+  border-radius: 100px;
 }
 
 /* --------------------------------------------------------------------------

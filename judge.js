@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const displayTotalScore = document.getElementById('display-total-score');
   const evalToast = document.getElementById('eval-toast');
   const activeEvalStatus = document.getElementById('active-eval-status');
+  const btnClearEval = document.getElementById('btn-clear-eval');
   const historyTbody = document.getElementById('history-tbody');
   const historyCount = document.getElementById('history-count');
 
@@ -74,11 +75,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function verifyKey(rawKey) {
     showAuthError('');
+    const keyToVerify = (rawKey || '').trim().toUpperCase();
+    if (!keyToVerify) return;
     try {
       const res = await fetch('/api/judges/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key: rawKey })
+        body: JSON.stringify({ key: keyToVerify })
       });
 
       const data = await res.json();
@@ -133,6 +136,26 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (e) {}
   }
 
+  function clearEvalForm() {
+    teamNameInput.value = '';
+    teamDomainSelect.selectedIndex = 0;
+    Object.keys(scoreFields).forEach(key => {
+      scoreFields[key].value = '0.0';
+    });
+    evalRemarksInput.value = '';
+    calculateTotal();
+    activeEvalStatus.textContent = 'NEW SUBMISSION';
+    activeEvalStatus.style.color = 'var(--blue)';
+    teamNameInput.focus();
+  }
+
+  if (btnClearEval) {
+    btnClearEval.addEventListener('click', () => {
+      clearEvalForm();
+      showToast('Form cleared for next team evaluation', 'success');
+    });
+  }
+
   // When judge types or selects a team name, auto-select domain if it matches a pre-registered team
   if (teamNameInput) {
     teamNameInput.addEventListener('focus', () => {
@@ -143,6 +166,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const match = registeredTeamsCache.find(t => t.name.toLowerCase() === val);
       if (match && match.domain && teamDomainSelect) {
         teamDomainSelect.value = match.domain;
+      }
+      const existing = mySubmissions.find(s => s.team_name.toLowerCase() === val);
+      if (existing) {
+        activeEvalStatus.textContent = `PREVIOUSLY EVALUATED (${existing.total.toFixed(1)}/100) — CLICK EDIT BELOW OR SUBMIT TO REVISE`;
+        activeEvalStatus.style.color = 'var(--amber)';
+      } else {
+        activeEvalStatus.textContent = 'NEW SUBMISSION';
+        activeEvalStatus.style.color = 'var(--blue)';
       }
     });
   }
@@ -238,16 +269,18 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    const clampScore = (val, max) => Math.min(max, Math.max(0, Math.round((parseFloat(val) || 0) * 2) / 2));
+
     const payload = {
       teamName: teamName,
       domain: teamDomainSelect.value,
       scores: {
-        c1: parseFloat(scoreFields.c1.value) || 0,
-        c2: parseFloat(scoreFields.c2.value) || 0,
-        c3: parseFloat(scoreFields.c3.value) || 0,
-        c4: parseFloat(scoreFields.c4.value) || 0,
-        c5: parseFloat(scoreFields.c5.value) || 0,
-        c6: parseFloat(scoreFields.c6.value) || 0
+        c1: clampScore(scoreFields.c1.value, MAX_LIMITS.c1),
+        c2: clampScore(scoreFields.c2.value, MAX_LIMITS.c2),
+        c3: clampScore(scoreFields.c3.value, MAX_LIMITS.c3),
+        c4: clampScore(scoreFields.c4.value, MAX_LIMITS.c4),
+        c5: clampScore(scoreFields.c5.value, MAX_LIMITS.c5),
+        c6: clampScore(scoreFields.c6.value, MAX_LIMITS.c6)
       },
       remarks: evalRemarksInput.value.trim()
     };

@@ -311,7 +311,7 @@ function computeJuryMatrix() {
 // 5. AUTHENTICATION HELPERS
 // ============================================================================
 function hashKey(key) {
-  return crypto.createHash('sha256').update(key.trim()).digest('hex');
+  return crypto.createHash('sha256').update(key.trim().toUpperCase()).digest('hex');
 }
 
 function getAuthenticatedJudge(req) {
@@ -754,7 +754,7 @@ async function handleRequest(req, res) {
 
         // 1. Upsert Team
         const teamSlug = teamName.toLowerCase().replace(/[^a-z0-9]/g, '_');
-        let team = db.prepare('SELECT id FROM teams WHERE name = ?').get(teamName);
+        let team = db.prepare('SELECT id FROM teams WHERE LOWER(name) = LOWER(?)').get(teamName);
         let teamId;
         if (!team) {
           teamId = 'team_' + teamSlug + '_' + crypto.randomBytes(3).toString('hex');
@@ -810,7 +810,7 @@ async function handleRequest(req, res) {
         if (!name) return sendJson(res, 400, { error: 'Team name is required' });
 
         const teamSlug = name.toLowerCase().replace(/[^a-z0-9]/g, '_');
-        let team = db.prepare('SELECT id, name, domain FROM teams WHERE name = ?').get(name);
+        let team = db.prepare('SELECT id, name, domain FROM teams WHERE LOWER(name) = LOWER(?)').get(name);
         let teamId;
         const now = Date.now();
         if (!team) {
@@ -838,11 +838,12 @@ async function handleRequest(req, res) {
       const teamId = body.id || body.teamId;
       if (!teamId) return sendJson(res, 400, { error: 'Team ID is required' });
 
+      const targetTeam = db.prepare('SELECT name FROM teams WHERE id = ?').get(teamId);
       db.prepare('DELETE FROM evaluations WHERE team_id = ?').run(teamId);
       db.prepare('DELETE FROM teams WHERE id = ?').run(teamId);
 
       if (leaderboardState && Array.isArray(leaderboardState.snapshot)) {
-        leaderboardState.snapshot = leaderboardState.snapshot.filter(t => t.teamId !== teamId && t.teamName !== teamId);
+        leaderboardState.snapshot = leaderboardState.snapshot.filter(t => t.teamId !== teamId && (!targetTeam || t.teamName !== targetTeam.name));
         persistLeaderboardState();
       }
 
@@ -857,11 +858,12 @@ async function handleRequest(req, res) {
     const teamId = pathname.split('/')[3];
     if (!teamId || teamId === 'delete') return sendJson(res, 400, { error: 'Team ID is required' });
     try {
+      const targetTeam = db.prepare('SELECT name FROM teams WHERE id = ?').get(teamId);
       db.prepare('DELETE FROM evaluations WHERE team_id = ?').run(teamId);
       db.prepare('DELETE FROM teams WHERE id = ?').run(teamId);
 
       if (leaderboardState && Array.isArray(leaderboardState.snapshot)) {
-        leaderboardState.snapshot = leaderboardState.snapshot.filter(t => t.teamId !== teamId && t.teamName !== teamId);
+        leaderboardState.snapshot = leaderboardState.snapshot.filter(t => t.teamId !== teamId && (!targetTeam || t.teamName !== targetTeam.name));
         persistLeaderboardState();
       }
 
@@ -929,6 +931,7 @@ async function handleRequest(req, res) {
       .filter(t => t.evalCount > 0)
       .map(t => ({
         rank: t.rank,
+        teamId: t.teamId,
         teamName: t.teamName,
         domain: t.domain,
         avgFunctionality: t.avgC4,
@@ -1021,6 +1024,8 @@ async function handleRequest(req, res) {
     normalizedPath = 'index.html';
   } else if (normalizedPath === '/baseline') {
     normalizedPath = 'baseline.html';
+  } else if (normalizedPath === '/judge') {
+    normalizedPath = 'judge.html';
   }
 
   let filePath = path.join(PUBLIC_DIR, normalizedPath);

@@ -528,6 +528,29 @@
       transform: translateY(-1px);
     }
 
+    .btn-clear-eval {
+      background: var(--card-elevated);
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      border: 1px solid var(--border);
+      padding: 14px 20px;
+      border-radius: 3px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.18s;
+    }
+
+    .btn-clear-eval:hover {
+      border-color: var(--amber);
+      color: var(--amber);
+      transform: translateY(-1px);
+    }
+
     /* Status Banner */
     .status-toast {
       padding: 12px 18px;
@@ -640,7 +663,7 @@
         flex-direction: column;
         align-items: flex-start;
       }
-      .btn-submit-eval {
+      .btn-submit-eval, .btn-clear-eval {
         width: 100%;
         justify-content: center;
       }
@@ -958,7 +981,10 @@
               </div>
             </div>
 
-            <div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <button type="button" class="btn-clear-eval" id="btn-clear-eval" title="Clear form to evaluate next team">
+                <span>✕</span> <span>CLEAR / NEXT TEAM</span>
+              </button>
               <button type="submit" class="btn-submit-eval" id="btn-upload-marks">
                 <span>⬆</span>
                 <span>UPLOAD MARKS TO BASELINE PORTAL</span>
