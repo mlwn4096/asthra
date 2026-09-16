@@ -10,12 +10,58 @@ const path = require('path');
 const os = require('os');
 const crypto = require('crypto');
 
-const STATE_FILE = path.join(os.tmpdir(), 'asthra_state_v1.json');
+const STATE_FILE = path.join(os.tmpdir(), 'asthra_state_v2.json');
 
-// Default initial state
+// Supabase Cloud Persistence (Active when environment variables are set in Vercel)
+const SUPABASE_URL = (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '').replace(/\/$/, '');
+const SUPABASE_KEY = process.env.SUPABASE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+
+async function fetchSupabaseState() {
+  if (!SUPABASE_URL || !SUPABASE_KEY) return null;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/asthra_state?key=eq.main_state&select=data,updated_at`, {
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`
+      }
+    });
+    if (!res.ok) return null;
+    const rows = await res.json();
+    if (Array.isArray(rows) && rows.length > 0 && rows[0].data) {
+      return rows[0].data;
+    }
+  } catch (e) {
+    console.error('Supabase fetch error:', e.message);
+  }
+  return null;
+}
+
+async function persistSupabaseState(state) {
+  if (!SUPABASE_URL || !SUPABASE_KEY) return;
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/asthra_state`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'resolution=merge-duplicates'
+      },
+      body: JSON.stringify({
+        key: 'main_state',
+        data: state,
+        updated_at: Date.now()
+      })
+    });
+  } catch (e) {
+    console.error('Supabase persist error:', e.message);
+  }
+}
+
+// Default initial state — Clean state with ZERO mock teams or placeholder judges
 function getDefaultState() {
   return {
-    lastUpdated: 0,
+    lastUpdated: Date.now(),
     timer: {
       status: 'idle', // 'idle' | 'running' | 'paused' | 'stopped'
       duration: 300,
@@ -34,33 +80,9 @@ function getDefaultState() {
       updatedAt: 0,
       snapshot: []
     },
-    judges: [
-      {
-        id: 'judge_alpha_master',
-        name: 'Chief Jury Alpha',
-        key_hash: crypto.createHash('sha256').update('J-1001').digest('hex'),
-        active: 1,
-        created_at: 0
-      }
-    ],
+    judges: [],
     sessions: {},
-    teams: [
-      { id: 'team_01', name: 'Agentic Matrix', domain: '01 // AI AGENTS & AUTONOMOUS SYSTEMS' },
-      { id: 'team_02', name: 'MedPulse AI', domain: '02 // HEALTHCARE & CLINICAL DIAGNOSTICS' },
-      { id: 'team_03', name: 'CyberShield', domain: '03 // DEFENSE TECH & CYBER RESILIENCE' },
-      { id: 'team_04', name: 'AgriSense IoT', domain: '04 // PRECISION AGRI-TECH & HARVESTING' },
-      { id: 'team_05', name: 'VaultSafe DeFi', domain: '05 // FINTECH, DEFI & RISK ENGINE' },
-      { id: 'team_06', name: 'GridMaster EV', domain: '06 // SMART ENERGY, GRID & EV INFRA' },
-      { id: 'team_07', name: 'TerraLogix', domain: '07 // DISASTER MANAGEMENT & RELIEF ROBOTICS' },
-      { id: 'team_08', name: 'CogniTutor', domain: '08 // EDUTECH & ADAPTIVE INTELLIGENCE' },
-      { id: 'team_09', name: 'FreightSync AI', domain: '09 // SUPPLY CHAIN & INVENTORY TWIN' },
-      { id: 'team_10', name: 'LegalMind AI', domain: '10 // LEGALTECH & REGULATORY CO-PILOT' },
-      { id: 'team_11', name: 'BioSpectra', domain: '11 // BIOTECH, PROTEIN & LAB AUTOMATION' },
-      { id: 'team_12', name: 'CivicForge', domain: '12 // SMART URBAN LIVING & WASTE MGMT' },
-      { id: 'team_13', name: 'AeroSwarm', domain: '13 // AEROSPACE & AUTONOMOUS DRONES' },
-      { id: 'team_14', name: 'DeepGuard Voice', domain: '14 // MULTIMODAL MEDIA & DEEPFAKE DEFENSE' },
-      { id: 'team_15', name: 'NeuroCraft BCI', domain: '15 // NEUROTECH & ASSISTIVE ACCESSIBILITY' }
-    ],
+    teams: [],
     evaluations: []
   };
 }
@@ -78,7 +100,18 @@ if (!global.__ASTRA_STATE) {
   }
 }
 
-function getState() {
+async function getState() {
+  if (SUPABASE_URL && SUPABASE_KEY) {
+    const remote = await fetchSupabaseState();
+    if (remote) {
+      const remoteTime = remote.lastUpdated || 0;
+      const memTime = global.__ASTRA_STATE?.lastUpdated || 0;
+      if (remoteTime >= memTime || !global.__ASTRA_STATE) {
+        global.__ASTRA_STATE = remote;
+      }
+    }
+  }
+
   try {
     if (fs.existsSync(STATE_FILE)) {
       const disk = JSON.parse(fs.readFileSync(STATE_FILE, 'utf8'));
@@ -106,6 +139,24 @@ function getState() {
     global.__ASTRA_STATE = getDefaultState();
   }
 
+  // Ensure collection arrays exist and are sanitized against legacy mock seeds
+  if (!Array.isArray(global.__ASTRA_STATE.teams)) {
+    global.__ASTRA_STATE.teams = [];
+  } else {
+    // Purge legacy mock teams (team_01 to team_15) if present from previous state
+    global.__ASTRA_STATE.teams = global.__ASTRA_STATE.teams.filter(t => !/^team_\d{2}$/.test(t.id));
+  }
+
+  if (!Array.isArray(global.__ASTRA_STATE.judges)) {
+    global.__ASTRA_STATE.judges = [];
+  } else {
+    // Purge legacy mock Chief Jury Alpha if present
+    global.__ASTRA_STATE.judges = global.__ASTRA_STATE.judges.filter(j => j.id !== 'judge_alpha_master');
+  }
+
+  if (!Array.isArray(global.__ASTRA_STATE.evaluations)) global.__ASTRA_STATE.evaluations = [];
+  if (!global.__ASTRA_STATE.sessions) global.__ASTRA_STATE.sessions = {};
+
   // Sync live timer ticks
   const timer = global.__ASTRA_STATE.timer;
   if (timer.status === 'running' && timer.endTimestamp) {
@@ -115,7 +166,7 @@ function getState() {
       timer.status = 'stopped';
       timer.remaining = 0;
       timer.endTimestamp = null;
-      persistState();
+      await persistState();
     } else {
       timer.remaining = diff;
     }
@@ -123,11 +174,14 @@ function getState() {
   return global.__ASTRA_STATE;
 }
 
-function persistState() {
+async function persistState() {
   try {
     if (global.__ASTRA_STATE) {
       global.__ASTRA_STATE.lastUpdated = Date.now();
       fs.writeFileSync(STATE_FILE, JSON.stringify(global.__ASTRA_STATE), 'utf8');
+      if (SUPABASE_URL && SUPABASE_KEY) {
+        await persistSupabaseState(global.__ASTRA_STATE);
+      }
     }
   } catch (e) {}
 }
@@ -303,7 +357,7 @@ module.exports = async function handler(req, res) {
     pathname = '/api' + (pathname.startsWith('/') ? pathname : '/' + pathname);
   }
 
-  const state = getState();
+  const state = await getState();
 
   // --------------------------------------------------------------------------
   // 1. TIMER ENDPOINTS
@@ -340,7 +394,7 @@ module.exports = async function handler(req, res) {
     state.timer.startTimestamp = body.startTimestamp || now;
     state.timer.endTimestamp = body.endTimestamp || (now + (state.timer.remaining || state.timer.duration) * 1000);
     state.timer.lastUpdated = body.lastUpdated || now;
-    persistState();
+    await persistState();
     return sendJson(res, 200, { ok: true, timer: state.timer });
   }
 
@@ -357,7 +411,7 @@ module.exports = async function handler(req, res) {
     }
     state.timer.endTimestamp = null;
     state.timer.lastUpdated = body.lastUpdated || now;
-    persistState();
+    await persistState();
     return sendJson(res, 200, { ok: true, timer: state.timer });
   }
 
@@ -371,7 +425,7 @@ module.exports = async function handler(req, res) {
     }
     state.timer.endTimestamp = body.endTimestamp || (now + (state.timer.remaining || state.timer.duration) * 1000);
     state.timer.lastUpdated = body.lastUpdated || now;
-    persistState();
+    await persistState();
     return sendJson(res, 200, { ok: true, timer: state.timer });
   }
 
@@ -382,7 +436,7 @@ module.exports = async function handler(req, res) {
     state.timer.remaining = 0;
     state.timer.endTimestamp = null;
     state.timer.lastUpdated = body.lastUpdated || Date.now();
-    persistState();
+    await persistState();
     return sendJson(res, 200, { ok: true, timer: state.timer });
   }
 
@@ -397,7 +451,7 @@ module.exports = async function handler(req, res) {
     state.timer.startTimestamp = null;
     state.timer.endTimestamp = null;
     state.timer.lastUpdated = body.lastUpdated || Date.now();
-    persistState();
+    await persistState();
     return sendJson(res, 200, { ok: true, timer: state.timer });
   }
 
@@ -421,7 +475,7 @@ module.exports = async function handler(req, res) {
         endTimestamp: null,
         lastUpdated: body.lastUpdated || Date.now()
       };
-      persistState();
+      await persistState();
       return sendJson(res, 200, { ok: true, timer: state.timer });
     } catch (e) {
       return sendJson(res, 400, { error: e.message });
@@ -444,7 +498,7 @@ module.exports = async function handler(req, res) {
           state.domains.isHidden = !state.domains.isHidden;
         }
         state.domains.updatedAt = typeof body.updatedAt === 'number' ? body.updatedAt : Date.now();
-        persistState();
+        await persistState();
         return sendJson(res, 200, { ok: true, domains: state.domains });
       } catch (e) {
         return sendJson(res, 400, { error: e.message });
@@ -504,7 +558,7 @@ module.exports = async function handler(req, res) {
       updatedAt: now,
       snapshot: snapshot
     };
-    persistState();
+    await persistState();
 
     return sendJson(res, 200, {
       ok: true,
@@ -524,7 +578,7 @@ module.exports = async function handler(req, res) {
       updatedAt: now,
       snapshot: []
     };
-    persistState();
+    await persistState();
     return sendJson(res, 200, { ok: true, state: 'EMBARGOED', updatedAt: now, publishedAt: null, teams: [] });
   }
 
@@ -557,7 +611,7 @@ module.exports = async function handler(req, res) {
 
         const judge = { id, name, key_hash, active: 1, created_at: now };
         state.judges.push(judge);
-        persistState();
+        await persistState();
 
         return sendJson(res, 201, {
           ok: true,
@@ -576,7 +630,7 @@ module.exports = async function handler(req, res) {
       const judge = state.judges.find(j => j.id === id);
       if (judge) {
         judge.active = active ? 1 : 0;
-        persistState();
+        await persistState();
       }
       return sendJson(res, 200, { ok: true });
     } catch (e) {
@@ -596,7 +650,7 @@ module.exports = async function handler(req, res) {
           delete state.sessions[token];
         }
       }
-      persistState();
+      await persistState();
       return sendJson(res, 200, { ok: true, message: 'Judge deleted successfully' });
     } catch (e) {
       return sendJson(res, 400, { error: e.message });
@@ -614,7 +668,7 @@ module.exports = async function handler(req, res) {
           delete state.sessions[token];
         }
       }
-      persistState();
+      await persistState();
       return sendJson(res, 200, { ok: true, message: 'Judge deleted successfully' });
     } catch (e) {
       return sendJson(res, 400, { error: e.message });
@@ -644,7 +698,7 @@ module.exports = async function handler(req, res) {
         created_at: now,
         expires_at: now + 24 * 3600 * 1000
       };
-      persistState();
+      await persistState();
 
       return sendJson(res, 200, {
         ok: true,
@@ -756,7 +810,7 @@ module.exports = async function handler(req, res) {
           state.evaluations.push(evalItem);
         }
 
-        persistState();
+        await persistState();
         return sendJson(res, 200, { ok: true, total, teamId: team.id, updatedAt: now });
       } catch (e) {
         return sendJson(res, 400, { error: e.message });
@@ -778,7 +832,7 @@ module.exports = async function handler(req, res) {
       if (state.leaderboard && Array.isArray(state.leaderboard.snapshot)) {
         state.leaderboard.snapshot = state.leaderboard.snapshot.filter(t => t.teamId !== teamId && t.teamName !== teamId);
       }
-      persistState();
+      await persistState();
       return sendJson(res, 200, { ok: true, message: 'Team successfully deleted' });
     } catch (e) {
       return sendJson(res, 400, { error: e.message });
@@ -794,7 +848,7 @@ module.exports = async function handler(req, res) {
       if (state.leaderboard && Array.isArray(state.leaderboard.snapshot)) {
         state.leaderboard.snapshot = state.leaderboard.snapshot.filter(t => t.teamId !== teamId && t.teamName !== teamId);
       }
-      persistState();
+      await persistState();
       return sendJson(res, 200, { ok: true, message: 'Team successfully deleted' });
     } catch (e) {
       return sendJson(res, 400, { error: e.message });
@@ -809,7 +863,7 @@ module.exports = async function handler(req, res) {
         state.leaderboard.snapshot = [];
         state.leaderboard.updatedAt = Date.now();
       }
-      persistState();
+      await persistState();
       return sendJson(res, 200, { ok: true, message: 'All teams and scores cleared' });
     } catch (e) {
       return sendJson(res, 400, { error: e.message });
