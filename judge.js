@@ -223,7 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const submitBtn = document.getElementById('btn-upload-marks');
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '<span>⏳</span> <span>UPLOADING TO ADMIN DESK...</span>';
+    submitBtn.innerHTML = '<span>⏳</span> <span>UPLOADING TO BASELINE PORTAL...</span>';
 
     try {
       const res = await fetch('/api/submissions', {
@@ -237,21 +237,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const data = await res.json();
       submitBtn.disabled = false;
-      submitBtn.innerHTML = '<span>⬆</span> <span>UPLOAD MARKS TO ADMIN DESK</span>';
+      submitBtn.innerHTML = '<span>⬆</span> <span>UPLOAD MARKS TO BASELINE PORTAL</span>';
 
       if (!res.ok) {
         showToast(data.error || 'Failed to upload marks', 'error');
         return;
       }
 
-      showToast(`✓ Marks certified &amp; uploaded for "${teamName}" (${data.total} / 100)`, 'success');
+      showToast(`✓ Marks certified & uploaded for "${teamName}" (${data.total} / 100)`, 'success');
       activeEvalStatus.textContent = 'SAVED / UPLOADED';
       activeEvalStatus.style.color = 'var(--green)';
 
       loadSubmissionsHistory();
     } catch (err) {
       submitBtn.disabled = false;
-      submitBtn.innerHTML = '<span>⬆</span> <span>UPLOAD MARKS TO ADMIN DESK</span>';
+      submitBtn.innerHTML = '<span>⬆</span> <span>UPLOAD MARKS TO BASELINE PORTAL</span>';
       showToast('Network error connecting to evaluation server', 'error');
     }
   });

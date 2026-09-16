@@ -603,6 +603,27 @@
       color: var(--blue);
     }
 
+    .portal-link {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: #ffffff;
+      background: var(--card-subtle);
+      border: 1px solid var(--border);
+      padding: 7px 12px;
+      border-radius: 3px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .portal-link:hover {
+      border-color: var(--blue);
+      color: var(--blue);
+    }
+
     @media (max-width: 680px) {
       .form-grid-top {
         grid-template-columns: 1fr;
@@ -640,13 +661,24 @@
         <div class="header-sub">OFFICIAL CRITERIA SPECIFICATION &amp; PROTOTYPE EVALUATION CONSOLE</div>
       </div>
 
-      <div id="judge-auth-header-profile" class="judge-auth-profile" style="display: none;">
-        <span class="judge-status-dot"></span>
-        <div>
-          <div class="judge-name-tag" id="auth-judge-name">Judge: Active</div>
-          <div style="font-size: 10px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;">AUTHORIZED JUROR</div>
+      <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <div id="judge-auth-header-profile" class="judge-auth-profile" style="display: none;">
+          <span class="judge-status-dot"></span>
+          <div>
+            <div class="judge-name-tag" id="auth-judge-name">Judge: Active</div>
+            <div style="font-size: 10px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;">AUTHORIZED JUROR</div>
+          </div>
+          <button class="btn-switch-auth" id="btn-logout-judge" title="Switch to another judge key">SWITCH KEY</button>
         </div>
-        <button class="btn-switch-auth" id="btn-logout-judge" title="Switch to another judge key">SWITCH KEY</button>
+
+        <a href="baseline.html" class="portal-link">
+          <span>⚙️ BASELINE PORTAL</span>
+          <span>↗</span>
+        </a>
+        <a href="index.html" target="_blank" class="portal-link">
+          <span>PARTICIPANT PORTAL</span>
+          <span>↗</span>
+        </a>
       </div>
     </header>
 
@@ -768,7 +800,7 @@
       <div class="auth-icon">🔑</div>
       <h2 class="auth-title">ENTER YOUR JUDGE KEY</h2>
       <p class="auth-desc">
-        Please input the unique credential key provided by the event administrator (e.g. <code>J-4821</code>) to unlock your marking console.
+        Please input the unique credential key provided by the Baseline Desk (e.g. <code>J-4821</code>) to unlock your marking console.
       </p>
 
       <form id="auth-key-form">
@@ -928,7 +960,7 @@
             <div>
               <button type="submit" class="btn-submit-eval" id="btn-upload-marks">
                 <span>⬆</span>
-                <span>UPLOAD MARKS TO ADMIN DESK</span>
+                <span>UPLOAD MARKS TO BASELINE PORTAL</span>
               </button>
             </div>
           </div>

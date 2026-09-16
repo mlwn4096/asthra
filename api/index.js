@@ -149,21 +149,39 @@ function computeMatrix(state) {
     const count = evals.length;
 
     let sumTotal = 0;
-    let sumC4 = 0;
+    let sumC1 = 0, sumC2 = 0, sumC3 = 0, sumC4 = 0, sumC5 = 0, sumC6 = 0;
     const judgeScores = {};
+    const remarksList = [];
 
     for (const ev of evals) {
       sumTotal += ev.total;
-      sumC4 += ev.c4;
+      sumC1 += (ev.c1 || 0);
+      sumC2 += (ev.c2 || 0);
+      sumC3 += (ev.c3 || 0);
+      sumC4 += (ev.c4 || 0);
+      sumC5 += (ev.c5 || 0);
+      sumC6 += (ev.c6 || 0);
+
       judgeScores[ev.judge_id] = {
+        judgeName: ev.judge_name || 'Judge',
         total: ev.total,
-        c4: ev.c4,
-        remarks: ev.remarks
+        c1: ev.c1, c2: ev.c2, c3: ev.c3, c4: ev.c4, c5: ev.c5, c6: ev.c6,
+        remarks: ev.remarks,
+        updatedAt: ev.updated_at
       };
+
+      if (ev.remarks && ev.remarks.trim()) {
+        remarksList.push({ judgeName: ev.judge_name || 'Judge', text: ev.remarks });
+      }
     }
 
     const avgTotal = count > 0 ? Number((sumTotal / count).toFixed(2)) : 0;
+    const avgC1 = count > 0 ? Number((sumC1 / count).toFixed(2)) : 0;
+    const avgC2 = count > 0 ? Number((sumC2 / count).toFixed(2)) : 0;
+    const avgC3 = count > 0 ? Number((sumC3 / count).toFixed(2)) : 0;
     const avgC4 = count > 0 ? Number((sumC4 / count).toFixed(2)) : 0;
+    const avgC5 = count > 0 ? Number((sumC5 / count).toFixed(2)) : 0;
+    const avgC6 = count > 0 ? Number((sumC6 / count).toFixed(2)) : 0;
 
     summaries.push({
       teamId: team.id,
@@ -171,9 +189,15 @@ function computeMatrix(state) {
       domain: team.domain,
       evalCount: count,
       totalJudges: judges.length,
+      judgeScores,
       avgTotal,
+      avgC1,
+      avgC2,
+      avgC3,
       avgC4,
-      judgeScores
+      avgC5,
+      avgC6,
+      remarks: remarksList
     });
   }
 
@@ -649,21 +673,46 @@ module.exports = async function handler(req, res) {
   // --------------------------------------------------------------------------
   // 5. LIVE MATRIX & EVALUATIONS
   // --------------------------------------------------------------------------
-  if (pathname === '/api/admin/preview' || pathname === '/api/matrix') {
+  if (pathname === '/api/admin/preview' || pathname === '/api/baseline/preview' || pathname === '/api/matrix') {
     const matrix = computeMatrix(state);
     return sendJson(res, 200, matrix);
   }
 
-  if (pathname === '/api/evaluations') {
+  if (pathname === '/api/submissions' || pathname === '/api/evaluations') {
     if (req.method === 'GET') {
-      return sendJson(res, 200, { evaluations: state.evaluations || [] });
+      const authHeader = req.headers['authorization'] || '';
+      const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+      const session = state.sessions[token];
+      const judgeId = session && session.expires_at > Date.now() ? session.judge_id : null;
+
+      if (!judgeId) {
+        return sendJson(res, 401, { error: 'Unauthorized or expired judge session' });
+      }
+
+      const rows = (state.evaluations || [])
+        .filter(e => e.judge_id === judgeId)
+        .sort((a, b) => (b.updated_at || 0) - (a.updated_at || 0));
+
+      return sendJson(res, 200, { submissions: rows, evaluations: rows });
     }
 
     if (req.method === 'POST') {
       try {
+        const authHeader = req.headers['authorization'] || '';
+        const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+        const session = state.sessions[token];
+        const judge = session && session.expires_at > Date.now()
+          ? state.judges.find(j => j.id === session.judge_id)
+          : null;
+
+        if (!judge) {
+          return sendJson(res, 401, { error: 'Unauthorized: Invalid or expired jury session. Please re-enter your key.' });
+        }
+        const judgeId = judge.id;
+
         const body = await parseJsonBody(req);
         const teamName = sanitizeText(body.teamName || '');
-        const domain = sanitizeText(body.domain || '01 // AI AGENTS & AUTONOMOUS SYSTEMS');
+        const domain = sanitizeText(body.domain || '01 - AI Agents & Autonomous Systems');
 
         if (!teamName) {
           return sendJson(res, 400, { error: 'Team name is required' });
@@ -684,18 +733,15 @@ module.exports = async function handler(req, res) {
         if (!team) {
           team = { id: 'team_' + crypto.randomBytes(4).toString('hex'), name: teamName, domain };
           state.teams.push(team);
+        } else {
+          team.domain = domain;
         }
-
-        // Upsert evaluation
-        const authHeader = req.headers['authorization'] || '';
-        const token = authHeader.replace(/^Bearer\s+/i, '').trim();
-        const session = state.sessions[token];
-        const judgeId = session ? session.judge_id : 'judge_alpha_master';
 
         const existingIdx = state.evaluations.findIndex(e => e.judge_id === judgeId && e.team_id === team.id);
         const evalItem = {
           id: 'eval_' + judgeId + '_' + team.id,
           judge_id: judgeId,
+          judge_name: judge.name,
           team_id: team.id,
           team_name: team.name,
           domain: team.domain,
@@ -711,7 +757,7 @@ module.exports = async function handler(req, res) {
         }
 
         persistState();
-        return sendJson(res, 200, { ok: true, total, updatedAt: now });
+        return sendJson(res, 200, { ok: true, total, teamId: team.id, updatedAt: now });
       } catch (e) {
         return sendJson(res, 400, { error: e.message });
       }

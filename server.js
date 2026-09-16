@@ -696,7 +696,7 @@ async function handleRequest(req, res) {
   // --------------------------------------------------------------------------
   // API: EVALUATION SUBMISSIONS
   // --------------------------------------------------------------------------
-  if (pathname === '/api/submissions') {
+  if (pathname === '/api/submissions' || pathname === '/api/evaluations') {
     // GET: Retrieve all evaluations submitted by current judge
     if (req.method === 'GET') {
       const judge = getAuthenticatedJudge(req);
@@ -710,7 +710,7 @@ async function handleRequest(req, res) {
         ORDER BY e.updated_at DESC
       `).all(judge.id);
 
-      return sendJson(res, 200, { submissions: rows });
+      return sendJson(res, 200, { submissions: rows, evaluations: rows });
     }
 
     // POST: Create or update evaluation
@@ -858,9 +858,9 @@ async function handleRequest(req, res) {
   }
 
   // --------------------------------------------------------------------------
-  // API: ADMIN LIVE MATRIX PREVIEW
+  // API: ADMIN & BASELINE LIVE MATRIX PREVIEW
   // --------------------------------------------------------------------------
-  if (pathname === '/api/admin/preview' && req.method === 'GET') {
+  if ((pathname === '/api/admin/preview' || pathname === '/api/baseline/preview' || pathname === '/api/matrix') && req.method === 'GET') {
     const matrix = computeJuryMatrix();
     return sendJson(res, 200, matrix);
   }

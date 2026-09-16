@@ -296,7 +296,7 @@
     // Determine Phase
     let phaseText = '';
     if (localTimerState.status === 'idle') {
-      phaseText = 'AWAITING ADMIN KICKOFF';
+      phaseText = 'AWAITING BASELINE KICKOFF';
       if (topTimerBar) topTimerBar.className = 'top-sync-timer timer-standby';
       if (topStatusText) topStatusText.textContent = 'EVENT TIMER // STANDBY';
     } else if (localTimerState.status === 'running') {
