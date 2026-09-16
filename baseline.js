@@ -633,6 +633,37 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Register new team handler
+  const addTeamForm = document.getElementById('add-team-form');
+  const newTeamName = document.getElementById('new-team-name');
+  const newTeamDomain = document.getElementById('new-team-domain');
+
+  if (addTeamForm) {
+    addTeamForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = newTeamName.value.trim();
+      const domain = newTeamDomain ? newTeamDomain.value : '01 - AI Agents & Autonomous Systems';
+      if (!name) return;
+
+      try {
+        const res = await fetch('/api/teams', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, domain })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          alert(data.error || 'Failed to register team');
+          return;
+        }
+        newTeamName.value = '';
+        loadMatrix();
+      } catch (err) {
+        alert('Network error registering team');
+      }
+    });
+  }
+
   // ==========================================================================
   // 6. LEADERBOARD PUBLISH & EMBARGO CONTROLS
   // ==========================================================================
@@ -678,9 +709,11 @@ document.addEventListener('DOMContentLoaded', () => {
             teams: data.teams || []
           });
           alert(`✓ Official Leaderboard Snapshot Published with ${data.publishedCount} ranked teams!`);
+        } else {
+          alert(`⚠️ Cannot Publish:\n\n${data.error || 'Failed to publish leaderboard.'}`);
         }
       } catch (e) {
-        alert('Leaderboard status updated.');
+        alert('Network error publishing leaderboard');
       }
     }
   });

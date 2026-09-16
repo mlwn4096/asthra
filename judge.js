@@ -114,6 +114,34 @@ document.addEventListener('DOMContentLoaded', () => {
     authJudgeName.textContent = judge.name || 'Juror Desk';
 
     loadSubmissionsHistory();
+    loadRegisteredTeams();
+  }
+
+  let registeredTeamsCache = [];
+  async function loadRegisteredTeams() {
+    try {
+      const res = await fetch('/api/teams');
+      if (!res.ok) return;
+      const data = await res.json();
+      registeredTeamsCache = data.teams || [];
+      const datalist = document.getElementById('registered-teams-list');
+      if (datalist) {
+        datalist.innerHTML = registeredTeamsCache.map(t => 
+          `<option value="${escapeHtml(t.name)}">${escapeHtml(t.domain)}</option>`
+        ).join('');
+      }
+    } catch (e) {}
+  }
+
+  // When judge types or selects a team name, auto-select domain if it matches a pre-registered team
+  if (teamNameInput) {
+    teamNameInput.addEventListener('input', () => {
+      const val = teamNameInput.value.trim().toLowerCase();
+      const match = registeredTeamsCache.find(t => t.name.toLowerCase() === val);
+      if (match && match.domain && teamDomainSelect) {
+        teamDomainSelect.value = match.domain;
+      }
+    });
   }
 
   function setUnauthenticatedState() {

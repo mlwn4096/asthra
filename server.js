@@ -795,6 +795,41 @@ async function handleRequest(req, res) {
   }
 
   // --------------------------------------------------------------------------
+  // API: TEAM REGISTRATION & MANAGEMENT
+  // --------------------------------------------------------------------------
+  if (pathname === '/api/teams') {
+    if (req.method === 'GET') {
+      const teams = db.prepare('SELECT id, name, domain, created_at FROM teams ORDER BY name ASC').all();
+      return sendJson(res, 200, { teams });
+    }
+    if (req.method === 'POST') {
+      try {
+        const body = await parseJsonBody(req);
+        const name = sanitizeText(body.name || body.teamName || '');
+        const domain = sanitizeText(body.domain || '01 - AI Agents & Autonomous Systems');
+        if (!name) return sendJson(res, 400, { error: 'Team name is required' });
+
+        const teamSlug = name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+        let team = db.prepare('SELECT id, name, domain FROM teams WHERE name = ?').get(name);
+        let teamId;
+        const now = Date.now();
+        if (!team) {
+          teamId = 'team_' + teamSlug + '_' + crypto.randomBytes(3).toString('hex');
+          db.prepare('INSERT INTO teams (id, name, domain, created_at) VALUES (?, ?, ?, ?)').run(teamId, name, domain, now);
+        } else {
+          teamId = team.id;
+          db.prepare('UPDATE teams SET domain = ? WHERE id = ?').run(domain, teamId);
+        }
+
+        broadcastSSE();
+        return sendJson(res, 201, { ok: true, team: { id: teamId, name, domain } });
+      } catch (e) {
+        return sendJson(res, 400, { error: e.message });
+      }
+    }
+  }
+
+  // --------------------------------------------------------------------------
   // API: TEAM DELETION & RESET (BEFORE PUSHING TO LEADERBOARD)
   // --------------------------------------------------------------------------
   if (pathname === '/api/teams/delete' && req.method === 'POST') {
@@ -889,8 +924,8 @@ async function handleRequest(req, res) {
 
   if (pathname === '/api/leaderboard/publish' && req.method === 'POST') {
     const matrix = computeJuryMatrix();
-    // Build certified public snapshot (only evaluated teams or fallback)
-    let snapshot = matrix.teams
+    // Build certified public snapshot (ONLY legitimate evaluated teams)
+    const snapshot = matrix.teams
       .filter(t => t.evalCount > 0)
       .map(t => ({
         rank: t.rank,
@@ -902,11 +937,9 @@ async function handleRequest(req, res) {
       }));
 
     if (snapshot.length === 0) {
-      snapshot = [
-        { rank: 1, teamName: 'Team Neural Forge', domain: '01 // AI AGENTS & AUTONOMOUS SYSTEMS', avgFunctionality: '24.5', avgTotal: '96.50', award: '🏆 CHAMPION' },
-        { rank: 2, teamName: 'PulseMed Robotics', domain: '02 // HEALTHCARE & CLINICAL DIAGNOSTICS', avgFunctionality: '23.0', avgTotal: '92.00', award: '🥈 1ST RUNNER UP' },
-        { rank: 3, teamName: 'AeroGrid IoT', domain: '06 // SMART ENERGY, GRID & EV INFRA', avgFunctionality: '22.5', avgTotal: '89.50', award: '🥉 2ND RUNNER UP' }
-      ];
+      return sendJson(res, 400, {
+        error: 'Cannot publish leaderboard: No evaluated teams found. Please wait for judges to submit marks before publishing.'
+      });
     }
 
     const now = Date.now();

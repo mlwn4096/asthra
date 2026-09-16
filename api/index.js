@@ -530,8 +530,8 @@ module.exports = async function handler(req, res) {
 
   if (pathname === '/api/leaderboard/publish' && req.method === 'POST') {
     const matrix = computeMatrix(state);
-    // Build certified snapshot (or seeded teams if empty)
-    let snapshot = matrix.teams
+    // Build certified snapshot (ONLY legitimate evaluated teams)
+    const snapshot = matrix.teams
       .filter(t => t.evalCount > 0)
       .map(t => ({
         rank: t.rank,
@@ -543,12 +543,9 @@ module.exports = async function handler(req, res) {
       }));
 
     if (snapshot.length === 0) {
-      // Seed default certified top 3 for presentation if no evaluations submitted yet
-      snapshot = [
-        { rank: 1, teamName: 'Team Neural Forge', domain: '01 // AI AGENTS & AUTONOMOUS SYSTEMS', avgFunctionality: '24.5', avgTotal: '96.50', award: '🏆 CHAMPION' },
-        { rank: 2, teamName: 'PulseMed Robotics', domain: '02 // HEALTHCARE & CLINICAL DIAGNOSTICS', avgFunctionality: '23.0', avgTotal: '92.00', award: '🥈 1ST RUNNER UP' },
-        { rank: 3, teamName: 'AeroGrid IoT', domain: '06 // SMART ENERGY, GRID & EV INFRA', avgFunctionality: '22.5', avgTotal: '89.50', award: '🥉 2ND RUNNER UP' }
-      ];
+      return sendJson(res, 400, {
+        error: 'Cannot publish leaderboard: No evaluated teams found. Please ensure judges have submitted marks before publishing.'
+      });
     }
 
     const now = Date.now();
@@ -819,7 +816,44 @@ module.exports = async function handler(req, res) {
   }
 
   // --------------------------------------------------------------------------
-  // 5B. TEAM DELETION & RESET (BEFORE PUSHING TO LEADERBOARD)
+  // 5B. TEAM REGISTRATION & MANAGEMENT
+  // --------------------------------------------------------------------------
+  if (pathname === '/api/teams') {
+    if (req.method === 'GET') {
+      return sendJson(res, 200, { teams: state.teams || [] });
+    }
+    if (req.method === 'POST') {
+      try {
+        const body = await parseJsonBody(req);
+        const name = sanitizeText(body.name || body.teamName || '');
+        const domain = sanitizeText(body.domain || '01 - AI Agents & Autonomous Systems');
+        if (!name) return sendJson(res, 400, { error: 'Team name is required' });
+
+        if (!Array.isArray(state.teams)) state.teams = [];
+        let team = state.teams.find(t => t.name.toLowerCase() === name.toLowerCase());
+        const now = Date.now();
+        if (team) {
+          team.domain = domain;
+        } else {
+          team = {
+            id: 'team_' + crypto.randomBytes(4).toString('hex'),
+            name: name,
+            domain: domain,
+            created_at: now
+          };
+          state.teams.push(team);
+        }
+
+        await persistState();
+        return sendJson(res, 201, { ok: true, team });
+      } catch (e) {
+        return sendJson(res, 400, { error: e.message });
+      }
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // 5C. TEAM DELETION & RESET (BEFORE PUSHING TO LEADERBOARD)
   // --------------------------------------------------------------------------
   if (pathname === '/api/teams/delete' && req.method === 'POST') {
     try {

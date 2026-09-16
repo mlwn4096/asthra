@@ -458,6 +458,22 @@
       border-color: var(--border-focus);
     }
 
+    .input-select-domain {
+      background: #090b10;
+      border: 1px solid var(--border);
+      color: #ffffff;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px;
+      padding: 7px 12px;
+      border-radius: 3px;
+      outline: none;
+      min-width: 250px;
+    }
+
+    .input-select-domain:focus {
+      border-color: var(--border-focus);
+    }
+
     .btn-add-judge {
       background: var(--red);
       color: #ffffff;
@@ -992,6 +1008,35 @@
       <p style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 16px;">
         As jurors evaluate teams from their portal, individual scores are streamed and averaged automatically. Tie-breaking rules are applied server-side.
       </p>
+
+      <div class="judge-actions-bar" style="margin-bottom: 16px;">
+        <form id="add-team-form" class="judge-form-inline">
+          <input type="text" id="new-team-name" class="input-judge-name" placeholder="Team Name (e.g. Team 01 - CyberPulse)" required style="min-width: 240px;">
+          <select id="new-team-domain" class="input-select-domain" required>
+            <option value="01 - AI Agents & Autonomous Systems">01 - AI Agents &amp; Autonomous Systems</option>
+            <option value="02 - Smart Cities & Urban Technology">02 - Smart Cities &amp; Urban Technology</option>
+            <option value="03 - Healthcare & Wellbeing Technology">03 - Healthcare &amp; Wellbeing Technology</option>
+            <option value="04 - Robotics, IoT & Intelligent Devices">04 - Robotics, IoT &amp; Intelligent Devices</option>
+            <option value="05 - Disaster Management & Emergency Tech">05 - Disaster Management &amp; Emergency Tech</option>
+            <option value="06 - AI-Powered Applications">06 - AI-Powered Applications</option>
+            <option value="07 - Cybersecurity & Digital Safety">07 - Cybersecurity &amp; Digital Safety</option>
+            <option value="08 - Education & Learning Technology">08 - Education &amp; Learning Technology</option>
+            <option value="09 - Media, Content & Digital Trust">09 - Media, Content &amp; Digital Trust</option>
+            <option value="10 - Sustainability & Resource Management">10 - Sustainability &amp; Resource Management</option>
+            <option value="11 - Student Productivity & Campus Tech">11 - Student Productivity &amp; Campus Tech</option>
+            <option value="12 - Accessibility & Inclusive Tech">12 - Accessibility &amp; Inclusive Tech</option>
+            <option value="13 - Information Management">13 - Information Management</option>
+            <option value="14 - Creative Technology & Multimedia">14 - Creative Technology &amp; Multimedia</option>
+            <option value="15 - Data & Decision Intelligence">15 - Data &amp; Decision Intelligence</option>
+          </select>
+          <button type="submit" class="btn-add-judge" style="background: var(--blue);">
+            <span>+</span> <span>REGISTER TEAM</span>
+          </button>
+        </form>
+        <span style="font-size: 11px; color: var(--text-muted); font-family: 'JetBrains Mono';">
+          Pre-registered teams appear in matrix &amp; auto-suggest on juror scoring pads.
+        </span>
+      </div>
 
       <div class="table-container">
         <table class="admin-table">
