@@ -135,6 +135,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // When judge types or selects a team name, auto-select domain if it matches a pre-registered team
   if (teamNameInput) {
+    teamNameInput.addEventListener('focus', () => {
+      loadRegisteredTeams();
+    });
     teamNameInput.addEventListener('input', () => {
       const val = teamNameInput.value.trim().toLowerCase();
       const match = registeredTeamsCache.find(t => t.name.toLowerCase() === val);
