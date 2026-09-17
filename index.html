@@ -15,6 +15,51 @@
 </head>
 <body class="theme-dark">
 
+  <!-- ================================================================= -->
+  <!-- 24-HOUR SELF-DESTRUCT NOTIFICATION OVERLAY POPUP                  -->
+  <!-- ================================================================= -->
+  <div id="self-destruct-overlay" class="destruct-overlay" role="dialog" aria-modal="true" aria-labelledby="destruct-title">
+    <div class="destruct-backdrop" id="destruct-backdrop"></div>
+    <div class="destruct-card">
+      <button class="destruct-close-btn" id="destruct-close-btn" aria-label="Close Notice">&times;</button>
+      
+      <div class="destruct-header">
+        <span class="destruct-pulse-dot"></span>
+        <span class="destruct-tag">CRITICAL ALERT // PURGE PROTOCOL ARMED</span>
+      </div>
+
+      <div class="destruct-hazard-icon-wrap">
+        <span class="destruct-hazard-icon">⚠️</span>
+      </div>
+
+      <h2 class="destruct-title" id="destruct-title">
+        THIS WEB WILL SELF DESTRUCT IN 24 HOURS!
+      </h2>
+
+      <div class="destruct-timer-display">
+        <span class="destruct-timer-prefix">T-MINUS:</span>
+        <span class="destruct-timer-digits" id="destruct-countdown-digits">23:59:59</span>
+        <span class="destruct-timer-suffix">HOURS REMAINING</span>
+      </div>
+
+      <p class="destruct-desc">
+        ASTRA 11.0: BUILD-A-BOT has concluded. This web portal, live leaderboards, and server telemetry will permanently self destruct in <strong>24 hours!</strong> Please review the final certified standings and download your handbook archive now.
+      </p>
+
+      <div class="destruct-actions">
+        <button class="btn btn-primary btn-lg destruct-proceed-btn" id="destruct-proceed-btn">
+          <span>CLOSE &amp; VIEW WEBSITE</span>
+          <span class="btn-arrow">→</span>
+        </button>
+      </div>
+
+      <div class="destruct-footer-note">
+        <span class="text-red">■</span>
+        <span class="telemetry-mono">CLICK CLOSE OR ANYWHERE OUTSIDE TO ENTER SITE</span>
+      </div>
+    </div>
+  </div>
+
   <!-- Ambient Telemetry & Controls Bar -->
   <div class="telemetry-bar">
     <div class="telemetry-inner">

@@ -1133,4 +1133,76 @@
     });
   }
 
+  // ---------------------------------------------------------------------------
+  // 13. 24-HOUR SELF-DESTRUCT NOTIFICATION OVERLAY CONTROLLER
+  // ---------------------------------------------------------------------------
+  const destructOverlay = document.getElementById('self-destruct-overlay');
+  const destructProceedBtn = document.getElementById('destruct-proceed-btn');
+  const destructCloseBtn = document.getElementById('destruct-close-btn');
+  const destructBackdrop = document.getElementById('destruct-backdrop');
+  const destructCountdownDigits = document.getElementById('destruct-countdown-digits');
+
+  // Compute 24-hour target (persisted in localStorage or default to 24h from now)
+  const DESTRUCT_TARGET_KEY = 'astra_destruct_target';
+  let destructTarget = 0;
+  try {
+    const storedTarget = localStorage.getItem(DESTRUCT_TARGET_KEY);
+    if (storedTarget) {
+      destructTarget = parseInt(storedTarget, 10);
+    }
+  } catch (e) {}
+
+  if (!destructTarget || isNaN(destructTarget) || destructTarget <= Date.now()) {
+    destructTarget = Date.now() + 24 * 3600 * 1000;
+    try {
+      localStorage.setItem(DESTRUCT_TARGET_KEY, String(destructTarget));
+    } catch (e) {}
+  }
+
+  function updateDestructClock() {
+    if (!destructCountdownDigits) return;
+    const now = Date.now();
+    const diffSecs = Math.max(0, Math.floor((destructTarget - now) / 1000));
+    const hrs = Math.floor(diffSecs / 3600);
+    const mins = Math.floor((diffSecs % 3600) / 60);
+    const secs = diffSecs % 60;
+    destructCountdownDigits.textContent = `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  }
+  updateDestructClock();
+  setInterval(updateDestructClock, 1000);
+
+  function openSelfDestructOverlay() {
+    if (!destructOverlay) return;
+    destructOverlay.classList.add('active');
+    document.body.classList.add('destruct-open');
+    playSound('alert');
+  }
+
+  function closeSelfDestructOverlay() {
+    if (!destructOverlay) return;
+    destructOverlay.classList.remove('active');
+    document.body.classList.remove('destruct-open');
+    playSound('click');
+  }
+
+  if (destructProceedBtn) {
+    destructProceedBtn.addEventListener('click', closeSelfDestructOverlay);
+  }
+  if (destructCloseBtn) {
+    destructCloseBtn.addEventListener('click', closeSelfDestructOverlay);
+  }
+  if (destructBackdrop) {
+    destructBackdrop.addEventListener('click', closeSelfDestructOverlay);
+  }
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && destructOverlay && destructOverlay.classList.contains('active')) {
+      closeSelfDestructOverlay();
+    }
+  });
+
+  // Automatically pop up whenever someone opens the site
+  if (destructOverlay) {
+    setTimeout(openSelfDestructOverlay, 300);
+  }
+
 })();
