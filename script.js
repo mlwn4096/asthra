@@ -797,7 +797,7 @@
   // 06E. PARTICIPANT HANDBOOK (PARTICIPATE.PDF) VISIBILITY CONTROLLER
   // ---------------------------------------------------------------------------
   const PDF_STORAGE_KEY = 'astra_pdf_hidden';
-  let isPdfHidden = true; // Embargoed by default until kickoff
+  let isPdfHidden = false; // Unlocked by default
   let lastPdfUpdatedAt = 0;
   let pdfManualOverride = false;
 
@@ -813,7 +813,7 @@
     const target = localInauguration.targetTimestamp || 1789621200000;
     const isEventLaunched = localInauguration.isInaugurated || (now >= target);
 
-    let effectiveHidden = typeof hidden === 'boolean' ? hidden : true;
+    let effectiveHidden = typeof hidden === 'boolean' ? hidden : false;
 
     // Automatic Kickoff Pop-up:
     // When the event launches & global timer ends (17-Sep-2026 10:30 AM or inaugurated),
@@ -868,13 +868,13 @@
     const rawPdf = localStorage.getItem(PDF_STORAGE_KEY);
     if (rawPdf) {
       const parsed = JSON.parse(rawPdf);
-      const h = typeof parsed === 'boolean' ? parsed : (typeof parsed.isHidden === 'boolean' ? parsed.isHidden : true);
+      const h = typeof parsed === 'boolean' ? parsed : (typeof parsed.isHidden === 'boolean' ? parsed.isHidden : false);
       applyPdfVisibility(h, parsed.updatedAt || 0);
     } else {
-      applyPdfVisibility(true);
+      applyPdfVisibility(false);
     }
   } catch (e) {
-    applyPdfVisibility(true);
+    applyPdfVisibility(false);
   }
 
   loadPdfVisibility();

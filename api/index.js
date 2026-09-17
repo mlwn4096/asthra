@@ -72,7 +72,7 @@ function getDefaultState() {
       lastUpdated: 0
     },
     domains: {
-      isHidden: true, // Concealed by default under jury embargo until kickoff
+      isHidden: false, // Unlocked by default
       updatedAt: 0
     },
     leaderboard: {
@@ -90,7 +90,7 @@ function getDefaultState() {
       updatedAt: 0
     },
     pdf: {
-      isHidden: true,
+      isHidden: false, // Unlocked by default
       manualHideAfterInaug: false,
       updatedAt: 0
     },
@@ -151,6 +151,22 @@ async function getState() {
 
   if (!global.__ASTRA_STATE) {
     global.__ASTRA_STATE = getDefaultState();
+  }
+
+  // Ensure domains and pdf are unlocked by default
+  if (!global.__ASTRA_STATE.domains) {
+    global.__ASTRA_STATE.domains = { isHidden: false, updatedAt: 0 };
+  } else if (global.__ASTRA_STATE.domains.isHidden) {
+    global.__ASTRA_STATE.domains.isHidden = false;
+    global.__ASTRA_STATE.domains.updatedAt = Date.now();
+  }
+
+  if (!global.__ASTRA_STATE.pdf) {
+    global.__ASTRA_STATE.pdf = { isHidden: false, manualHideAfterInaug: false, updatedAt: 0 };
+  } else if (global.__ASTRA_STATE.pdf.isHidden) {
+    global.__ASTRA_STATE.pdf.isHidden = false;
+    global.__ASTRA_STATE.pdf.manualHideAfterInaug = false;
+    global.__ASTRA_STATE.pdf.updatedAt = Date.now();
   }
 
   // Ensure collection arrays exist and are sanitized against legacy mock seeds
@@ -672,7 +688,7 @@ module.exports = async function handler(req, res) {
   // --------------------------------------------------------------------------
   if (pathname === '/api/pdf/visibility') {
     if (!state.pdf) {
-      state.pdf = { isHidden: true, manualHideAfterInaug: false, updatedAt: 0 };
+      state.pdf = { isHidden: false, manualHideAfterInaug: false, updatedAt: 0 };
     }
     const inau = state.inauguration || {};
     const isLaunched = inau.isInaugurated || Date.now() >= (inau.targetTimestamp || 1789621200000);
@@ -709,7 +725,7 @@ module.exports = async function handler(req, res) {
   // --------------------------------------------------------------------------
   if (pathname === '/api/pdf/download' || pathname.endsWith('participate.pdf') || pathname.endsWith('participate_main.pdf') || pathname.endsWith('judging.pdf')) {
     if (!state.pdf) {
-      state.pdf = { isHidden: true, manualHideAfterInaug: false, updatedAt: 0 };
+      state.pdf = { isHidden: false, manualHideAfterInaug: false, updatedAt: 0 };
     }
     const inau = state.inauguration || {};
     const isLaunched = inau.isInaugurated || Date.now() >= (inau.targetTimestamp || 1789621200000);

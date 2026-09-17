@@ -46,7 +46,7 @@
     let lastDomainsUpdatedAt = 0;
     let lastInaugUpdatedAt = 0;
     let lastPdfUpdatedAt = 0;
-    let isPdfHidden = true;
+    let isPdfHidden = false;
     let manualPdfOverride = false;
 
     let localTimer = {
@@ -942,7 +942,7 @@
   const btnDomainsIcon = document.getElementById('btn-domains-icon');
   const btnDomainsText = document.getElementById('btn-domains-text');
 
-  let isDomainsHidden = true;
+  let isDomainsHidden = false;
 
   async function loadDomainsState() {
     try {
@@ -1443,7 +1443,7 @@
     const rawPdf = localStorage.getItem(PDF_STORAGE_KEY);
     if (rawPdf) {
       const parsed = JSON.parse(rawPdf);
-      const h = typeof parsed === 'boolean' ? parsed : (typeof parsed.isHidden === 'boolean' ? parsed.isHidden : true);
+      const h = typeof parsed === 'boolean' ? parsed : (typeof parsed.isHidden === 'boolean' ? parsed.isHidden : false);
       isPdfHidden = h;
     }
   } catch (e) {}

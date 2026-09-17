@@ -142,9 +142,14 @@ function persistLeaderboardState() {
 
 // Domains Visibility State (Scrambled / Hidden vs Revealed)
 let domainsState = getEventState('domains_state', {
-  isHidden: true,
+  isHidden: false,
   updatedAt: Date.now()
 });
+if (domainsState.isHidden) {
+  domainsState.isHidden = false;
+  domainsState.updatedAt = Date.now();
+  persistDomainsState();
+}
 
 function persistDomainsState() {
   setEventState('domains_state', domainsState);
@@ -180,10 +185,16 @@ function persistInaugurationState() {
 
 // PDF Download Button Visibility State (Hidden under embargo vs Visible)
 let pdfState = getEventState('pdf_state', {
-  isHidden: true,
+  isHidden: false,
   manualHideAfterInaug: false,
   updatedAt: Date.now()
 });
+if (pdfState.isHidden) {
+  pdfState.isHidden = false;
+  pdfState.manualHideAfterInaug = false;
+  pdfState.updatedAt = Date.now();
+  persistPdfState();
+}
 
 function getEffectivePdfState() {
   const now = Date.now();

@@ -88,7 +88,7 @@
       </nav>
 
       <div class="nav-actions">
-        <a href="javascript:void(0)" class="btn btn-sm btn-outline" data-pdf-download>
+        <a href="/api/pdf/download" download="participate.pdf" class="btn btn-sm btn-outline" data-pdf-download>
           <span class="btn-icon">⬇</span>
           <span>HANDBOOK (PDF)</span>
         </a>
@@ -117,7 +117,7 @@
           <span>🔒</span>
           <span>LEADERBOARD</span>
         </a>
-        <a href="javascript:void(0)" class="jump-action-btn" data-pdf-download>
+        <a href="/api/pdf/download" download="participate.pdf" class="jump-action-btn" data-pdf-download>
           <span>⬇</span>
           <span>HANDBOOK (PDF)</span>
         </a>
@@ -143,7 +143,7 @@
       <button id="drawer-theme-toggle" class="btn btn-outline btn-block mb-3">
         <span class="theme-icon">☀️</span> SWITCH TO LIGHT MODE
       </button>
-      <a href="javascript:void(0)" class="btn btn-primary btn-block" data-pdf-download>DOWNLOAD HANDBOOK (PDF)</a>
+      <a href="/api/pdf/download" download="participate.pdf" class="btn btn-primary btn-block" data-pdf-download>DOWNLOAD HANDBOOK (PDF)</a>
     </div>
   </div>
 
@@ -293,7 +293,7 @@
           <a href="#rules" class="btn btn-outline btn-lg">
             <span>RULES &amp; DIRECTIVES</span>
           </a>
-          <a href="javascript:void(0)" class="btn btn-subtle btn-lg" data-pdf-download>
+          <a href="/api/pdf/download" download="participate.pdf" class="btn btn-subtle btn-lg" data-pdf-download>
             <span>DOWNLOAD HANDBOOK (PDF)</span>
             <span class="btn-icon">⬇</span>
           </a>
@@ -321,7 +321,7 @@
         <!-- Domains Display Area (Houses both the Scrambled Grid and the Embargo Banner) -->
         <div class="domains-display-area" id="domains-display-area">
           <!-- Domains Embargo Banner (Controlled by Admin Desk) -->
-          <div id="domains-embargo-banner" class="domains-embargo-banner">
+          <div id="domains-embargo-banner" class="domains-embargo-banner" style="display: none;">
             <div class="deb-inner">
               <div class="deb-lock-icon">🔒</div>
               <div class="deb-badge">TOP SECRET // EMBARGO ACTIVE</div>
@@ -334,8 +334,8 @@
             </div>
           </div>
 
-          <!-- 15 Domains Dynamic Grid (Concealed by default until kickoff signal) -->
-          <div class="domains-grid domains-scrambled" id="domains-grid">
+          <!-- 15 Domains Dynamic Grid (Revealed by default) -->
+          <div class="domains-grid" id="domains-grid">
           
           <!-- Domain 01 -->
           <div class="domain-card" data-domain="1">
@@ -548,7 +548,7 @@
           <p class="pdf-callout-desc">
             The official event handbook (PDF) provides in-depth documentation for all event directives, domain guidelines, repository commit audit procedures, and exhaustive jury scoring criteria.
           </p>
-          <a href="javascript:void(0)" class="btn btn-primary btn-lg pdf-download-cta" data-pdf-download>
+          <a href="/api/pdf/download" download="participate.pdf" class="btn btn-primary btn-lg pdf-download-cta" data-pdf-download>
             <span class="btn-icon">⬇</span>
             <span>DOWNLOAD FULL HANDBOOK (PDF)</span>
           </a>
@@ -719,7 +719,7 @@
       <div class="footer-right">
         <span class="telemetry-mono">OFFICIAL PARTICIPANT PORTAL // 2026</span>
         <div class="footer-links">
-          <a href="javascript:void(0)" data-pdf-download>Official Handbook (PDF)</a>
+          <a href="/api/pdf/download" download="participate.pdf" data-pdf-download>Official Handbook (PDF)</a>
         </div>
       </div>
     </div>
