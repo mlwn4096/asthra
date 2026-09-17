@@ -784,6 +784,208 @@
       transform: translateY(-1px);
     }
 
+    /* Inauguration Admin Banner */
+    .inauguration-admin-banner {
+      background: #0d111a;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--red);
+      padding: 20px 24px;
+      margin-bottom: 24px;
+      border-radius: 4px;
+      transition: all 0.3s ease;
+    }
+
+    .inauguration-admin-banner.inaug-is-active {
+      border-left-color: var(--green);
+      background: #071a10;
+      box-shadow: 0 0 24px rgba(0, 230, 118, 0.2);
+    }
+
+    .inaug-admin-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+
+    .inaug-admin-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .inaug-live-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--red);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--red);
+    }
+
+    .inaug-live-dot.inaug-live-green {
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+    }
+
+    .inaug-admin-sub {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .inaug-admin-badges {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .badge-inaug-visible {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      background: var(--green-dark);
+      color: var(--green);
+      border: 1px solid var(--green);
+      padding: 3px 8px;
+      border-radius: 2px;
+      font-weight: 700;
+    }
+
+    .badge-inaug-hidden {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      background: var(--amber-dark);
+      color: var(--amber);
+      border: 1px solid var(--amber);
+      padding: 3px 8px;
+      border-radius: 2px;
+      font-weight: 700;
+    }
+
+    .badge-inaug-counting {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      background: var(--red-dark);
+      color: var(--red);
+      border: 1px solid var(--red);
+      padding: 3px 8px;
+      border-radius: 2px;
+      font-weight: 700;
+    }
+
+    .badge-inaug-inaugurated {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      background: var(--green-dark);
+      color: var(--green);
+      border: 1px solid var(--green);
+      padding: 3px 8px;
+      border-radius: 2px;
+      font-weight: 700;
+    }
+
+    .inaug-admin-body {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .inaug-admin-clock-display {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      background: #090b10;
+      border: 1px solid var(--border);
+      padding: 10px 18px;
+      border-radius: 4px;
+    }
+
+    .inaug-clock-num {
+      font-size: 24px;
+      font-weight: 800;
+      color: #ffffff;
+    }
+
+    .inaug-clock-lbl {
+      font-size: 9.5px;
+      color: var(--text-muted);
+      margin-right: 4px;
+    }
+
+    .inaug-clock-colon {
+      font-size: 20px;
+      color: var(--text-muted);
+      margin: 0 2px;
+    }
+
+    .inaug-admin-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-inaug-action {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 10px 16px;
+      border-radius: 3px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-inaug-hide {
+      background: var(--card-subtle);
+      border-color: var(--border);
+      color: var(--text);
+    }
+    .btn-inaug-hide:hover {
+      border-color: var(--amber);
+      color: var(--amber);
+    }
+
+    .btn-inaug-show {
+      background: var(--green);
+      color: #03140a;
+      box-shadow: 0 0 14px rgba(0, 230, 118, 0.3);
+    }
+    .btn-inaug-show:hover {
+      background: #1aff8c;
+    }
+
+    .btn-inaug-trigger {
+      background: var(--red);
+      color: #ffffff;
+      box-shadow: 0 0 16px rgba(255, 42, 43, 0.35);
+    }
+    .btn-inaug-trigger:hover {
+      background: #ff4748;
+    }
+
+    .btn-inaug-reset {
+      background: transparent;
+      border-color: var(--border);
+      color: var(--text-muted);
+    }
+    .btn-inaug-reset:hover {
+      border-color: var(--text);
+      color: var(--text);
+    }
+
     @media (max-width: 720px) {
       .timer-config-row {
         flex-direction: column;
@@ -824,6 +1026,64 @@
         </a>
       </div>
     </header>
+
+    <!-- ============================================================= -->
+    <!-- INAUGURATION LIVE CLOCK & EVENT COMMENCEMENT CONTROLLER       -->
+    <!-- ============================================================= -->
+    <div class="inauguration-admin-banner" id="inauguration-admin-banner">
+      <div class="inaug-admin-top">
+        <div class="inaug-admin-info">
+          <div class="inaug-admin-title">
+            <span class="inaug-live-dot" id="inaug-admin-dot"></span>
+            <span>OFFICIAL EVENT INAUGURATION CLOCK CONTROLLER</span>
+          </div>
+          <div class="inaug-admin-sub">
+            Target Ceremony: <strong>17-Sep-2026 10:30:00 AM IST</strong> // Participant portal top countdown clock.
+          </div>
+        </div>
+        <div class="inaug-admin-badges">
+          <span id="inaug-admin-vis-badge" class="badge-inaug-visible">👁️ VISIBLE ON PORTAL</span>
+          <span id="inaug-admin-state-badge" class="badge-inaug-counting">⏳ COUNTDOWN TICKING</span>
+        </div>
+      </div>
+
+      <div class="inaug-admin-body">
+        <!-- Live Admin Clock Preview -->
+        <div class="inaug-admin-clock-display" title="Authoritative inauguration countdown preview">
+          <div class="inaug-clock-num" id="admin-inaug-days">00</div>
+          <div class="inaug-clock-lbl">DAYS</div>
+          <span class="inaug-clock-colon">:</span>
+          <div class="inaug-clock-num" id="admin-inaug-hrs">00</div>
+          <div class="inaug-clock-lbl">HOURS</div>
+          <span class="inaug-clock-colon">:</span>
+          <div class="inaug-clock-num" id="admin-inaug-mins">00</div>
+          <div class="inaug-clock-lbl">MINS</div>
+          <span class="inaug-clock-colon">:</span>
+          <div class="inaug-clock-num" id="admin-inaug-secs" style="color: var(--red);">00</div>
+          <div class="inaug-clock-lbl">SECS</div>
+        </div>
+
+        <div class="inaug-admin-actions">
+          <!-- Toggle Visibility (Make it come and go) -->
+          <button id="btn-inaug-toggle-vis" class="btn-inaug-action btn-inaug-hide">
+            <span id="btn-inaug-vis-icon">👁️</span>
+            <span id="btn-inaug-vis-text">HIDE CLOCK ON PORTAL (MAKE IT GO)</span>
+          </button>
+
+          <!-- Trigger Inauguration -->
+          <button id="btn-inaug-trigger-live" class="btn-inaug-action btn-inaug-trigger">
+            <span id="btn-inaug-trigger-icon">🎉</span>
+            <span id="btn-inaug-trigger-text">OFFICIALLY INAUGURATE NOW</span>
+          </button>
+
+          <!-- Reset to countdown -->
+          <button id="btn-inaug-reset" class="btn-inaug-action btn-inaug-reset" title="Reset celebration back to countdown">
+            <span>↺</span>
+            <span>RESET TO COUNTDOWN</span>
+          </button>
+        </div>
+      </div>
+    </div>
 
     <!-- ============================================================= -->
     <!-- QUICK EMBARGO CONTROLLER: HIDE / UNHIDE 15 DOMAINS            -->

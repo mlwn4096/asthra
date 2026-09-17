@@ -222,10 +222,9 @@
         } else if (event.data && event.data.type === 'LEADERBOARD_UPDATE') {
           applyLeaderboardState(event.data.state);
         } else if (event.data && event.data.type === 'DOMAINS_UPDATE') {
-          const state = event.data.state;
-          const isHidden = typeof state === 'boolean' ? state : state?.isHidden;
-          const updatedAt = state?.updatedAt || Date.now();
-          applyDomainsVisibility(isHidden, updatedAt);
+          applyDomainsVisibility(event.data.state?.isHidden);
+        } else if (event.data && event.data.type === 'INAUGURATION_UPDATE') {
+          applyInaugurationState(event.data.state);
         }
       };
     } catch (e) {}
@@ -243,10 +242,11 @@
       } catch (err) {}
     } else if (e.key === 'astra_domains_hidden' && e.newValue) {
       try {
-        const parsed = JSON.parse(e.newValue);
-        const isHidden = typeof parsed === 'boolean' ? parsed : parsed.isHidden;
-        const updatedAt = parsed.updatedAt || Date.now();
-        applyDomainsVisibility(isHidden, updatedAt);
+        applyDomainsVisibility(JSON.parse(e.newValue));
+      } catch (err) {}
+    } else if (e.key === 'astra_inauguration_state' && e.newValue) {
+      try {
+        applyInaugurationState(JSON.parse(e.newValue));
       } catch (err) {}
     }
   });
@@ -296,7 +296,7 @@
     // Determine Phase
     let phaseText = '';
     if (localTimerState.status === 'idle') {
-      phaseText = 'AWAITING BASELINE KICKOFF';
+      phaseText = 'AWAITING ADMIN KICKOFF';
       if (topTimerBar) topTimerBar.className = 'top-sync-timer timer-standby';
       if (topStatusText) topStatusText.textContent = 'EVENT TIMER // STANDBY';
     } else if (localTimerState.status === 'running') {
@@ -506,6 +506,9 @@
           if (payload.domains && typeof payload.domains.isHidden === 'boolean') {
             applyDomainsVisibility(payload.domains.isHidden, payload.domains.updatedAt || payload.domains.lastUpdated || 0);
           }
+          if (payload.inauguration) {
+            applyInaugurationState(payload.inauguration);
+          }
         } catch (err) {}
       };
     } catch (e) {}
@@ -524,6 +527,9 @@
         }
         if (payload.domains && typeof payload.domains.isHidden === 'boolean') {
           applyDomainsVisibility(payload.domains.isHidden, payload.domains.updatedAt || payload.domains.lastUpdated || 0);
+        }
+        if (payload.inauguration) {
+          applyInaugurationState(payload.inauguration);
         }
         if (payload.leaderboard) {
           applyLeaderboardState(payload.leaderboard);
@@ -557,7 +563,6 @@
   }
 
   function applyDomainsVisibility(isHidden, updatedAt = 0) {
-    const hidden = Boolean(isHidden);
     if (updatedAt && lastDomainsUpdatedAt && updatedAt < lastDomainsUpdatedAt) {
       return; // Ignore stale state from older container
     }
@@ -567,19 +572,139 @@
     const grid = document.getElementById('domains-grid');
     const banner = document.getElementById('domains-embargo-banner');
     if (grid) {
-      if (hidden) {
+      if (isHidden) {
         grid.classList.add('domains-scrambled');
       } else {
         grid.classList.remove('domains-scrambled');
       }
     }
     if (banner) {
-      banner.style.display = hidden ? 'block' : 'none';
+      banner.style.display = isHidden ? 'block' : 'none';
     }
   }
 
   loadDomainsVisibility();
   setInterval(loadDomainsVisibility, 3000);
+
+  // ---------------------------------------------------------------------------
+  // 06D. MASTER EVENT INAUGURATION COUNTDOWN CLOCK (17-SEP-2026, 10:30 AM IST)
+  // ---------------------------------------------------------------------------
+  const INAUGURATION_STORAGE_KEY = 'astra_inauguration_state';
+  const inaugClockSection = document.getElementById('inauguration-clock-section');
+  const inaugCountdownView = document.getElementById('inaug-countdown-view');
+  const inaugCelebrationView = document.getElementById('inaug-celebration-view');
+  const inaugDays = document.getElementById('inaug-days');
+  const inaugHours = document.getElementById('inaug-hours');
+  const inaugMins = document.getElementById('inaug-mins');
+  const inaugSecs = document.getElementById('inaug-secs');
+  const inaugStatusBadge = document.getElementById('inaug-status-badge');
+  const inaugPulseDot = document.getElementById('inaug-pulse-dot');
+  const inaugTargetText = document.getElementById('inaug-target-text');
+
+  let localInauguration = {
+    targetIso: '2026-09-17T10:30:00+05:30',
+    targetTimestamp: 1789621200000,
+    isVisible: true,
+    isInaugurated: false,
+    inauguratedAt: null,
+    updatedAt: 0
+  };
+
+  let lastInaugUpdatedAt = 0;
+
+  function applyInaugurationState(newState) {
+    if (!newState) return;
+    const time = newState.updatedAt || 0;
+    if (time && lastInaugUpdatedAt && time < lastInaugUpdatedAt) {
+      return;
+    }
+    if (time) lastInaugUpdatedAt = time;
+
+    localInauguration = Object.assign({}, localInauguration, newState);
+    try {
+      localStorage.setItem(INAUGURATION_STORAGE_KEY, JSON.stringify(localInauguration));
+    } catch (e) {}
+
+    renderInaugurationUI();
+  }
+
+  function renderInaugurationUI() {
+    if (!inaugClockSection) return;
+
+    // Visibility toggle (Make it come and go as controlled by Baseline)
+    if (localInauguration.isVisible === false) {
+      inaugClockSection.classList.add('inaug-hidden');
+      return;
+    } else {
+      inaugClockSection.classList.remove('inaug-hidden');
+    }
+
+    const now = Date.now();
+    const target = localInauguration.targetTimestamp || 1789621200000;
+    const isPast = now >= target;
+    const inaugurated = localInauguration.isInaugurated || isPast;
+
+    if (inaugurated) {
+      if (inaugCountdownView) inaugCountdownView.style.display = 'none';
+      if (inaugCelebrationView) inaugCelebrationView.style.display = 'block';
+      if (inaugStatusBadge) {
+        inaugStatusBadge.textContent = 'EVENT OFFICIALLY INAUGURATED';
+        inaugStatusBadge.className = 'inaug-status-badge badge-inaugurated';
+      }
+      if (inaugPulseDot) {
+        inaugPulseDot.className = 'inaug-pulse-dot pulse-green';
+      }
+    } else {
+      if (inaugCountdownView) inaugCountdownView.style.display = 'block';
+      if (inaugCelebrationView) inaugCelebrationView.style.display = 'none';
+      if (inaugStatusBadge) {
+        inaugStatusBadge.textContent = 'COUNTDOWN IN PROGRESS';
+        inaugStatusBadge.className = 'inaug-status-badge';
+      }
+      if (inaugPulseDot) {
+        inaugPulseDot.className = 'inaug-pulse-dot';
+      }
+
+      const diffSecs = Math.max(0, Math.floor((target - now) / 1000));
+      const days = Math.floor(diffSecs / 86400);
+      const hours = Math.floor((diffSecs % 86400) / 3600);
+      const mins = Math.floor((diffSecs % 3600) / 60);
+      const secs = diffSecs % 60;
+
+      if (inaugDays) inaugDays.textContent = String(days).padStart(2, '0');
+      if (inaugHours) inaugHours.textContent = String(hours).padStart(2, '0');
+      if (inaugMins) inaugMins.textContent = String(mins).padStart(2, '0');
+      if (inaugSecs) inaugSecs.textContent = String(secs).padStart(2, '0');
+    }
+  }
+
+  // Live countdown tick every second
+  setInterval(renderInaugurationUI, 1000);
+
+  // Read saved state on startup
+  try {
+    const rawInaug = localStorage.getItem(INAUGURATION_STORAGE_KEY);
+    if (rawInaug) {
+      applyInaugurationState(JSON.parse(rawInaug));
+    } else {
+      renderInaugurationUI();
+    }
+  } catch (e) {
+    renderInaugurationUI();
+  }
+
+  // Dedicated polling for inauguration state
+  async function loadInaugurationState() {
+    try {
+      const res = await fetch('/api/inauguration');
+      if (res.ok) {
+        const data = await res.json();
+        applyInaugurationState(data);
+      }
+    } catch (e) {}
+  }
+  loadInaugurationState();
+  setInterval(loadInaugurationState, 3000);
 
   // ---------------------------------------------------------------------------
   // 07. QUICK-JUMP TACTICAL ACTION BUTTONS

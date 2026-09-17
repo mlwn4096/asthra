@@ -80,6 +80,14 @@ function getDefaultState() {
       updatedAt: 0,
       snapshot: []
     },
+    inauguration: {
+      targetIso: '2026-09-17T10:30:00+05:30',
+      targetTimestamp: 1789621200000,
+      isVisible: true,
+      isInaugurated: false,
+      inauguratedAt: null,
+      updatedAt: 0
+    },
     judges: [],
     sessions: {},
     teams: [],
@@ -543,6 +551,49 @@ module.exports = async function handler(req, res) {
   }
 
   // --------------------------------------------------------------------------
+  // 2B. INAUGURATION CLOCK CONTROLLER
+  // --------------------------------------------------------------------------
+  if (pathname === '/api/inauguration') {
+    if (req.method === 'GET') {
+      return sendJson(res, 200, state.inauguration);
+    }
+  }
+
+  if (pathname === '/api/inauguration/toggle' && req.method === 'POST') {
+    try {
+      const body = await parseJsonBody(req);
+      if (typeof body.isVisible === 'boolean') {
+        state.inauguration.isVisible = body.isVisible;
+      } else {
+        state.inauguration.isVisible = !state.inauguration.isVisible;
+      }
+      state.inauguration.updatedAt = Date.now();
+      await persistState();
+      return sendJson(res, 200, { ok: true, inauguration: state.inauguration });
+    } catch (e) {
+      return sendJson(res, 400, { error: e.message });
+    }
+  }
+
+  if (pathname === '/api/inauguration/trigger' && req.method === 'POST') {
+    try {
+      const body = await parseJsonBody(req);
+      const now = Date.now();
+      if (typeof body.isInaugurated === 'boolean') {
+        state.inauguration.isInaugurated = body.isInaugurated;
+      } else {
+        state.inauguration.isInaugurated = !state.inauguration.isInaugurated;
+      }
+      state.inauguration.inauguratedAt = state.inauguration.isInaugurated ? now : null;
+      state.inauguration.updatedAt = now;
+      await persistState();
+      return sendJson(res, 200, { ok: true, inauguration: state.inauguration });
+    } catch (e) {
+      return sendJson(res, 400, { error: e.message });
+    }
+  }
+
+  // --------------------------------------------------------------------------
   // 3. LEADERBOARD STATE MACHINE
   // --------------------------------------------------------------------------
   if (pathname === '/api/leaderboard') {
@@ -952,7 +1003,8 @@ module.exports = async function handler(req, res) {
       timer: state.timer,
       leaderboard: publicLeaderboard,
       adminMatrix: matrix,
-      domains: state.domains
+      domains: state.domains,
+      inauguration: state.inauguration
     })}\n\n`);
 
     res.end();

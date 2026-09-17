@@ -149,6 +149,34 @@ function persistDomainsState() {
   setEventState('domains_state', domainsState);
 }
 
+// Inauguration Live Clock & Kickoff State (10:30 AM, 17th September 2026 IST)
+const INAUGURATION_TARGET_ISO = '2026-09-17T10:30:00+05:30';
+const INAUGURATION_TARGET_TS = Date.parse(INAUGURATION_TARGET_ISO); // 1789621200000
+
+let inaugurationState = getEventState('inauguration_state', {
+  targetIso: INAUGURATION_TARGET_ISO,
+  targetTimestamp: INAUGURATION_TARGET_TS,
+  isVisible: true,
+  isInaugurated: Date.now() >= INAUGURATION_TARGET_TS,
+  inauguratedAt: Date.now() >= INAUGURATION_TARGET_TS ? INAUGURATION_TARGET_TS : null,
+  updatedAt: Date.now()
+});
+
+function getEffectiveInaugurationState() {
+  const now = Date.now();
+  if (!inaugurationState.isInaugurated && now >= inaugurationState.targetTimestamp) {
+    inaugurationState.isInaugurated = true;
+    inaugurationState.inauguratedAt = inaugurationState.targetTimestamp;
+    inaugurationState.updatedAt = now;
+    persistInaugurationState();
+  }
+  return inaugurationState;
+}
+
+function persistInaugurationState() {
+  setEventState('inauguration_state', inaugurationState);
+}
+
 // ============================================================================
 // 3. SERVER-SENT EVENTS (SSE) BROADCAST BUS
 // ============================================================================
@@ -164,7 +192,8 @@ function broadcastSSE() {
     timer: timerState,
     leaderboard: publicLeaderboard,
     adminMatrix: adminMatrix,
-    domains: domainsState
+    domains: domainsState,
+    inauguration: getEffectiveInaugurationState()
   };
 
   const payload = `data: ${JSON.stringify(payloadObj)}\n\n`;
@@ -1007,6 +1036,51 @@ async function handleRequest(req, res) {
       } catch (e) {
         return sendJson(res, 400, { error: e.message });
       }
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // API: INAUGURATION CLOCK & EVENT COMMENCEMENT CONTROLLER
+  // --------------------------------------------------------------------------
+  if (pathname === '/api/inauguration') {
+    if (req.method === 'GET') {
+      return sendJson(res, 200, getEffectiveInaugurationState());
+    }
+  }
+
+  if (pathname === '/api/inauguration/toggle' && req.method === 'POST') {
+    try {
+      const body = await parseJsonBody(req);
+      if (typeof body.isVisible === 'boolean') {
+        inaugurationState.isVisible = body.isVisible;
+      } else {
+        inaugurationState.isVisible = !inaugurationState.isVisible;
+      }
+      inaugurationState.updatedAt = Date.now();
+      persistInaugurationState();
+      broadcastSSE();
+      return sendJson(res, 200, { ok: true, inauguration: getEffectiveInaugurationState() });
+    } catch (e) {
+      return sendJson(res, 400, { error: e.message });
+    }
+  }
+
+  if (pathname === '/api/inauguration/trigger' && req.method === 'POST') {
+    try {
+      const body = await parseJsonBody(req);
+      const now = Date.now();
+      if (typeof body.isInaugurated === 'boolean') {
+        inaugurationState.isInaugurated = body.isInaugurated;
+      } else {
+        inaugurationState.isInaugurated = !inaugurationState.isInaugurated;
+      }
+      inaugurationState.inauguratedAt = inaugurationState.isInaugurated ? now : null;
+      inaugurationState.updatedAt = now;
+      persistInaugurationState();
+      broadcastSSE();
+      return sendJson(res, 200, { ok: true, inauguration: getEffectiveInaugurationState() });
+    } catch (e) {
+      return sendJson(res, 400, { error: e.message });
     }
   }
 

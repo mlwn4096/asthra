@@ -33,11 +33,46 @@ document.addEventListener('DOMContentLoaded', () => {
     c6: document.getElementById('score-c6')
   };
 
+  const themeToggleBtn = document.getElementById('theme-toggle-judge');
+  const themeToggleIcon = document.getElementById('theme-toggle-icon');
+  const themeToggleText = document.getElementById('theme-toggle-text');
+  const totalScorePill = document.getElementById('total-score-pill');
+  const c4MetricVal = document.getElementById('c4-metric-val');
+
   const MAX_LIMITS = { c1: 20, c2: 20, c3: 20, c4: 25, c5: 10, c6: 5 };
 
   let currentToken = localStorage.getItem('astra_judge_token') || null;
   let currentJudge = null;
   let mySubmissions = [];
+
+  // ==========================================================================
+  // 0. THEME MANAGEMENT (DEFAULT: LIGHT MODE)
+  // ==========================================================================
+  let currentTheme = localStorage.getItem('astra_judge_theme') || 'light';
+
+  function applyTheme(theme) {
+    currentTheme = theme;
+    localStorage.setItem('astra_judge_theme', theme);
+    if (theme === 'dark') {
+      document.body.classList.add('theme-dark');
+      document.body.classList.remove('theme-light');
+      if (themeToggleIcon) themeToggleIcon.textContent = '🌙';
+      if (themeToggleText) themeToggleText.textContent = 'DARK';
+    } else {
+      document.body.classList.add('theme-light');
+      document.body.classList.remove('theme-dark');
+      if (themeToggleIcon) themeToggleIcon.textContent = '☀️';
+      if (themeToggleText) themeToggleText.textContent = 'LIGHT';
+    }
+  }
+
+  applyTheme(currentTheme);
+
+  if (themeToggleBtn) {
+    themeToggleBtn.addEventListener('click', () => {
+      applyTheme(currentTheme === 'light' ? 'dark' : 'light');
+    });
+  }
 
   // ==========================================================================
   // 1. AUTHENTICATION & INITIALIZATION
@@ -218,13 +253,44 @@ document.addEventListener('DOMContentLoaded', () => {
 
     displayTotalScore.textContent = total.toFixed(1);
 
-    // Dynamic color indicator
+    // Update C4 Tie-Breaker metric in sidebar
+    if (c4MetricVal && scoreFields.c4) {
+      c4MetricVal.textContent = (parseFloat(scoreFields.c4.value) || 0).toFixed(1);
+    }
+
+    // Dynamic color & status tier indicator
     if (total >= 85) {
       displayTotalScore.style.color = 'var(--green)';
+      if (totalScorePill) {
+        totalScorePill.textContent = 'EXEMPLARY (85–100)';
+        totalScorePill.style.color = 'var(--green-text)';
+        totalScorePill.style.background = 'var(--green-light)';
+        totalScorePill.style.borderColor = 'var(--green-border)';
+      }
     } else if (total >= 60) {
+      displayTotalScore.style.color = 'var(--blue)';
+      if (totalScorePill) {
+        totalScorePill.textContent = 'PROFICIENT (60–84.5)';
+        totalScorePill.style.color = 'var(--blue)';
+        totalScorePill.style.background = 'var(--blue-light)';
+        totalScorePill.style.borderColor = 'var(--blue-border)';
+      }
+    } else if (total >= 35) {
       displayTotalScore.style.color = 'var(--amber)';
+      if (totalScorePill) {
+        totalScorePill.textContent = 'MODERATE (35–59.5)';
+        totalScorePill.style.color = 'var(--amber)';
+        totalScorePill.style.background = 'var(--amber-light)';
+        totalScorePill.style.borderColor = 'var(--amber-border)';
+      }
     } else {
-      displayTotalScore.style.color = 'var(--red)';
+      displayTotalScore.style.color = total > 0 ? 'var(--red)' : 'var(--text-muted)';
+      if (totalScorePill) {
+        totalScorePill.textContent = total > 0 ? 'DEVELOPING (<35)' : 'AWAITING EVALUATION';
+        totalScorePill.style.color = total > 0 ? 'var(--red)' : 'var(--text-muted)';
+        totalScorePill.style.background = total > 0 ? 'var(--red-light)' : 'var(--card-header)';
+        totalScorePill.style.borderColor = total > 0 ? 'var(--red-border)' : 'var(--border)';
+      }
     }
   }
 

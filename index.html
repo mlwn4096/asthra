@@ -30,7 +30,7 @@
         <span class="corner-timer-digits" id="top-sync-clock">05:00</span>
       </div>
       <div class="corner-timer-footer">
-        <span class="corner-timer-phase-badge" id="top-sync-phase">AWAITING BASELINE KICKOFF</span>
+        <span class="corner-timer-phase-badge" id="top-sync-phase">AWAITING ADMIN KICKOFF</span>
       </div>
       <div class="corner-timer-progress-track">
         <div class="corner-timer-progress-fill" id="top-sync-progress"></div>
@@ -78,7 +78,7 @@
       </nav>
 
       <div class="nav-actions">
-        <a href="participate_main.pdf" download="participate_main.pdf" class="btn btn-sm btn-outline">
+        <a href="participate.pdf" download="participate.pdf" class="btn btn-sm btn-outline">
           <span class="btn-icon">⬇</span>
           <span>PARTICIPATE.PDF</span>
         </a>
@@ -107,7 +107,7 @@
           <span>🔒</span>
           <span>LEADERBOARD</span>
         </a>
-        <a href="participate_main.pdf" download="participate_main.pdf" class="jump-action-btn">
+        <a href="participate.pdf" download="participate.pdf" class="jump-action-btn">
           <span>⬇</span>
           <span>PARTICIPATE.PDF</span>
         </a>
@@ -133,11 +133,102 @@
       <button id="drawer-theme-toggle" class="btn btn-outline btn-block mb-3">
         <span class="theme-icon">☀️</span> SWITCH TO LIGHT MODE
       </button>
-      <a href="participate_main.pdf" download="participate_main.pdf" class="btn btn-primary btn-block">DOWNLOAD PARTICIPATE.PDF</a>
+      <a href="participate.pdf" download class="btn btn-primary btn-block">DOWNLOAD PARTICIPATE.PDF</a>
     </div>
   </div>
 
   <main>
+    <!-- ================================================================= -->
+    <!-- MASTER INAUGURATION LIVE COUNTDOWN & KICKOFF CLOCK (MAIN TOP)     -->
+    <!-- ================================================================= -->
+    <section id="inauguration-clock-section" class="inauguration-clock-section" aria-label="Official Event Inauguration Clock">
+      <div class="container">
+        <div class="inauguration-clock-card" id="inauguration-clock-card">
+          <!-- Cyber Corner Markers -->
+          <div class="inaug-bracket inaug-top-left"></div>
+          <div class="inaug-bracket inaug-top-right"></div>
+          <div class="inaug-bracket inaug-bottom-left"></div>
+          <div class="inaug-bracket inaug-bottom-right"></div>
+
+          <!-- Top Meta Bar -->
+          <div class="inaug-meta-bar">
+            <div class="inaug-meta-left">
+              <span class="inaug-pulse-dot" id="inaug-pulse-dot"></span>
+              <span class="inaug-meta-tag">ASTRA 11.0 OFFICIAL EVENT INAUGURATION</span>
+              <span class="inaug-meta-sep">//</span>
+              <span class="inaug-meta-date">17 SEPTEMBER 2026 • 10:30 AM IST</span>
+            </div>
+            <div class="inaug-meta-right">
+              <span class="inaug-status-badge" id="inaug-status-badge">COUNTDOWN IN PROGRESS</span>
+            </div>
+          </div>
+
+          <!-- Active Countdown View -->
+          <div class="inaug-countdown-view" id="inaug-countdown-view">
+            <div class="inaug-title-row">
+              <h2 class="inaug-headline">OFFICIAL EVENT INAUGURATION CLOCK</h2>
+              <p class="inaug-subtext">COUNTING DOWN TO OFFICIAL INAUGURATION &amp; HACKATHON PROTOCOL COMMENCEMENT</p>
+            </div>
+
+            <div class="inaug-digits-grid">
+              <div class="inaug-digit-block">
+                <span class="inaug-digit-val" id="inaug-days">00</span>
+                <span class="inaug-digit-lbl">DAYS</span>
+              </div>
+              <span class="inaug-digit-sep">:</span>
+              <div class="inaug-digit-block">
+                <span class="inaug-digit-val" id="inaug-hours">00</span>
+                <span class="inaug-digit-lbl">HOURS</span>
+              </div>
+              <span class="inaug-digit-sep">:</span>
+              <div class="inaug-digit-block">
+                <span class="inaug-digit-val" id="inaug-mins">00</span>
+                <span class="inaug-digit-lbl">MINUTES</span>
+              </div>
+              <span class="inaug-digit-sep">:</span>
+              <div class="inaug-digit-block highlight-secs">
+                <span class="inaug-digit-val" id="inaug-secs">00</span>
+                <span class="inaug-digit-lbl">SECONDS</span>
+              </div>
+            </div>
+
+            <div class="inaug-footer-telemetry">
+              <div class="inaug-telemetry-item">
+                <span class="inaug-bullet text-red">■</span>
+                <span>GLOBAL CEREMONY LOCK: <strong id="inaug-target-text">17-SEP-2026 10:30:00 AM IST</strong></span>
+              </div>
+              <div class="inaug-telemetry-item">
+                <span class="inaug-bullet text-green">■</span>
+                <span>SYNC BUS: <strong>AUTHORITATIVE BASELINE SSE</strong></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Inaugurated Celebration View (Appears upon 10:30 AM or trigger) -->
+          <div class="inaug-celebration-view" id="inaug-celebration-view" style="display: none;">
+            <div class="celebration-badge-row">
+              <span class="celebration-badge">🚀 PROTOCOL ACTIVE // SPRINTS IN MOTION</span>
+            </div>
+            <h2 class="celebration-title">🎉 ASTRA 11.0 OFFICIALLY INAUGURATED!</h2>
+            <p class="celebration-desc">
+              The official countdown has concluded. BUILD-A-BOT Hackathon is officially inaugurated and live!
+              Teams may consult the 15 Predefined Technology Domains below and commence sprint operations.
+            </p>
+            <div class="celebration-actions">
+              <a href="#domains" class="btn btn-primary">
+                <span>VIEW 15 DOMAINS</span>
+                <span class="btn-arrow">↓</span>
+              </a>
+              <a href="#rules" class="btn btn-outline">
+                <span>SPRINT RULES &amp; DIRECTIVES</span>
+              </a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
     <!-- ================================================================= -->
     <!-- HERO SECTION (MINIMAL STREAMLINED INTRO)                          -->
     <!-- ================================================================= -->
@@ -196,7 +287,7 @@
           <a href="#rules" class="btn btn-outline btn-lg">
             <span>RULES &amp; DIRECTIVES</span>
           </a>
-          <a href="participate_main.pdf" download="participate_main.pdf" class="btn btn-subtle btn-lg">
+          <a href="participate.pdf" download class="btn btn-subtle btn-lg">
             <span>DOWNLOAD PARTICIPATE.PDF</span>
             <span class="btn-icon">⬇</span>
           </a>
@@ -209,20 +300,6 @@
     <!-- ================================================================= -->
     <section class="section-domains" id="domains">
       <div class="container">
-        <!-- Domains Embargo Banner (Controlled by Baseline Desk) -->
-        <div id="domains-embargo-banner" class="domains-embargo-banner">
-          <div class="deb-inner">
-            <div class="deb-lock-icon">🔒</div>
-            <div class="deb-badge">TOP SECRET // EMBARGO ACTIVE</div>
-            <h3 class="deb-title">15 DOMAINS CONCEALED UNTIL KICKOFF</h3>
-            <p class="deb-desc">The 15 predefined technology problem directives are locked under embargo by the technical evaluation jury. They will be revealed synchronously across all terminals upon official kickoff countdown.</p>
-            <div class="deb-status-pill">
-              <span class="telemetry-live-dot"></span>
-              <span>AWAITING KICKOFF SIGNAL FROM BASELINE CONTROL</span>
-            </div>
-          </div>
-        </div>
-
         <div class="section-header">
           <div class="section-tracker">
             <span class="text-red">// 01. MANDATORY PROBLEM DIRECTIVES</span>
@@ -235,8 +312,24 @@
           </p>
         </div>
 
-        <!-- 15 Domains Dynamic Grid (Concealed by default until kickoff signal) -->
-        <div class="domains-grid domains-scrambled" id="domains-grid">
+        <!-- Domains Display Area (Houses both the Scrambled Grid and the Embargo Banner) -->
+        <div class="domains-display-area" id="domains-display-area">
+          <!-- Domains Embargo Banner (Controlled by Admin Desk) -->
+          <div id="domains-embargo-banner" class="domains-embargo-banner">
+            <div class="deb-inner">
+              <div class="deb-lock-icon">🔒</div>
+              <div class="deb-badge">TOP SECRET // EMBARGO ACTIVE</div>
+              <h3 class="deb-title">15 DOMAINS CONCEALED UNTIL KICKOFF</h3>
+              <p class="deb-desc">The 15 predefined technology problem directives are locked under embargo by the technical evaluation jury. They will be revealed synchronously across all terminals upon official kickoff countdown.</p>
+              <div class="deb-status-pill">
+                <span class="telemetry-live-dot"></span>
+                <span>AWAITING KICKOFF SIGNAL FROM ADMIN CONTROL</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 15 Domains Dynamic Grid (Concealed by default until kickoff signal) -->
+          <div class="domains-grid domains-scrambled" id="domains-grid">
           
           <!-- Domain 01 -->
           <div class="domain-card" data-domain="1">
@@ -421,6 +514,7 @@
           </div>
 
         </div>
+        </div>
       </div>
     </section>
 
@@ -437,18 +531,18 @@
           </div>
           <h2 class="section-title">RULES &amp; DIRECTIVES</h2>
           <p class="section-subtext">
-            Quick operational reference for Build-a-Bot. All exhaustive sprint regulations, scoring rubrics, and Git commit audit rights are detailed in the official <code>participate_main.pdf</code> handbook.
+            Quick operational reference for Build-a-Bot. All exhaustive sprint regulations, scoring rubrics, and Git commit audit rights are detailed in the official <code>participate.pdf</code> handbook.
           </p>
         </div>
 
-        <!-- Prominent participate_main.pdf Download Card -->
+        <!-- Prominent participate.pdf Download Card -->
         <div class="pdf-callout-card" data-assemble>
           <div class="pdf-callout-badge">[ OFFICIAL SPECIFICATION ]</div>
           <h3 class="pdf-callout-title">COMPLETE PARTICIPANT GUIDELINES HANDBOOK</h3>
           <p class="pdf-callout-desc">
-            The official <code>participate_main.pdf</code> provides in-depth documentation for all event directives, domain guidelines, repository commit audit procedures, and exhaustive jury scoring criteria.
+            The official <code>participate.pdf</code> provides in-depth documentation for all event directives, domain guidelines, repository commit audit procedures, and exhaustive jury scoring criteria.
           </p>
-          <a href="participate_main.pdf" download="participate_main.pdf" class="btn btn-primary btn-lg pdf-download-cta">
+          <a href="participate.pdf" download="participate.pdf" class="btn btn-primary btn-lg pdf-download-cta">
             <span class="btn-icon">⬇</span>
             <span>DOWNLOAD PARTICIPATE.PDF (FULL HANDBOOK)</span>
           </a>
@@ -477,7 +571,7 @@
                   <li><strong>Exclusive 15 Domains:</strong> Every team must build strictly within one of the 15 Predefined Technology Domains listed above. Open problem choosing is barred with immediate disqualification.</li>
                   <li><strong>Lock-in at Kickoff:</strong> Each team's chosen domain is officially recorded and locked in at the sprint kickoff.</li>
                   <li><strong>Deliverable Requirement:</strong> Submissions must be an operational, working software or hardware prototype demonstrated live (static mockups or slides-only presentations are not accepted).</li>
-                  <li><strong>Full Guidance:</strong> Consult <code>participate_main.pdf</code> for comprehensive domain boundaries.</li>
+                  <li><strong>Full Guidance:</strong> Consult <code>participate.pdf</code> for comprehensive domain boundaries.</li>
                 </ul>
               </div>
             </div>
@@ -503,7 +597,7 @@
                   <li><strong>In-Event Development:</strong> All core logic and code must be authored during the event timeframe. Pre-built repositories are strictly prohibited.</li>
                   <li><strong>Permitted Foundations:</strong> Standard boilerplates, open-source libraries, UI frameworks, and public APIs/datasets are fully allowed.</li>
                   <li><strong>AI Coding Policy:</strong> AI-assisted tools (Copilot, Cursor, ChatGPT, etc.) are allowed. Teams must thoroughly understand and defend every implementation detail during jury defense.</li>
-                  <li><strong>Commit Audits:</strong> The technical committee reserves full authority to inspect Git commit logs and timestamps. Full audit terms in <code>participate_main.pdf</code>.</li>
+                  <li><strong>Commit Audits:</strong> The technical committee reserves full authority to inspect Git commit logs and timestamps. Full audit terms in <code>participate.pdf</code>.</li>
                 </ul>
               </div>
             </div>
@@ -529,7 +623,7 @@
                   <li><strong>5-Minute Evaluation Window:</strong> 3 minutes for live participant prototype demonstration + 2 minutes for jury technical Q&amp;A.</li>
                   <li><strong>Master Timer Sync:</strong> Live countdown is synchronized in real time with the jury desk via the top-right master clock widget.</li>
                   <li><strong>Judging Rubric (100 pts total):</strong> Problem Relevance (20), Innovation (20), Technical Architecture (20), Working Prototype Functionality (25), Presentation (10), Code Mastery (5).</li>
-                  <li><strong>Official Criteria:</strong> Refer to <code>participate_main.pdf</code> for official scoring bins and deterministic tie-breaker hierarchy.</li>
+                  <li><strong>Official Criteria:</strong> Refer to <code>participate.pdf</code> for official scoring bins and deterministic tie-breaker hierarchy.</li>
                 </ul>
               </div>
             </div>
@@ -615,7 +709,7 @@
       <div class="footer-right">
         <span class="telemetry-mono">OFFICIAL PARTICIPANT PORTAL // 2026</span>
         <div class="footer-links">
-          <a href="participate_main.pdf" download="participate_main.pdf">participate_main.pdf</a>
+          <a href="participate.pdf" download>participate.pdf</a>
         </div>
       </div>
     </div>
