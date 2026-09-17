@@ -131,8 +131,8 @@ function persistTimerState() {
 
 // Leaderboard State (EMBARGOED | PUBLISHED)
 let leaderboardState = getEventState('leaderboard_state', {
-  state: 'EMBARGOED',
-  publishedAt: null,
+  state: 'PUBLISHED',
+  publishedAt: Date.now(),
   snapshot: []
 });
 
@@ -1036,20 +1036,12 @@ async function handleRequest(req, res) {
   // --------------------------------------------------------------------------
   if (pathname === '/api/leaderboard') {
     if (req.method === 'GET') {
-      if (leaderboardState.state === 'PUBLISHED') {
-        return sendJson(res, 200, {
-          state: 'PUBLISHED',
-          updatedAt: leaderboardState.updatedAt || leaderboardState.publishedAt || 0,
-          publishedAt: leaderboardState.publishedAt,
-          teams: leaderboardState.snapshot || []
-        });
-      } else {
-        return sendJson(res, 200, {
-          state: 'EMBARGOED',
-          updatedAt: leaderboardState.updatedAt || 0,
-          teams: []
-        });
-      }
+      return sendJson(res, 200, {
+        state: 'PUBLISHED',
+        updatedAt: leaderboardState.updatedAt || leaderboardState.publishedAt || 0,
+        publishedAt: leaderboardState.publishedAt || Date.now(),
+        teams: leaderboardState.snapshot || []
+      });
     }
   }
 

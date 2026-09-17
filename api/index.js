@@ -76,8 +76,8 @@ function getDefaultState() {
       updatedAt: 0
     },
     leaderboard: {
-      state: 'EMBARGOED', // 'EMBARGOED' | 'PUBLISHED'
-      publishedAt: null,
+      state: 'PUBLISHED', // Published by default for event conclusion
+      publishedAt: Date.now(),
       updatedAt: 0,
       snapshot: []
     },
@@ -798,24 +798,16 @@ module.exports = async function handler(req, res) {
   // --------------------------------------------------------------------------
   // 3. LEADERBOARD STATE MACHINE
   // --------------------------------------------------------------------------
-  if (pathname === '/api/leaderboard') {
-    if (req.method === 'GET') {
-      if (state.leaderboard.state === 'PUBLISHED') {
+    if (pathname === '/api/leaderboard') {
+      if (req.method === 'GET') {
         return sendJson(res, 200, {
           state: 'PUBLISHED',
           updatedAt: state.leaderboard.updatedAt || state.leaderboard.publishedAt || 0,
-          publishedAt: state.leaderboard.publishedAt,
+          publishedAt: state.leaderboard.publishedAt || Date.now(),
           teams: state.leaderboard.snapshot || []
-        });
-      } else {
-        return sendJson(res, 200, {
-          state: 'EMBARGOED',
-          updatedAt: state.leaderboard.updatedAt || 0,
-          teams: []
         });
       }
     }
-  }
 
   if (pathname === '/api/leaderboard/publish' && req.method === 'POST') {
     const matrix = computeMatrix(state);

@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BUILD-A-BOT // ASTRA 11.0 — Official Participant Protocol</title>
-  <meta name="description" content="Official event guidelines, 15 predefined technology domains, rules, and protocol for Build-a-Bot sprint at ASTRA 11.0, SJCET Palai.">
+  <title>BUILD-A-BOT // ASTRA 11.0 — Official Event Leaderboard &amp; Winners</title>
+  <meta name="description" content="Official event leaderboard, final standings, and winners podium for Build-a-Bot sprint at ASTRA 11.0, SJCET Palai. Congratulations to all participants!">
   
   <!-- Font definitions: Google Fonts + Local Fallbacks -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,45 +15,12 @@
 </head>
 <body class="theme-dark">
 
-  <!-- ================================================================= -->
-  <!-- DYNAMIC PITCH & EVENT TIMER (TOP OF HEADER / FLOATING ON SCROLL)  -->
-  <!-- ================================================================= -->
-  <div id="top-timer-dock" class="top-timer-dock">
-    <aside id="top-sync-timer" class="corner-sync-timer timer-docked timer-standby" aria-live="polite">
-      <div class="corner-timer-card">
-        <div class="corner-timer-header">
-          <div class="corner-timer-status">
-            <span class="timer-live-dot" id="top-timer-dot"></span>
-            <span class="top-timer-label" id="top-timer-status-text">EVENT TIMER // STANDBY</span>
-          </div>
-          <!-- Football Stoppage/Bonus Time Badge -->
-          <div class="football-bonus-badge" id="top-bonus-badge" style="display: none;" title="Extra / Bonus Time Granted by Baseline Desk">
-            <span class="fbb-board">
-              <span class="fbb-plus">+</span>
-              <span class="fbb-time" id="top-bonus-time">02:00</span>
-            </span>
-            <span class="fbb-sub">EXTRA TIME</span>
-          </div>
-        </div>
-        <div class="corner-timer-display">
-          <span class="corner-timer-digits" id="top-sync-clock">05:00</span>
-        </div>
-        <div class="corner-timer-footer">
-          <span class="corner-timer-phase-badge" id="top-sync-phase">AWAITING ADMIN KICKOFF</span>
-        </div>
-        <div class="corner-timer-progress-track">
-          <div class="corner-timer-progress-fill" id="top-sync-progress"></div>
-        </div>
-      </div>
-    </aside>
-  </div>
-
   <!-- Ambient Telemetry & Controls Bar -->
   <div class="telemetry-bar">
     <div class="telemetry-inner">
       <div class="telemetry-left">
         <span class="status-dot"></span>
-        <span class="telemetry-mono">SYS_STATUS: ONLINE</span>
+        <span class="telemetry-mono">SYS_STATUS: EVENT CONCLUDED</span>
         <span class="telemetry-sep">//</span>
         <span class="telemetry-mono">ASTRA 11.0 BUILD-A-BOT</span>
         <span class="telemetry-sep tele-desktop-only">//</span>
@@ -76,15 +43,13 @@
   <!-- Primary Sticky Tactical Header -->
   <header class="tactical-nav" id="main-nav">
     <div class="nav-container">
-      <a href="#hero" class="nav-brand">
-        <span class="brand-sub">ASTRA 11.0 // SPRINT PROTOCOL</span>
+      <a href="#leaderboard" class="nav-brand">
+        <span class="brand-sub">ASTRA 11.0 // FINAL PROTOCOL</span>
         <span class="brand-title">BUILD<span class="text-red">.</span>A<span class="text-red">.</span>BOT</span>
       </a>
 
       <nav class="nav-links">
-        <a href="#domains" class="nav-item highlight-nav"><span class="nav-num">01</span>DOMAINS (15)</a>
-        <a href="#rules" class="nav-item"><span class="nav-num">02</span>RULES &amp; DIRECTIVES</a>
-        <a href="#leaderboard" class="nav-item pill-leaderboard-nav"><span class="nav-num">03</span>🔒 LEADERBOARD</a>
+        <a href="#leaderboard" class="nav-item highlight-nav"><span class="nav-num">★</span>OFFICIAL LEADERBOARD &amp; PODIUM</a>
       </nav>
 
       <div class="nav-actions">
@@ -100,31 +65,6 @@
     <div class="scroll-progress-line" id="scroll-progress"></div>
   </header>
 
-  <!-- Quick-Jump Section Navigation Bar (Direct Section Jumps) -->
-  <nav class="quick-jump-bar" id="quick-jump-bar" aria-label="Section Quick Navigation">
-    <div class="container quick-jump-container">
-      <span class="jump-label">QUICK ACCESS:</span>
-      <div class="jump-pills-track">
-        <a href="#domains" class="jump-action-btn" data-target="domains">
-          <span class="btn-bullet text-red">■</span>
-          <span>15 DOMAINS</span>
-        </a>
-        <a href="#rules" class="jump-action-btn" data-target="rules">
-          <span class="btn-bullet text-red">■</span>
-          <span>RULES &amp; DIRECTIVES</span>
-        </a>
-        <a href="#leaderboard" class="jump-action-btn pill-leaderboard-jump" data-target="leaderboard">
-          <span>🔒</span>
-          <span>LEADERBOARD</span>
-        </a>
-        <a href="/api/pdf/download" download="participate.pdf" class="jump-action-btn" data-pdf-download>
-          <span>⬇</span>
-          <span>HANDBOOK (PDF)</span>
-        </a>
-      </div>
-    </div>
-  </nav>
-
   <!-- Mobile Drawer Backdrop Overlay -->
   <div class="drawer-backdrop" id="drawer-backdrop"></div>
 
@@ -135,9 +75,7 @@
       <button class="drawer-close" id="drawer-close" aria-label="Close menu">&times;</button>
     </div>
     <div class="drawer-links">
-      <a href="#domains" class="drawer-item"><span class="nav-num">01</span> 15 PREDEFINED DOMAINS</a>
-      <a href="#rules" class="drawer-item drawer-alert"><span class="nav-num">02</span> ! RULES &amp; DIRECTIVES</a>
-      <a href="#leaderboard" class="drawer-item drawer-leaderboard"><span class="nav-num">03</span> 🔒 LEADERBOARD</a>
+      <a href="#leaderboard" class="drawer-item drawer-leaderboard"><span class="nav-num">★</span> 🏆 RESULTS &amp; PODIUM</a>
     </div>
     <div class="drawer-footer">
       <button id="drawer-theme-toggle" class="btn btn-outline btn-block mb-3">
@@ -149,535 +87,116 @@
 
   <main>
     <!-- ================================================================= -->
-    <!-- MASTER INAUGURATION LIVE COUNTDOWN & KICKOFF CLOCK (MAIN TOP)     -->
-    <!-- ================================================================= -->
-    <section id="inauguration-clock-section" class="inauguration-clock-section" aria-label="Official Event Inauguration Clock">
-      <div class="container">
-        <div class="inauguration-clock-card" id="inauguration-clock-card">
-          <!-- Cyber Corner Markers -->
-          <div class="inaug-bracket inaug-top-left"></div>
-          <div class="inaug-bracket inaug-top-right"></div>
-          <div class="inaug-bracket inaug-bottom-left"></div>
-          <div class="inaug-bracket inaug-bottom-right"></div>
-
-          <!-- Top Meta Bar -->
-          <div class="inaug-meta-bar">
-            <div class="inaug-meta-left">
-              <span class="inaug-pulse-dot" id="inaug-pulse-dot"></span>
-              <span class="inaug-meta-tag">ASTRA 11.0 OFFICIAL EVENT INAUGURATION</span>
-              <span class="inaug-meta-sep">//</span>
-              <span class="inaug-meta-date">17 SEPTEMBER 2026 • 10:30 AM IST</span>
-            </div>
-            <div class="inaug-meta-right">
-              <span class="inaug-status-badge" id="inaug-status-badge">COUNTDOWN IN PROGRESS</span>
-            </div>
-          </div>
-
-          <!-- Active Countdown View -->
-          <div class="inaug-countdown-view" id="inaug-countdown-view">
-            <div class="inaug-title-row">
-              <h2 class="inaug-headline">OFFICIAL EVENT INAUGURATION CLOCK</h2>
-              <p class="inaug-subtext">COUNTING DOWN TO OFFICIAL INAUGURATION &amp; HACKATHON PROTOCOL COMMENCEMENT</p>
-            </div>
-
-            <div class="inaug-digits-grid">
-              <div class="inaug-digit-block">
-                <span class="inaug-digit-val" id="inaug-days">00</span>
-                <span class="inaug-digit-lbl">DAYS</span>
-              </div>
-              <span class="inaug-digit-sep">:</span>
-              <div class="inaug-digit-block">
-                <span class="inaug-digit-val" id="inaug-hours">00</span>
-                <span class="inaug-digit-lbl">HOURS</span>
-              </div>
-              <span class="inaug-digit-sep">:</span>
-              <div class="inaug-digit-block">
-                <span class="inaug-digit-val" id="inaug-mins">00</span>
-                <span class="inaug-digit-lbl">MINUTES</span>
-              </div>
-              <span class="inaug-digit-sep">:</span>
-              <div class="inaug-digit-block highlight-secs">
-                <span class="inaug-digit-val" id="inaug-secs">00</span>
-                <span class="inaug-digit-lbl">SECONDS</span>
-              </div>
-            </div>
-
-            <div class="inaug-footer-telemetry">
-              <div class="inaug-telemetry-item">
-                <span class="inaug-bullet text-red">■</span>
-                <span>GLOBAL CEREMONY LOCK: <strong id="inaug-target-text">17-SEP-2026 10:30:00 AM IST</strong></span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Inaugurated Celebration View (Appears upon 10:30 AM or trigger) -->
-          <div class="inaug-celebration-view" id="inaug-celebration-view" style="display: none;">
-            <div class="celebration-badge-row">
-              <span class="celebration-badge">🚀 PROTOCOL ACTIVE // SPRINTS IN MOTION</span>
-            </div>
-            <h2 class="celebration-title">🎉 ASTRA 11.0 OFFICIALLY INAUGURATED!</h2>
-            <p class="celebration-desc">
-              The official countdown has concluded. BUILD-A-BOT Hackathon is officially inaugurated and live!
-              Teams may consult the 15 Predefined Technology Domains below and commence sprint operations.
-            </p>
-            <div class="celebration-actions">
-              <a href="#domains" class="btn btn-primary">
-                <span>VIEW 15 DOMAINS</span>
-                <span class="btn-arrow">↓</span>
-              </a>
-              <a href="#rules" class="btn btn-outline">
-                <span>SPRINT RULES &amp; DIRECTIVES</span>
-              </a>
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </section>
-
-    <!-- ================================================================= -->
-    <!-- HERO SECTION (MINIMAL STREAMLINED INTRO)                          -->
-    <!-- ================================================================= -->
-    <section class="hero-section" id="hero">
-      <div class="grid-canvas"></div>
-      
-      <!-- Corner Bracket Markers -->
-      <div class="crop-mark top-left"></div>
-      <div class="crop-mark top-right"></div>
-      <div class="crop-mark bottom-left"></div>
-      <div class="crop-mark bottom-right"></div>
-
-      <div class="container hero-container">
-        <!-- Line 1: Brand / Event Tag -->
-        <div class="hero-brand-tag">
-          <span class="hero-brand-pulse"></span>
-          <span>ASTRA 11.0</span>
-          <span class="hero-brand-slash">//</span>
-          <span>BUILD-A-BOT</span>
-        </div>
-
-        <!-- Line 2: Headline -->
-        <h1 class="hero-action-headline">
-          <span class="word-build">BUILD<span class="dot">.</span></span>
-          <span class="word-test">TEST<span class="dot">.</span></span>
-          <span class="word-proto">PROTOTYPE<span class="dot">.</span></span>
-        </h1>
-
-        <!-- Line 3: Core Parameters -->
-        <div class="hero-params-line">
-          <span>15 DOMAINS</span>
-          <span class="param-slash">//</span>
-          <span>5-MIN PITCH</span>
-          <span class="param-slash">//</span>
-          <span>IN-EVENT BUILD</span>
-        </div>
-
-        <!-- Lines 4 & 5: Tech Protocols -->
-        <div class="hero-protocol-lines">
-          <div class="hero-protocol-item">
-            <span class="protocol-bullet">▪</span>
-            <span>AI + PUBLIC APIs ALLOWED</span>
-          </div>
-          <div class="hero-protocol-item">
-            <span class="protocol-bullet">▪</span>
-            <span>GIT AUDITS ACTIVE</span>
-          </div>
-        </div>
-
-        <!-- Hero CTA Action Group -->
-        <div class="hero-cta-group">
-          <a href="#domains" class="btn btn-primary btn-lg">
-            <span>EXPLORE 15 DOMAINS</span>
-            <span class="btn-arrow">↓</span>
-          </a>
-          <a href="#rules" class="btn btn-outline btn-lg">
-            <span>RULES &amp; DIRECTIVES</span>
-          </a>
-          <a href="/api/pdf/download" download="participate.pdf" class="btn btn-subtle btn-lg" data-pdf-download>
-            <span>DOWNLOAD HANDBOOK (PDF)</span>
-            <span class="btn-icon">⬇</span>
-          </a>
-        </div>
-      </div>
-    </section>
-
-    <!-- ================================================================= -->
-    <!-- 15 PREDEFINED TECHNOLOGY DOMAINS (STARTS IMMEDIATELY HERE)        -->
-    <!-- ================================================================= -->
-    <section class="section-domains" id="domains">
-      <div class="container">
-        <div class="section-header">
-          <div class="section-tracker">
-            <span class="text-red">// 01. MANDATORY PROBLEM DIRECTIVES</span>
-            <span class="section-sep">//</span>
-            <span class="telemetry-mono">CHOOSE EXACTLY ONE DOMAIN AT KICKOFF</span>
-          </div>
-          <h2 class="section-title">15 PREDEFINED TECHNOLOGY DOMAINS</h2>
-          <p class="section-subtext">
-            Every team must select their problem statement exclusively from one of the 15 Predefined Technology Domains listed below. Open choosing is strictly prohibited.
-          </p>
-        </div>
-
-        <!-- Domains Display Area (Houses both the Scrambled Grid and the Embargo Banner) -->
-        <div class="domains-display-area" id="domains-display-area">
-          <!-- Domains Embargo Banner (Controlled by Admin Desk) -->
-          <div id="domains-embargo-banner" class="domains-embargo-banner" style="display: none;">
-            <div class="deb-inner">
-              <div class="deb-lock-icon">🔒</div>
-              <div class="deb-badge">TOP SECRET // EMBARGO ACTIVE</div>
-              <h3 class="deb-title">15 DOMAINS CONCEALED UNTIL KICKOFF</h3>
-              <p class="deb-desc">The 15 predefined technology problem directives are locked under embargo by the technical evaluation jury. They will be revealed synchronously across all terminals upon official kickoff countdown.</p>
-              <div class="deb-status-pill">
-                <span class="telemetry-live-dot"></span>
-                <span>AWAITING KICKOFF SIGNAL FROM ADMIN CONTROL</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- 15 Domains Dynamic Grid (Revealed by default) -->
-          <div class="domains-grid" id="domains-grid">
-          
-          <!-- Domain 01 -->
-          <div class="domain-card" data-domain="1">
-            <div class="domain-card-inner">
-              <div class="domain-card-header">
-                <span class="domain-badge">01</span>
-                <span class="domain-tag">INTELLIGENCE</span>
-              </div>
-              <h3 class="domain-title">AI AGENTS &amp; AUTONOMOUS SYSTEMS</h3>
-            </div>
-          </div>
-
-          <!-- Domain 02 -->
-          <div class="domain-card" data-domain="2">
-            <div class="domain-card-inner">
-              <div class="domain-card-header">
-                <span class="domain-badge">02</span>
-                <span class="domain-tag">CIVIC TECH</span>
-              </div>
-              <h3 class="domain-title">SMART CITIES &amp; URBAN TECHNOLOGY</h3>
-            </div>
-          </div>
-
-          <!-- Domain 03 -->
-          <div class="domain-card" data-domain="3">
-            <div class="domain-card-inner">
-              <div class="domain-card-header">
-                <span class="domain-badge">03</span>
-                <span class="domain-tag">HEALTH</span>
-              </div>
-              <h3 class="domain-title">HEALTHCARE &amp; WELLBEING TECHNOLOGY</h3>
-            </div>
-          </div>
-
-          <!-- Domain 04 -->
-          <div class="domain-card" data-domain="4">
-            <div class="domain-card-inner">
-              <div class="domain-card-header">
-                <span class="domain-badge">04</span>
-                <span class="domain-tag">HARDWARE / EMBEDDED</span>
-              </div>
-              <h3 class="domain-title">ROBOTICS, IOT &amp; INTELLIGENT DEVICES</h3>
-            </div>
-          </div>
-
-          <!-- Domain 05 -->
-          <div class="domain-card" data-domain="5">
-            <div class="domain-card-inner">
-              <div class="domain-card-header">
-                <span class="domain-badge">05</span>
-                <span class="domain-tag">RESILIENCE</span>
-              </div>
-              <h3 class="domain-title">DISASTER MANAGEMENT &amp; EMERGENCY TECH</h3>
-            </div>
-          </div>
-
-          <!-- Domain 06 -->
-          <div class="domain-card" data-domain="6">
-            <div class="domain-card-inner">
-              <div class="domain-card-header">
-                <span class="domain-badge">06</span>
-                <span class="domain-tag">APPLIED AI</span>
-              </div>
-              <h3 class="domain-title">AI-POWERED APPLICATIONS</h3>
-            </div>
-          </div>
-
-          <!-- Domain 07 -->
-          <div class="domain-card" data-domain="7">
-            <div class="domain-card-inner">
-              <div class="domain-card-header">
-                <span class="domain-badge">07</span>
-                <span class="domain-tag">SECURITY</span>
-              </div>
-              <h3 class="domain-title">CYBERSECURITY &amp; DIGITAL SAFETY</h3>
-            </div>
-          </div>
-
-          <!-- Domain 08 -->
-          <div class="domain-card" data-domain="8">
-            <div class="domain-card-inner">
-              <div class="domain-card-header">
-                <span class="domain-badge">08</span>
-                <span class="domain-tag">EDTECH</span>
-              </div>
-              <h3 class="domain-title">EDUCATION &amp; LEARNING TECHNOLOGY</h3>
-            </div>
-          </div>
-
-          <!-- Domain 09 -->
-          <div class="domain-card" data-domain="9">
-            <div class="domain-card-inner">
-              <div class="domain-card-header">
-                <span class="domain-badge">09</span>
-                <span class="domain-tag">INTEGRITY</span>
-              </div>
-              <h3 class="domain-title">MEDIA, CONTENT &amp; DIGITAL TRUST</h3>
-            </div>
-          </div>
-
-          <!-- Domain 10 -->
-          <div class="domain-card" data-domain="10">
-            <div class="domain-card-inner">
-              <div class="domain-card-header">
-                <span class="domain-badge">10</span>
-                <span class="domain-tag">CLEANTECH</span>
-              </div>
-              <h3 class="domain-title">SUSTAINABILITY &amp; RESOURCE MANAGEMENT</h3>
-            </div>
-          </div>
-
-          <!-- Domain 11 -->
-          <div class="domain-card" data-domain="11">
-            <div class="domain-card-inner">
-              <div class="domain-card-header">
-                <span class="domain-badge">11</span>
-                <span class="domain-tag">CAMPUS LIFE</span>
-              </div>
-              <h3 class="domain-title">STUDENT PRODUCTIVITY &amp; CAMPUS TECH</h3>
-            </div>
-          </div>
-
-          <!-- Domain 12 -->
-          <div class="domain-card" data-domain="12">
-            <div class="domain-card-inner">
-              <div class="domain-card-header">
-                <span class="domain-badge">12</span>
-                <span class="domain-tag">ACCESSIBILITY</span>
-              </div>
-              <h3 class="domain-title">ACCESSIBILITY &amp; INCLUSIVE TECH</h3>
-            </div>
-          </div>
-
-          <!-- Domain 13 -->
-          <div class="domain-card" data-domain="13">
-            <div class="domain-card-inner">
-              <div class="domain-card-header">
-                <span class="domain-badge">13</span>
-                <span class="domain-tag">DATA RETRIEVAL</span>
-              </div>
-              <h3 class="domain-title">INFORMATION MANAGEMENT</h3>
-            </div>
-          </div>
-
-          <!-- Domain 14 -->
-          <div class="domain-card" data-domain="14">
-            <div class="domain-card-inner">
-              <div class="domain-card-header">
-                <span class="domain-badge">14</span>
-                <span class="domain-tag">CREATIVE</span>
-              </div>
-              <h3 class="domain-title">CREATIVE TECHNOLOGY &amp; MULTIMEDIA</h3>
-            </div>
-          </div>
-
-          <!-- Domain 15 -->
-          <div class="domain-card" data-domain="15">
-            <div class="domain-card-inner">
-              <div class="domain-card-header">
-                <span class="domain-badge">15</span>
-                <span class="domain-tag">INTELLIGENCE</span>
-              </div>
-              <h3 class="domain-title">DATA &amp; DECISION INTELLIGENCE</h3>
-            </div>
-          </div>
-
-          <!-- Card 16: STRICT ALERT SUMMARY -->
-          <div class="domain-card domain-card-alert" data-domain="16">
-            <div class="domain-card-inner">
-              <div class="domain-card-header">
-                <span class="domain-badge badge-red-solid">!</span>
-                <span class="domain-tag badge-red-solid">RULE OF LAW</span>
-              </div>
-              <h3 class="domain-title text-red">NO OPEN TOPICS ALLOWED</h3>
-              <p class="domain-summary">
-                Every team must pick strictly from domains 01 to 15. Outside projects will be disqualified on sight.
-              </p>
-              <div class="alert-slot-action">
-                <a href="#rules" class="btn btn-sm btn-primary">VIEW SPRINT RULES →</a>
-              </div>
-            </div>
-          </div>
-
-        </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ================================================================= -->
-    <!-- SPRINT RULES & DIRECTIVES (BRIEF QUICK-LOOK ACCORDIONS)           -->
-    <!-- ================================================================= -->
-    <section class="section-rules" id="rules">
-      <div class="container">
-        <div class="section-header">
-          <div class="section-tracker">
-            <span class="text-red">// 02. SPRINT PROTOCOL &amp; RULES</span>
-            <span class="section-sep">//</span>
-            <span class="telemetry-mono">QUICK-REFERENCE SUMMARY</span>
-          </div>
-          <h2 class="section-title">RULES &amp; DIRECTIVES</h2>
-          <p class="section-subtext">
-            Quick operational reference for Build-a-Bot. All exhaustive sprint regulations, scoring rubrics, and Git commit audit rights are detailed in the official event handbook (PDF).
-          </p>
-        </div>
-
-        <!-- Prominent Event Handbook Download Card -->
-        <div class="pdf-callout-card" data-assemble>
-          <div class="pdf-callout-badge">[ OFFICIAL SPECIFICATION ]</div>
-          <h3 class="pdf-callout-title">COMPLETE PARTICIPANT GUIDELINES HANDBOOK</h3>
-          <p class="pdf-callout-desc">
-            The official event handbook (PDF) provides in-depth documentation for all event directives, domain guidelines, repository commit audit procedures, and exhaustive jury scoring criteria.
-          </p>
-          <a href="/api/pdf/download" download="participate.pdf" class="btn btn-primary btn-lg pdf-download-cta" data-pdf-download>
-            <span class="btn-icon">⬇</span>
-            <span>DOWNLOAD FULL HANDBOOK (PDF)</span>
-          </a>
-          <div class="pdf-callout-locked-msg" id="pdf-callout-locked-msg">
-            <span class="pdf-lock-icon">🔒</span>
-            <span class="pdf-lock-text">HANDBOOK EMBARGO ACTIVE // UNLOCKS AUTOMATICALLY AT OFFICIAL KICKOFF (17-SEP-2026 10:30 AM)</span>
-          </div>
-        </div>
-
-        <!-- Expandable Brief Accordion Blocks (Click '+' To Reveal) -->
-        <div class="rules-accordions-wrap">
-
-          <!-- Accordion 01: Mandatory Domain Selection Rule -->
-          <div class="rule-accordion-card" id="directive">
-            <button class="rule-accordion-header" aria-expanded="false">
-              <div class="accordion-header-left">
-                <span class="accordion-num">01</span>
-                <div class="accordion-title-group">
-                  <span class="accordion-badge text-red">[ MANDATORY DIRECTIVE ]</span>
-                  <h3 class="accordion-title">MANDATORY DOMAIN SELECTION RULE</h3>
-                </div>
-              </div>
-              <div class="accordion-plus-circle" title="Click to Expand">
-                <span class="plus-symbol">+</span>
-              </div>
-            </button>
-            <div class="rule-accordion-body">
-              <div class="accordion-content-inner">
-                <ul class="brief-bullet-list">
-                  <li><strong>Exclusive 15 Domains:</strong> Every team must build strictly within one of the 15 Predefined Technology Domains listed above. Open problem choosing is barred with immediate disqualification.</li>
-                  <li><strong>Lock-in at Kickoff:</strong> Each team's chosen domain is officially recorded and locked in at the sprint kickoff.</li>
-                  <li><strong>Deliverable Requirement:</strong> Submissions must be an operational, working software or hardware prototype demonstrated live (static mockups or slides-only presentations are not accepted).</li>
-                  <li><strong>Full Guidance:</strong> Consult the official PDF handbook for comprehensive domain boundaries.</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          <!-- Accordion 02: Development & Code Integrity -->
-          <div class="rule-accordion-card">
-            <button class="rule-accordion-header" aria-expanded="false">
-              <div class="accordion-header-left">
-                <span class="accordion-num">02</span>
-                <div class="accordion-title-group">
-                  <span class="accordion-badge">[ CODE INTEGRITY ]</span>
-                  <h3 class="accordion-title">DEVELOPMENT &amp; INTEGRITY DIRECTIVES</h3>
-                </div>
-              </div>
-              <div class="accordion-plus-circle" title="Click to Expand">
-                <span class="plus-symbol">+</span>
-              </div>
-            </button>
-            <div class="rule-accordion-body">
-              <div class="accordion-content-inner">
-                <ul class="brief-bullet-list">
-                  <li><strong>In-Event Development:</strong> All core logic and code must be authored during the event timeframe. Pre-built repositories are strictly prohibited.</li>
-                  <li><strong>Permitted Foundations:</strong> Standard boilerplates, open-source libraries, UI frameworks, and public APIs/datasets are fully allowed.</li>
-                  <li><strong>AI Coding Policy:</strong> AI-assisted tools (Copilot, Cursor, ChatGPT, etc.) are allowed. Teams must thoroughly understand and defend every implementation detail during jury defense.</li>
-                  <li><strong>Commit Audits:</strong> The technical committee reserves full authority to inspect Git commit logs and timestamps. Full audit terms in the official PDF handbook.</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          <!-- Accordion 03: 5-Minute Evaluation & Scoring Overview -->
-          <div class="rule-accordion-card">
-            <button class="rule-accordion-header" aria-expanded="false">
-              <div class="accordion-header-left">
-                <span class="accordion-num">03</span>
-                <div class="accordion-title-group">
-                  <span class="accordion-badge">[ EVALUATION SUMMARY ]</span>
-                  <h3 class="accordion-title">5-MINUTE DEMO &amp; EVALUATION PROTOCOL</h3>
-                </div>
-              </div>
-              <div class="accordion-plus-circle" title="Click to Expand">
-                <span class="plus-symbol">+</span>
-              </div>
-            </button>
-            <div class="rule-accordion-body">
-              <div class="accordion-content-inner">
-                <ul class="brief-bullet-list">
-                  <li><strong>5-Minute Evaluation Window:</strong> 3 minutes for live participant prototype demonstration + 2 minutes for jury technical Q&amp;A.</li>
-                  <li><strong>Master Timer Sync:</strong> Live countdown is synchronized in real time with the jury desk via the top-right master clock widget.</li>
-                  <li><strong>Judging Rubric (100 pts total):</strong> Problem Relevance (20), Innovation (20), Technical Architecture (20), Working Prototype Functionality (25), Presentation (10), Code Mastery (5).</li>
-                  <li><strong>Official Criteria:</strong> Refer to the official PDF handbook for official scoring bins and deterministic tie-breaker hierarchy.</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </section>
-
-    <!-- ================================================================= -->
-    <!-- LIVE LEADERBOARD (LOCKED BY DEFAULT // REVEALED ON ADMIN PUSH)   -->
+    <!-- OFFICIAL RESULTS, CELEBRATION & 3-STEP WINNERS PODIUM             -->
     <!-- ================================================================= -->
     <section class="section-leaderboard" id="leaderboard">
       <div class="container">
-        <div class="section-header">
-          <div class="section-tracker">
-            <span class="text-red">// 03. OFFICIAL EVALUATION STANDINGS</span>
-            <span class="section-sep">//</span>
-            <span class="telemetry-mono" id="leaderboard-tracker-status">EMBARGO STATUS: LOCKED 🔒</span>
-          </div>
-          <h2 class="section-title">EVENT LEADERBOARD</h2>
-          <p class="section-subtext">
-            Official live rankings and tabulated prototype evaluation scores certified by the ASTRA 11.0 jury panel.
-          </p>
-        </div>
 
-        <!-- Locked State View (Shown by default) -->
-        <div id="leaderboard-locked-view" class="leaderboard-locked-card" data-assemble>
-          <div class="lock-icon-badge">🔒</div>
-          <div class="lock-content">
-            <span class="badge badge-pill-red mb-2">[ JURY EMBARGO ACTIVE ]</span>
-            <h3 class="lock-title">SCORES CURRENTLY EMBARGOED</h3>
-            <div class="lock-telemetry">
-              <span class="pulse-dot-amber"></span>
-              <span class="telemetry-mono">AWAITING JURY TRANSMISSION SIGNAL...</span>
+        <!-- Celebratory Hero Banner: Thanks for Participating & Congrats -->
+        <div class="concluded-hero-banner" data-assemble>
+          <div class="concluded-tag-row">
+            <span class="concluded-pulse-dot"></span>
+            <span class="concluded-tag-text">ASTRA 11.0 // BUILD-A-BOT CONCLUDED</span>
+            <span class="concluded-tag-sep">//</span>
+            <span class="telemetry-mono">OFFICIAL RESULTS CERTIFIED</span>
+          </div>
+          <h1 class="concluded-headline">THANKS FOR PARTICIPATING!</h1>
+          <div class="concluded-subheadline">
+            CONGRATULATIONS TO ALL THE WINNERS!
+          </div>
+          <p class="concluded-text">
+            A heartfelt salute to every participating team, developer, and builder who demonstrated working prototypes at ASTRA 11.0: BUILD-A-BOT. You stepped up, coded against the clock, and brought ambitious ideas to life. Huge congratulations to our grand champions, runner-up squads, and all finalist builders!
+          </p>
+          <div class="concluded-meta-bar">
+            <div class="concluded-meta-pill">
+              <span class="meta-bullet text-red">■</span>
+              <span>EVENT: <strong>BUILD-A-BOT SPRINT</strong></span>
+            </div>
+            <div class="concluded-meta-pill">
+              <span class="meta-bullet text-red">■</span>
+              <span>HOST: <strong>SJCET PALAI</strong></span>
+            </div>
+            <div class="concluded-meta-pill">
+              <span class="meta-bullet text-red">■</span>
+              <span>EVALUATION: <strong>6-CRITERION JURY AUDIT (100 PTS)</strong></span>
             </div>
           </div>
         </div>
 
-        <!-- Unlocked State View (Hidden by default, shown when admin pushes) -->
-        <div id="leaderboard-unlocked-view" class="leaderboard-unlocked-wrap" style="display: none;">
-          <div class="leaderboard-live-badge mb-3">
-            <span class="status-dot"></span>
-            <span class="telemetry-mono" id="leaderboard-released-time">OFFICIAL JURY SCORES RELEASED // BROADCAST ACTIVE</span>
+        <!-- 3-Step Winners Podium (Pedestal Layout: 2nd - 1st - 3rd) -->
+        <div class="podium-wrapper" data-assemble>
+          <div class="podium-section-header">
+            <div class="section-tracker">
+              <span class="text-red">// OFFICIAL PODIUM</span>
+              <span class="section-sep">//</span>
+              <span class="telemetry-mono">TOP 3 PROTOCOL HONORS</span>
+            </div>
+            <h2 class="podium-heading">WINNERS PODIUM</h2>
+          </div>
+
+          <div class="podium-grid">
+            <!-- 2ND PLACE / SILVER (LEFT STEP) -->
+            <div class="podium-column podium-col-silver" id="podium-card-2">
+              <div class="podium-card">
+                <div class="podium-medal-icon">🥈</div>
+                <div class="podium-step-badge badge-silver">2ND PLACE</div>
+                <div class="podium-award-title" id="podium-award-2">1ST RUNNER UP</div>
+                <h3 class="podium-team-name" id="podium-team-2">RUNNER UP</h3>
+                <div class="podium-team-domain" id="podium-domain-2">STANDINGS CERTIFIED</div>
+                <div class="podium-score-pill" id="podium-score-2">— / 100 PTS</div>
+              </div>
+              <div class="podium-step-block step-silver">
+                <span class="step-num">2</span>
+                <span class="step-label">RUNNER UP</span>
+              </div>
+            </div>
+
+            <!-- 1ST PLACE / GOLD (CENTER STEP - TALLEST & ELEVATED) -->
+            <div class="podium-column podium-col-gold" id="podium-card-1">
+              <div class="podium-card elevated-champion">
+                <div class="podium-trophy-glow">🏆</div>
+                <div class="podium-step-badge badge-gold">🥇 1ST PLACE</div>
+                <div class="podium-award-title" id="podium-award-1">GRAND CHAMPION</div>
+                <h3 class="podium-team-name champion-name" id="podium-team-1">CHAMPIONS</h3>
+                <div class="podium-team-domain" id="podium-domain-1">STANDINGS CERTIFIED</div>
+                <div class="podium-score-pill score-gold" id="podium-score-1">— / 100 PTS</div>
+              </div>
+              <div class="podium-step-block step-gold">
+                <span class="step-num">1</span>
+                <span class="step-label">CHAMPION</span>
+              </div>
+            </div>
+
+            <!-- 3RD PLACE / BRONZE (RIGHT STEP) -->
+            <div class="podium-column podium-col-bronze" id="podium-card-3">
+              <div class="podium-card">
+                <div class="podium-medal-icon">🥉</div>
+                <div class="podium-step-badge badge-bronze">3RD PLACE</div>
+                <div class="podium-award-title" id="podium-award-3">2ND RUNNER UP</div>
+                <h3 class="podium-team-name" id="podium-team-3">2ND RUNNER UP</h3>
+                <div class="podium-team-domain" id="podium-domain-3">STANDINGS CERTIFIED</div>
+                <div class="podium-score-pill" id="podium-score-3">— / 100 PTS</div>
+              </div>
+              <div class="podium-step-block step-bronze">
+                <span class="step-num">3</span>
+                <span class="step-label">2ND RUNNER UP</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Complete Leaderboard Standings Table -->
+        <div class="leaderboard-table-wrap" data-assemble>
+          <div class="table-meta-header">
+            <div class="section-tracker">
+              <span class="text-red">// OFFICIAL EVALUATION STANDINGS</span>
+              <span class="section-sep">//</span>
+              <span class="telemetry-mono" id="leaderboard-tracker-status">STATUS: STANDINGS PUBLISHED ●</span>
+            </div>
+            <div class="leaderboard-live-badge" id="leaderboard-status-badge">
+              <span class="status-dot"></span>
+              <span class="telemetry-mono" id="leaderboard-released-time">OFFICIAL JURY SCORES CERTIFIED // BROADCAST ACTIVE</span>
+            </div>
           </div>
 
           <div class="leaderboard-table-container">
@@ -693,11 +212,16 @@
                 </tr>
               </thead>
               <tbody id="leaderboard-live-tbody">
-                <!-- Dynamically populated from admin push -->
+                <tr>
+                  <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">
+                    Official scores certified by the jury panel. Standings will populate dynamically upon broadcast.
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
         </div>
+
       </div>
     </section>
   </main>
@@ -707,7 +231,7 @@
     <div class="container footer-container">
       <div class="footer-left">
         <span class="telemetry-mono">ASTRA 11.0 // BUILD-A-BOT SPRINT // SJCET PALAI</span>
-        <p class="footer-copy">Turn the idea into a working prototype. Real Ideas // Real Impact.</p>
+        <p class="footer-copy">Event concluded. Congratulations to all winners and participating teams!</p>
       </div>
       <div class="footer-center">
         <div class="footer-brand-lockup">

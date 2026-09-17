@@ -467,15 +467,64 @@
   handleTimerScroll();
 
   // ---------------------------------------------------------------------------
-  // 05. LEADERBOARD STATE APPLY (EMBARGOED VS PUBLISHED SNAPSHOT)
+  // 05. LEADERBOARD & 3-STEP PODIUM CONTROLLER
   // ---------------------------------------------------------------------------
-  const leaderboardLockedView = document.getElementById('leaderboard-locked-view');
-  const leaderboardUnlockedView = document.getElementById('leaderboard-unlocked-view');
   const leaderboardTrackerStatus = document.getElementById('leaderboard-tracker-status');
   const leaderboardTbody = document.getElementById('leaderboard-live-tbody');
   const leaderboardReleasedTime = document.getElementById('leaderboard-released-time');
   const leaderboardJumpPill = document.querySelector('.pill-leaderboard-jump');
   const leaderboardNavPill = document.querySelector('.pill-leaderboard-nav');
+
+  const podiumTeam1 = document.getElementById('podium-team-1');
+  const podiumDomain1 = document.getElementById('podium-domain-1');
+  const podiumScore1 = document.getElementById('podium-score-1');
+  const podiumAward1 = document.getElementById('podium-award-1');
+
+  const podiumTeam2 = document.getElementById('podium-team-2');
+  const podiumDomain2 = document.getElementById('podium-domain-2');
+  const podiumScore2 = document.getElementById('podium-score-2');
+  const podiumAward2 = document.getElementById('podium-award-2');
+
+  const podiumTeam3 = document.getElementById('podium-team-3');
+  const podiumDomain3 = document.getElementById('podium-domain-3');
+  const podiumScore3 = document.getElementById('podium-score-3');
+  const podiumAward3 = document.getElementById('podium-award-3');
+
+  function updatePodium(teams) {
+    if (!Array.isArray(teams) || teams.length === 0) {
+      return;
+    }
+
+    // 1st Place (Step 1 - Center Gold)
+    const t1 = teams[0];
+    if (t1) {
+      if (podiumTeam1) podiumTeam1.textContent = t1.teamName || t1.team || 'Team #1';
+      if (podiumDomain1) podiumDomain1.textContent = t1.domain || 'Domain Prototype';
+      const score1 = t1.avgTotal != null ? Number(t1.avgTotal).toFixed(2) : (t1.total != null ? Number(t1.total).toFixed(1) : '—');
+      if (podiumScore1) podiumScore1.innerHTML = `<strong>${score1}</strong> / 100 PTS`;
+      if (podiumAward1) podiumAward1.textContent = t1.award || 'GRAND CHAMPION';
+    }
+
+    // 2nd Place (Step 2 - Left Silver)
+    const t2 = teams[1];
+    if (t2) {
+      if (podiumTeam2) podiumTeam2.textContent = t2.teamName || t2.team || 'Team #2';
+      if (podiumDomain2) podiumDomain2.textContent = t2.domain || 'Domain Prototype';
+      const score2 = t2.avgTotal != null ? Number(t2.avgTotal).toFixed(2) : (t2.total != null ? Number(t2.total).toFixed(1) : '—');
+      if (podiumScore2) podiumScore2.innerHTML = `<strong>${score2}</strong> / 100 PTS`;
+      if (podiumAward2) podiumAward2.textContent = t2.award || '1ST RUNNER UP';
+    }
+
+    // 3rd Place (Step 3 - Right Bronze)
+    const t3 = teams[2];
+    if (t3) {
+      if (podiumTeam3) podiumTeam3.textContent = t3.teamName || t3.team || 'Team #3';
+      if (podiumDomain3) podiumDomain3.textContent = t3.domain || 'Domain Prototype';
+      const score3 = t3.avgTotal != null ? Number(t3.avgTotal).toFixed(2) : (t3.total != null ? Number(t3.total).toFixed(1) : '—');
+      if (podiumScore3) podiumScore3.innerHTML = `<strong>${score3}</strong> / 100 PTS`;
+      if (podiumAward3) podiumAward3.textContent = t3.award || '2ND RUNNER UP';
+    }
+  }
 
   let lastLeaderboardUpdatedAt = 0;
 
@@ -490,79 +539,66 @@
       lastLeaderboardUpdatedAt = time;
     }
 
-    const isPublished = lbState.isUnlocked || lbState.state === 'PUBLISHED';
     try {
       localStorage.setItem('astra_leaderboard_state', JSON.stringify(lbState));
     } catch (e) {}
 
-    if (isPublished) {
-      if (leaderboardLockedView) leaderboardLockedView.style.display = 'none';
-      if (leaderboardUnlockedView) leaderboardUnlockedView.style.display = 'block';
-      if (leaderboardTrackerStatus) leaderboardTrackerStatus.textContent = 'EMBARGO STATUS: RELEASED ●';
+    const isPublished = lbState.isUnlocked || lbState.state === 'PUBLISHED' || (Array.isArray(lbState.teams) && lbState.teams.length > 0);
 
-      if (leaderboardJumpPill) {
-        leaderboardJumpPill.innerHTML = '<span class="pill-num">03</span> 🏆 LEADERBOARD';
-        leaderboardJumpPill.classList.add('active-result');
-      }
-      if (leaderboardNavPill) {
-        leaderboardNavPill.innerHTML = '<span class="nav-num">03</span>🏆 LEADERBOARD';
-      }
+    if (leaderboardTrackerStatus) {
+      leaderboardTrackerStatus.textContent = isPublished ? 'STATUS: STANDINGS PUBLISHED ●' : 'STATUS: JURY CERTIFICATION IN PROGRESS ⏳';
+    }
 
-      if (leaderboardReleasedTime && lbState.publishedAt) {
+    if (leaderboardReleasedTime) {
+      if (lbState.publishedAt) {
         const d = new Date(lbState.publishedAt);
-        leaderboardReleasedTime.textContent = `OFFICIAL JURY RESULTS CERTIFIED // PUBLISHED AT ${d.toLocaleTimeString()}`;
+        leaderboardReleasedTime.textContent = `OFFICIAL JURY SCORES CERTIFIED // PUBLISHED AT ${d.toLocaleTimeString()}`;
+      } else {
+        leaderboardReleasedTime.textContent = 'OFFICIAL JURY SCORES CERTIFIED // BROADCAST ACTIVE';
       }
+    }
 
-      if (leaderboardTbody && Array.isArray(lbState.teams)) {
-        if (lbState.teams.length === 0) {
-          leaderboardTbody.innerHTML = `
+    if (Array.isArray(lbState.teams) && lbState.teams.length > 0) {
+      updatePodium(lbState.teams);
+
+      if (leaderboardTbody) {
+        leaderboardTbody.innerHTML = lbState.teams.map((t, idx) => {
+          const teamName = t.teamName || t.team || 'Team';
+          const domain = t.domain || 'General';
+          const c4Score = t.avgFunctionality != null ? Number(t.avgFunctionality).toFixed(1) : (t.c4 != null ? Number(t.c4).toFixed(1) : '—');
+          const totalScore = t.avgTotal != null ? Number(t.avgTotal).toFixed(2) : (t.total != null ? Number(t.total).toFixed(1) : '—');
+          const award = t.award || (idx === 0 ? '🏆 CHAMPION' : (idx === 1 ? '🥈 RUNNER UP' : (idx === 2 ? '🥉 2ND RUNNER UP' : 'FINALIST')));
+
+          let rankBadge = `<span class="rank-pill">#${idx + 1}</span>`;
+          if (idx === 0) {
+            rankBadge = `<span class="rank-pill rank-gold">🥇 1ST</span>`;
+          } else if (idx === 1) {
+            rankBadge = `<span class="rank-pill rank-silver">🥈 2ND</span>`;
+          } else if (idx === 2) {
+            rankBadge = `<span class="rank-pill rank-bronze">🥉 3RD</span>`;
+          }
+
+          return `
             <tr>
-              <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 20px;">
-                Official scores have been pushed. Standings will populate shortly.
-              </td>
+              <td>${rankBadge}</td>
+              <td style="font-weight: 700; color: #ffffff;">${teamName}</td>
+              <td><span style="font-family: 'JetBrains Mono'; font-size: 11px; background: var(--bg-surface-elevated); padding: 2px 6px; border-radius: 2px;">${domain}</span></td>
+              <td><span style="color: var(--red); font-weight: 700;">${c4Score}</span> / 25</td>
+              <td class="score-highlight">${totalScore} / 100</td>
+              <td><span class="badge ${idx === 0 ? 'badge-solid-red' : (idx <= 2 ? 'badge-red-glow' : 'badge-subtle')}">${award}</span></td>
             </tr>
           `;
-        } else {
-          leaderboardTbody.innerHTML = lbState.teams.map((t, idx) => {
-            const teamName = t.teamName || t.team || 'Team';
-            const domain = t.domain || 'General';
-            const c4Score = t.avgFunctionality != null ? Number(t.avgFunctionality).toFixed(1) : (t.c4 != null ? Number(t.c4).toFixed(1) : '—');
-            const totalScore = t.avgTotal != null ? Number(t.avgTotal).toFixed(2) : (t.total != null ? Number(t.total).toFixed(1) : '—');
-            const award = t.award || (idx === 0 ? '🏆 CHAMPION' : (idx === 1 ? '🥈 RUNNER UP' : 'FINALIST'));
-
-            let rankBadge = `<span class="rank-pill">#${idx + 1}</span>`;
-            if (idx === 0) {
-              rankBadge = `<span class="rank-pill rank-gold">🥇 1ST</span>`;
-            } else if (idx === 1) {
-              rankBadge = `<span class="rank-pill rank-silver">🥈 2ND</span>`;
-            } else if (idx === 2) {
-              rankBadge = `<span class="rank-pill rank-bronze">🥉 3RD</span>`;
-            }
-
-            return `
-              <tr>
-                <td>${rankBadge}</td>
-                <td style="font-weight: 700; color: #ffffff;">${teamName}</td>
-                <td><span style="font-family: 'JetBrains Mono'; font-size: 11px; background: var(--bg-surface-elevated); padding: 2px 6px; border-radius: 2px;">${domain}</span></td>
-                <td><span style="color: var(--red); font-weight: 700;">${c4Score}</span> / 25</td>
-                <td class="score-highlight">${totalScore} / 100</td>
-                <td><span class="badge ${idx === 0 ? 'badge-solid-red' : (idx <= 2 ? 'badge-red-glow' : 'badge-subtle')}">${award}</span></td>
-              </tr>
-            `;
-          }).join('');
-        }
+        }).join('');
       }
     } else {
-      if (leaderboardLockedView) leaderboardLockedView.style.display = 'flex';
-      if (leaderboardUnlockedView) leaderboardUnlockedView.style.display = 'none';
-      if (leaderboardTrackerStatus) leaderboardTrackerStatus.textContent = 'EMBARGO STATUS: LOCKED 🔒';
-
-      if (leaderboardJumpPill) {
-        leaderboardJumpPill.innerHTML = '<span class="pill-num">03</span> 🔒 LEADERBOARD';
-        leaderboardJumpPill.classList.remove('active-result');
-      }
-      if (leaderboardNavPill) {
-        leaderboardNavPill.innerHTML = '<span class="nav-num">03</span>🔒 LEADERBOARD';
+      if (leaderboardTbody) {
+        leaderboardTbody.innerHTML = `
+          <tr>
+            <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">
+              Official scores certified by the jury panel. Standings will populate dynamically upon broadcast.
+            </td>
+          </tr>
+        `;
       }
     }
   }
@@ -695,8 +731,13 @@
   setInterval(loadDomainsVisibility, 3000);
 
   // ---------------------------------------------------------------------------
-  // 06D. MASTER EVENT INAUGURATION COUNTDOWN CLOCK (17-SEP-2026, 10:30 AM IST)
+  // 06D. PARTICIPANT HANDBOOK & INAUGURATION STATE
   // ---------------------------------------------------------------------------
+  const PDF_STORAGE_KEY = 'astra_pdf_hidden';
+  let isPdfHidden = false; // Unlocked by default
+  let lastPdfUpdatedAt = 0;
+  let pdfManualOverride = false;
+
   const INAUGURATION_STORAGE_KEY = 'astra_inauguration_state';
   const inaugClockSection = document.getElementById('inauguration-clock-section');
   const inaugCountdownView = document.getElementById('inaug-countdown-view');
@@ -821,11 +862,6 @@
   // ---------------------------------------------------------------------------
   // 06E. PARTICIPANT HANDBOOK (PARTICIPATE.PDF) VISIBILITY CONTROLLER
   // ---------------------------------------------------------------------------
-  const PDF_STORAGE_KEY = 'astra_pdf_hidden';
-  let isPdfHidden = false; // Unlocked by default
-  let lastPdfUpdatedAt = 0;
-  let pdfManualOverride = false;
-
   function applyPdfVisibility(hidden, updatedAt = 0) {
     if (updatedAt && lastPdfUpdatedAt && updatedAt < lastPdfUpdatedAt) {
       return;
