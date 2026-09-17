@@ -2,95 +2,119 @@
  * ASTRA 11.0: BUILD-A-BOT — ADMIN CONTROL DECK CLIENT CONTROLLER (admin.js)
  */
 
-document.addEventListener('DOMContentLoaded', () => {
-  // Elements: Timer
-  const adminClock = document.getElementById('admin-clock');
-  const adminPhase = document.getElementById('admin-phase');
-  const btnStart = document.getElementById('admin-start-btn');
-  const btnPause = document.getElementById('admin-pause-btn');
-  const btnResume = document.getElementById('admin-resume-btn');
-  const btnStop = document.getElementById('admin-stop-btn');
-  const btnReset = document.getElementById('admin-reset-btn');
-  const slotHrs = document.getElementById('slot-hrs');
-  const slotMins = document.getElementById('slot-mins');
-  const slotSecs = document.getElementById('slot-secs');
-  const btnApplySlots = document.getElementById('btn-apply-slots');
-  const presetBtns = document.querySelectorAll('.preset-btn');
+(function () {
+  'use strict';
 
-  // Elements: Rubric Drawer
-  const btnToggleRubric = document.getElementById('btn-toggle-rubric');
-  const rubricDrawerBody = document.getElementById('rubric-drawer-body');
-  const rubricDrawerArrow = document.getElementById('rubric-drawer-arrow');
+  function initBaselineDeck() {
+    // Elements: Timer
+    const adminClock = document.getElementById('admin-clock');
+    const adminPhase = document.getElementById('admin-phase');
+    const btnStart = document.getElementById('admin-start-btn');
+    const btnPause = document.getElementById('admin-pause-btn');
+    const btnResume = document.getElementById('admin-resume-btn');
+    const btnStop = document.getElementById('admin-stop-btn');
+    const btnReset = document.getElementById('admin-reset-btn');
+    const slotHrs = document.getElementById('slot-hrs');
+    const slotMins = document.getElementById('slot-mins');
+    const slotSecs = document.getElementById('slot-secs');
+    const btnApplySlots = document.getElementById('btn-apply-slots');
+    const presetBtns = document.querySelectorAll('.preset-btn');
 
-  // Elements: Judge Management
-  const addJudgeForm = document.getElementById('add-judge-form');
-  const newJudgeName = document.getElementById('new-judge-name');
-  const judgesTbody = document.getElementById('judges-tbody');
-  const judgeCountBadge = document.getElementById('judge-count-badge');
+    // Elements: Rubric Drawer
+    const btnToggleRubric = document.getElementById('btn-toggle-rubric');
+    const rubricDrawerBody = document.getElementById('rubric-drawer-body');
+    const rubricDrawerArrow = document.getElementById('rubric-drawer-arrow');
 
-  // Elements: Live Matrix & Leaderboard
-  const juryMatrixTbody = document.getElementById('jury-matrix-tbody');
-  const btnPublishLb = document.getElementById('btn-publish-leaderboard');
-  const btnLockLb = document.getElementById('btn-lock-leaderboard');
-  const lbCurrentStateText = document.getElementById('lb-current-state-text');
-  const syncIndicatorText = document.getElementById('sync-indicator-text');
+    // Elements: Judge Management
+    const addJudgeForm = document.getElementById('add-judge-form');
+    const newJudgeName = document.getElementById('new-judge-name');
+    const judgesTbody = document.getElementById('judges-tbody');
+    const judgeCountBadge = document.getElementById('judge-count-badge');
 
-  const STORAGE_KEY = 'astra_timer_state_v1';
-  const CHANNEL_NAME = 'astra_timer_sync_channel';
+    // Elements: Live Matrix & Leaderboard
+    const juryMatrixTbody = document.getElementById('jury-matrix-tbody');
+    const btnPublishLb = document.getElementById('btn-publish-leaderboard');
+    const btnLockLb = document.getElementById('btn-lock-leaderboard');
+    const lbCurrentStateText = document.getElementById('lb-current-state-text');
+    const syncIndicatorText = document.getElementById('sync-indicator-text');
 
-  let localTimer = {
-    status: 'idle',
-    duration: 300,
-    remaining: 300,
-    startTimestamp: null,
-    endTimestamp: null,
-    bonusSeconds: 0,
-    lastUpdated: 0
-  };
+    const STORAGE_KEY = 'astra_timer_state_v1';
+    const CHANNEL_NAME = 'astra_timer_sync_channel';
+    const INAUGURATION_STORAGE_KEY = 'astra_inauguration_state';
 
-  // Load any previously saved timer from local storage
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (parsed && typeof parsed.remaining === 'number') {
-        localTimer = parsed;
+    let lastDomainsUpdatedAt = 0;
+    let lastInaugUpdatedAt = 0;
+
+    let localTimer = {
+      status: 'idle',
+      duration: 300,
+      remaining: 300,
+      startTimestamp: null,
+      endTimestamp: null,
+      bonusSeconds: 0,
+      lastUpdated: 0
+    };
+
+    // Load any previously saved timer from local storage
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed.remaining === 'number') {
+          localTimer = parsed;
+        }
       }
-    }
-  } catch (e) {}
+    } catch (e) {}
 
-  let broadcastChannel = null;
-  try {
-    if ('BroadcastChannel' in window) {
-      broadcastChannel = new BroadcastChannel(CHANNEL_NAME);
-      broadcastChannel.onmessage = (event) => {
-        if (event.data && event.data.type === 'DOMAINS_UPDATE') {
-          const d = event.data.state;
-          if (d && typeof d.isHidden === 'boolean') {
-            const t = d.updatedAt || 0;
-            if (!lastDomainsUpdatedAt || t >= lastDomainsUpdatedAt) {
-              if (t) lastDomainsUpdatedAt = t;
-              updateDomainsUI(d.isHidden, false);
+    let broadcastChannel = null;
+    try {
+      if ('BroadcastChannel' in window) {
+        broadcastChannel = new BroadcastChannel(CHANNEL_NAME);
+        broadcastChannel.onmessage = (event) => {
+          if (!event.data) return;
+          if (event.data.type === 'DOMAINS_UPDATE') {
+            const d = event.data.state;
+            if (d && typeof d.isHidden === 'boolean') {
+              const t = d.updatedAt || 0;
+              if (!lastDomainsUpdatedAt || t >= lastDomainsUpdatedAt) {
+                if (t) lastDomainsUpdatedAt = t;
+                if (typeof updateDomainsUI === 'function') {
+                  updateDomainsUI(d.isHidden, false);
+                }
+              }
+            }
+          } else if (event.data.type === 'INAUGURATION_UPDATE') {
+            const s = event.data.state;
+            if (s && typeof updateInaugurationUI === 'function') {
+              updateInaugurationUI(s);
             }
           }
-        }
-      };
-    }
-  } catch (e) {}
+        };
+      }
+    } catch (e) {}
 
-  window.addEventListener('storage', (e) => {
-    if (e.key === 'astra_domains_hidden' && e.newValue) {
-      try {
-        const parsed = JSON.parse(e.newValue);
-        const isHidden = typeof parsed === 'boolean' ? parsed : parsed.isHidden;
-        const t = parsed.updatedAt || 0;
-        if (!lastDomainsUpdatedAt || t >= lastDomainsUpdatedAt) {
-          if (t) lastDomainsUpdatedAt = t;
-          updateDomainsUI(isHidden, false);
-        }
-      } catch (err) {}
-    }
-  });
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'astra_domains_hidden' && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          const isHidden = typeof parsed === 'boolean' ? parsed : parsed.isHidden;
+          const t = parsed.updatedAt || 0;
+          if (!lastDomainsUpdatedAt || t >= lastDomainsUpdatedAt) {
+            if (t) lastDomainsUpdatedAt = t;
+            if (typeof updateDomainsUI === 'function') {
+              updateDomainsUI(isHidden, false);
+            }
+          }
+        } catch (err) {}
+      } else if (e.key === INAUGURATION_STORAGE_KEY && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          if (parsed && typeof updateInaugurationUI === 'function') {
+            updateInaugurationUI(parsed);
+          }
+        } catch (err) {}
+      }
+    });
 
   function broadcastTimer(timer) {
     if (!timer) return;
@@ -882,7 +906,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnDomainsText = document.getElementById('btn-domains-text');
 
   let isDomainsHidden = true;
-  let lastDomainsUpdatedAt = 0;
 
   async function loadDomainsState() {
     try {
@@ -990,7 +1013,17 @@ document.addEventListener('DOMContentLoaded', () => {
     inauguratedAt: null,
     updatedAt: 0
   };
-  let lastInaugUpdatedAt = 0;
+
+  // Restore saved inauguration state on boot
+  try {
+    const rawInaug = localStorage.getItem(INAUGURATION_STORAGE_KEY);
+    if (rawInaug) {
+      const parsed = JSON.parse(rawInaug);
+      if (parsed && typeof parsed === 'object') {
+        localInauguration = Object.assign({}, localInauguration, parsed);
+      }
+    }
+  } catch (e) {}
 
   async function loadInaugurationState() {
     try {
@@ -1049,7 +1082,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (inaugAdminBanner) inaugAdminBanner.classList.add('inaug-is-active');
       if (inaugAdminDot) inaugAdminDot.className = 'inaug-live-dot inaug-live-green';
       if (inaugAdminStateBadge) {
-        inaugAdminStateBadge.className = 'badge-inaug-celebrate';
+        inaugAdminStateBadge.className = 'badge-inaug-inaugurated';
         inaugAdminStateBadge.textContent = '🎉 EVENT COMMENCED (INAUGURATED)';
       }
       if (btnInaugTriggerLive) {
@@ -1090,6 +1123,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (adminInaugSecs) adminInaugSecs.textContent = String(secs).padStart(2, '0');
     }
   }
+
+  // Render immediately upon definition so digits never sit at 00:00:00:00
+  renderAdminInaugurationClock();
 
   // Admin Countdown Clock Loop
   setInterval(renderAdminInaugurationClock, 1000);
@@ -1259,5 +1295,13 @@ document.addEventListener('DOMContentLoaded', () => {
   loadLeaderboardState();
   loadDomainsState();
   loadInaugurationState();
+  renderAdminInaugurationClock();
   initSSE();
-});
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initBaselineDeck);
+  } else {
+    initBaselineDeck();
+  }
+})();

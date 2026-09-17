@@ -1,9 +1,8 @@
-/**
- * ASTRA 11.0: BUILD-A-BOT — JUROR EVALUATION CLIENT CONTROLLER (judge.js)
- */
+(function () {
+  'use strict';
 
-document.addEventListener('DOMContentLoaded', () => {
-  // Elements
+  function initJudge() {
+    // Elements
   const authContainer = document.getElementById('judge-auth-container');
   const consoleContainer = document.getElementById('judge-console-container');
   const authProfileHeader = document.getElementById('judge-auth-header-profile');
@@ -475,4 +474,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Kickoff
   initAuth();
-});
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initJudge);
+  } else {
+    initJudge();
+  }
+})();
