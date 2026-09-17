@@ -68,6 +68,7 @@ function getDefaultState() {
       remaining: 300,
       startTimestamp: null,
       endTimestamp: null,
+      bonusSeconds: 0,
       lastUpdated: 0
     },
     domains: {
@@ -408,6 +409,18 @@ module.exports = async function handler(req, res) {
   // --------------------------------------------------------------------------
   if (pathname === '/api/timer' || pathname === '/api/status') {
     if (req.method === 'GET' || req.method === 'HEAD') {
+      const now = Date.now();
+      if (state.timer.status === 'running' && state.timer.endTimestamp) {
+        const diff = Math.ceil((state.timer.endTimestamp - now) / 1000);
+        if (diff <= 0) {
+          state.timer.status = 'stopped';
+          state.timer.remaining = 0;
+          state.timer.endTimestamp = null;
+          await persistState();
+        } else {
+          state.timer.remaining = diff;
+        }
+      }
       return sendJson(res, 200, {
         ok: true,
         online: true,
@@ -434,6 +447,9 @@ module.exports = async function handler(req, res) {
     }
     if (typeof body.remaining === 'number') {
       state.timer.remaining = body.remaining;
+    }
+    if (typeof body.bonusSeconds === 'number') {
+      state.timer.bonusSeconds = body.bonusSeconds;
     }
     state.timer.startTimestamp = body.startTimestamp || now;
     state.timer.endTimestamp = body.endTimestamp || (now + (state.timer.remaining || state.timer.duration) * 1000);
@@ -473,6 +489,48 @@ module.exports = async function handler(req, res) {
     return sendJson(res, 200, { ok: true, timer: state.timer });
   }
 
+  if (pathname === '/api/timer/bonus' && req.method === 'POST') {
+    let body = {};
+    try { body = await parseJsonBody(req); } catch (e) {}
+    const now = Date.now();
+    const bonusSecs = parseInt(body.bonusSeconds, 10) || 0;
+
+    if (body.resetBonus) {
+      const curBonus = state.timer.bonusSeconds || 0;
+      state.timer.bonusSeconds = 0;
+      state.timer.duration = Math.max(1, (state.timer.duration || 300) - curBonus);
+      if (state.timer.status === 'running' && state.timer.endTimestamp) {
+        state.timer.endTimestamp = Math.max(now, state.timer.endTimestamp - (curBonus * 1000));
+        const diff = Math.ceil((state.timer.endTimestamp - now) / 1000);
+        state.timer.remaining = Math.max(0, diff);
+      } else {
+        state.timer.remaining = Math.max(0, (state.timer.remaining || 0) - curBonus);
+      }
+    } else if (bonusSecs !== 0) {
+      state.timer.bonusSeconds = Math.max(0, (state.timer.bonusSeconds || 0) + bonusSecs);
+      state.timer.duration = Math.max(1, (state.timer.duration || 300) + bonusSecs);
+
+      if (state.timer.status === 'running') {
+        if (state.timer.endTimestamp) {
+          state.timer.endTimestamp += bonusSecs * 1000;
+        } else {
+          state.timer.endTimestamp = now + (state.timer.remaining + bonusSecs) * 1000;
+        }
+        const diff = Math.ceil((state.timer.endTimestamp - now) / 1000);
+        state.timer.remaining = Math.max(0, diff);
+      } else if (state.timer.status === 'stopped' && bonusSecs > 0) {
+        state.timer.status = 'running';
+        state.timer.remaining = bonusSecs;
+        state.timer.endTimestamp = now + (bonusSecs * 1000);
+      } else {
+        state.timer.remaining = Math.max(0, (state.timer.remaining || 0) + bonusSecs);
+      }
+    }
+    state.timer.lastUpdated = now;
+    await persistState();
+    return sendJson(res, 200, { ok: true, timer: state.timer });
+  }
+
   if (pathname === '/api/timer/stop' && req.method === 'POST') {
     let body = {};
     try { body = await parseJsonBody(req); } catch (e) {}
@@ -492,6 +550,7 @@ module.exports = async function handler(req, res) {
       state.timer.duration = body.duration;
     }
     state.timer.remaining = state.timer.duration;
+    state.timer.bonusSeconds = 0;
     state.timer.startTimestamp = null;
     state.timer.endTimestamp = null;
     state.timer.lastUpdated = body.lastUpdated || Date.now();
@@ -517,6 +576,7 @@ module.exports = async function handler(req, res) {
         remaining: duration,
         startTimestamp: null,
         endTimestamp: null,
+        bonusSeconds: 0,
         lastUpdated: body.lastUpdated || Date.now()
       };
       await persistState();

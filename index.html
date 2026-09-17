@@ -16,27 +16,37 @@
 <body class="theme-dark">
 
   <!-- ================================================================= -->
-  <!-- FIXED RECTANGULAR PITCH TIMER WIDGET (TOP RIGHT CORNER)           -->
+  <!-- DYNAMIC PITCH & EVENT TIMER (TOP OF HEADER / FLOATING ON SCROLL)  -->
   <!-- ================================================================= -->
-  <aside id="top-sync-timer" class="corner-sync-timer timer-standby" aria-live="polite">
-    <div class="corner-timer-card">
-      <div class="corner-timer-header">
-        <div class="corner-timer-status">
-          <span class="timer-live-dot" id="top-timer-dot"></span>
-          <span class="top-timer-label" id="top-timer-status-text">PITCH TIMER // STANDBY</span>
+  <div id="top-timer-dock" class="top-timer-dock">
+    <aside id="top-sync-timer" class="corner-sync-timer timer-docked timer-standby" aria-live="polite">
+      <div class="corner-timer-card">
+        <div class="corner-timer-header">
+          <div class="corner-timer-status">
+            <span class="timer-live-dot" id="top-timer-dot"></span>
+            <span class="top-timer-label" id="top-timer-status-text">EVENT TIMER // STANDBY</span>
+          </div>
+          <!-- Football Stoppage/Bonus Time Badge -->
+          <div class="football-bonus-badge" id="top-bonus-badge" style="display: none;" title="Extra / Bonus Time Granted by Baseline Desk">
+            <span class="fbb-board">
+              <span class="fbb-plus">+</span>
+              <span class="fbb-time" id="top-bonus-time">02:00</span>
+            </span>
+            <span class="fbb-sub">EXTRA TIME</span>
+          </div>
+        </div>
+        <div class="corner-timer-display">
+          <span class="corner-timer-digits" id="top-sync-clock">05:00</span>
+        </div>
+        <div class="corner-timer-footer">
+          <span class="corner-timer-phase-badge" id="top-sync-phase">AWAITING ADMIN KICKOFF</span>
+        </div>
+        <div class="corner-timer-progress-track">
+          <div class="corner-timer-progress-fill" id="top-sync-progress"></div>
         </div>
       </div>
-      <div class="corner-timer-display">
-        <span class="corner-timer-digits" id="top-sync-clock">05:00</span>
-      </div>
-      <div class="corner-timer-footer">
-        <span class="corner-timer-phase-badge" id="top-sync-phase">AWAITING ADMIN KICKOFF</span>
-      </div>
-      <div class="corner-timer-progress-track">
-        <div class="corner-timer-progress-fill" id="top-sync-progress"></div>
-      </div>
-    </div>
-  </aside>
+    </aside>
+  </div>
 
   <!-- Ambient Telemetry & Controls Bar -->
   <div class="telemetry-bar">

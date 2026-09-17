@@ -209,8 +209,28 @@
     remaining: 300,
     startTimestamp: null,
     endTimestamp: null,
-    lastUpdated: Date.now()
+    bonusSeconds: 0,
+    lastUpdated: 0
   };
+
+  // Immediate synchronous restoration from localStorage so refresh NEVER resets timer
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (parsed && typeof parsed.duration === 'number') {
+        localTimerState = Object.assign({}, localTimerState, parsed);
+        if (localTimerState.status === 'running' && localTimerState.endTimestamp) {
+          const now = Date.now();
+          const diff = Math.ceil((localTimerState.endTimestamp - now) / 1000);
+          localTimerState.remaining = Math.max(0, diff);
+          if (localTimerState.remaining === 0) {
+            localTimerState.status = 'stopped';
+          }
+        }
+      }
+    }
+  } catch (e) {}
 
   let broadcastChannel = null;
   if ('BroadcastChannel' in window) {
@@ -272,6 +292,7 @@
       const now = Date.now();
       const diffMs = localTimerState.endTimestamp - now;
       currentRemaining = Math.max(0, Math.ceil(diffMs / 1000));
+      localTimerState.remaining = currentRemaining;
       if (currentRemaining === 0) {
         localTimerState.status = 'stopped';
         localTimerState.remaining = 0;
@@ -293,17 +314,32 @@
       topProgress.style.width = `${progressPct}%`;
     }
 
-    // Determine Phase
+    // ClassList state toggling (Preserve corner-sync-timer and docked/floating classes)
+    if (topTimerBar) {
+      topTimerBar.classList.remove('timer-standby', 'timer-running', 'timer-paused', 'timer-stopped');
+      if (localTimerState.status === 'running') {
+        topTimerBar.classList.add('timer-running');
+      } else if (localTimerState.status === 'paused') {
+        topTimerBar.classList.add('timer-paused');
+      } else if (localTimerState.status === 'stopped') {
+        topTimerBar.classList.add('timer-stopped', 'timer-running');
+      } else {
+        topTimerBar.classList.add('timer-standby');
+      }
+    }
+
+    // Determine Phase & Status Text
     let phaseText = '';
+    const bonusSecs = localTimerState.bonusSeconds || 0;
+
     if (localTimerState.status === 'idle') {
       phaseText = 'AWAITING ADMIN KICKOFF';
-      if (topTimerBar) topTimerBar.className = 'top-sync-timer timer-standby';
       if (topStatusText) topStatusText.textContent = 'EVENT TIMER // STANDBY';
     } else if (localTimerState.status === 'running') {
-      if (topTimerBar) topTimerBar.className = 'top-sync-timer timer-running';
-
-      if (duration === 300) {
-        // Standard 5-Minute Pitch Breakdown
+      if (bonusSecs > 0 && currentRemaining <= bonusSecs) {
+        phaseText = 'EXTRA TIME COUNTDOWN // BONUS WINDOW';
+        if (topStatusText) topStatusText.textContent = 'EXTRA TIME // RUNNING';
+      } else if (duration === 300 && bonusSecs === 0) {
         if (currentRemaining > 120) {
           phaseText = 'PHASE 1: PARTICIPANT PITCH (3M)';
           if (topStatusText) topStatusText.textContent = 'LIVE // PARTICIPANT PRESENTATION';
@@ -317,33 +353,46 @@
       }
     } else if (localTimerState.status === 'paused') {
       phaseText = 'TIMER PAUSED';
-      if (topTimerBar) topTimerBar.className = 'top-sync-timer timer-paused';
       if (topStatusText) topStatusText.textContent = 'EVENT TIMER // PAUSED';
     } else if (localTimerState.status === 'stopped') {
       phaseText = 'TIME EXPIRED // PITCH CUTOFF';
-      if (topTimerBar) topTimerBar.className = 'top-sync-timer timer-running';
       if (topStatusText) topStatusText.textContent = 'TIME UP // PROTOCOL CUTOFF';
     }
 
     if (topPhase) topPhase.textContent = phaseText;
     if (sectionPhase) sectionPhase.textContent = phaseText;
+
+    // Football-Style Stoppage / Extra Time Display
+    const topBonusBadge = document.getElementById('top-bonus-badge');
+    const topBonusTime = document.getElementById('top-bonus-time');
+    if (topBonusBadge) {
+      if (bonusSecs > 0) {
+        topBonusBadge.style.display = 'inline-flex';
+        if (topBonusTime) {
+          topBonusTime.textContent = formatTime(bonusSecs);
+        }
+      } else {
+        topBonusBadge.style.display = 'none';
+      }
+    }
   }
 
   function applyTimerState(newState) {
     if (!newState) return;
-    if (localTimerState && localTimerState.lastUpdated && newState.lastUpdated) {
-      if (newState.lastUpdated < localTimerState.lastUpdated) {
-        return; // Discard stale state from out-of-sync or cold container
+    // Only discard if incoming state is significantly older than local state
+    if (localTimerState.lastUpdated && newState.lastUpdated) {
+      if (newState.lastUpdated < localTimerState.lastUpdated - 2000) {
+        return;
       }
     }
 
-    // Anti-jitter: If both states are actively running with the exact same timestamp, let local clock count down smoothly
+    // Anti-jitter: If both states are actively running with identical timestamp, let local clock count down smoothly
     if (
-      localTimerState &&
       localTimerState.status === 'running' &&
       newState.status === 'running' &&
       localTimerState.lastUpdated === newState.lastUpdated &&
-      localTimerState.endTimestamp === newState.endTimestamp
+      localTimerState.endTimestamp === newState.endTimestamp &&
+      (localTimerState.bonusSeconds || 0) === (newState.bonusSeconds || 0)
     ) {
       return;
     }
@@ -352,26 +401,46 @@
       lastAlertPlayedAt = null;
     }
 
-    localTimerState = Object.assign({}, newState);
+    localTimerState = Object.assign({}, localTimerState, newState);
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(localTimerState));
+    } catch (e) {}
     renderTimerUI();
   }
 
+  // Smooth Tick & LocalStorage Sync Loop
   setInterval(() => {
     if (localTimerState.status === 'running') {
       renderTimerUI();
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(localTimerState));
+      } catch (e) {}
     }
   }, 250);
 
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      applyTimerState(JSON.parse(stored));
+  // Initial UI Render
+  renderTimerUI();
+
+  // Dynamic Scroll Handler: Header Top Dock vs Scrolled Floating Corner
+  function handleTimerScroll() {
+    if (!topTimerBar) return;
+    const scrollY = window.scrollY || document.documentElement.scrollTop || 0;
+    const SCROLL_THRESHOLD = 25;
+
+    if (scrollY > SCROLL_THRESHOLD) {
+      if (!topTimerBar.classList.contains('timer-floating')) {
+        topTimerBar.classList.remove('timer-docked');
+        topTimerBar.classList.add('timer-floating');
+      }
     } else {
-      renderTimerUI();
+      if (!topTimerBar.classList.contains('timer-docked')) {
+        topTimerBar.classList.remove('timer-floating');
+        topTimerBar.classList.add('timer-docked');
+      }
     }
-  } catch (e) {
-    renderTimerUI();
   }
+  window.addEventListener('scroll', handleTimerScroll, { passive: true });
+  handleTimerScroll();
 
   // ---------------------------------------------------------------------------
   // 05. LEADERBOARD STATE APPLY (EMBARGOED VS PUBLISHED SNAPSHOT)

@@ -121,6 +121,7 @@ let timerState = getEventState('timer_state', {
   remaining: 300,
   startTimestamp: null,
   endTimestamp: null,
+  bonusSeconds: 0,
   lastUpdated: Date.now()
 });
 
@@ -468,6 +469,18 @@ async function handleRequest(req, res) {
   // --------------------------------------------------------------------------
   if (pathname === '/api/timer' || pathname === '/api/status') {
     if (req.method === 'GET' || req.method === 'HEAD') {
+      const now = Date.now();
+      if (timerState.status === 'running' && timerState.endTimestamp) {
+        const diff = Math.ceil((timerState.endTimestamp - now) / 1000);
+        if (diff <= 0) {
+          timerState.status = 'stopped';
+          timerState.remaining = 0;
+          timerState.endTimestamp = null;
+          persistTimerState();
+        } else {
+          timerState.remaining = diff;
+        }
+      }
       return sendJson(res, 200, {
         ok: true,
         online: true,
@@ -504,6 +517,7 @@ async function handleRequest(req, res) {
         remaining: duration,
         startTimestamp: null,
         endTimestamp: null,
+        bonusSeconds: 0,
         lastUpdated: Date.now()
       };
       persistTimerState();
@@ -524,6 +538,9 @@ async function handleRequest(req, res) {
     }
     if (typeof body.remaining === 'number') {
       timerState.remaining = body.remaining;
+    }
+    if (typeof body.bonusSeconds === 'number') {
+      timerState.bonusSeconds = body.bonusSeconds;
     }
     timerState.startTimestamp = body.startTimestamp || now;
     timerState.endTimestamp = body.endTimestamp || (now + (timerState.remaining || timerState.duration) * 1000);
@@ -566,6 +583,49 @@ async function handleRequest(req, res) {
     return sendJson(res, 200, { ok: true, timer: timerState });
   }
 
+  if (pathname === '/api/timer/bonus' && req.method === 'POST') {
+    let body = {};
+    try { body = await parseJsonBody(req); } catch (e) {}
+    const now = Date.now();
+    const bonusSecs = parseInt(body.bonusSeconds, 10) || 0;
+
+    if (body.resetBonus) {
+      const curBonus = timerState.bonusSeconds || 0;
+      timerState.bonusSeconds = 0;
+      timerState.duration = Math.max(1, (timerState.duration || 300) - curBonus);
+      if (timerState.status === 'running' && timerState.endTimestamp) {
+        timerState.endTimestamp = Math.max(now, timerState.endTimestamp - (curBonus * 1000));
+        const diff = Math.ceil((timerState.endTimestamp - now) / 1000);
+        timerState.remaining = Math.max(0, diff);
+      } else {
+        timerState.remaining = Math.max(0, (timerState.remaining || 0) - curBonus);
+      }
+    } else if (bonusSecs !== 0) {
+      timerState.bonusSeconds = Math.max(0, (timerState.bonusSeconds || 0) + bonusSecs);
+      timerState.duration = Math.max(1, (timerState.duration || 300) + bonusSecs);
+
+      if (timerState.status === 'running') {
+        if (timerState.endTimestamp) {
+          timerState.endTimestamp += bonusSecs * 1000;
+        } else {
+          timerState.endTimestamp = now + (timerState.remaining + bonusSecs) * 1000;
+        }
+        const diff = Math.ceil((timerState.endTimestamp - now) / 1000);
+        timerState.remaining = Math.max(0, diff);
+      } else if (timerState.status === 'stopped' && bonusSecs > 0) {
+        timerState.status = 'running';
+        timerState.remaining = bonusSecs;
+        timerState.endTimestamp = now + (bonusSecs * 1000);
+      } else {
+        timerState.remaining = Math.max(0, (timerState.remaining || 0) + bonusSecs);
+      }
+    }
+    timerState.lastUpdated = now;
+    persistTimerState();
+    broadcastSSE();
+    return sendJson(res, 200, { ok: true, timer: timerState });
+  }
+
   if (pathname === '/api/timer/stop' && req.method === 'POST') {
     let body = {};
     try { body = await parseJsonBody(req); } catch (e) {}
@@ -586,6 +646,7 @@ async function handleRequest(req, res) {
       timerState.duration = body.duration;
     }
     timerState.remaining = timerState.duration;
+    timerState.bonusSeconds = 0;
     timerState.startTimestamp = null;
     timerState.endTimestamp = null;
     timerState.lastUpdated = body.lastUpdated || Date.now();

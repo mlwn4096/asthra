@@ -162,50 +162,163 @@ button {
 .mb-3 { margin-bottom: 14px; }
 
 /* --------------------------------------------------------------------------
-   03. FIXED TOP-RIGHT SYNCHRONIZED PITCH TIMER WIDGET (ADMIN CONTROLLED)
+/* --------------------------------------------------------------------------
+   03. DYNAMIC SYNCHRONIZED PITCH TIMER (TOP DOCK / FLOATING ON SCROLL)
    -------------------------------------------------------------------------- */
-.corner-sync-timer {
-  position: fixed;
-  top: 14px;
-  right: 20px;
-  z-index: 1000;
-  font-family: var(--font-mono);
-  transition: all var(--transition-fast);
+.top-timer-dock {
+  width: 100%;
+  background: #000000;
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 8px 16px;
+  min-height: 52px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  z-index: 95;
+  transition: background-color var(--transition-smooth), border-color var(--transition-smooth);
 }
 
-.corner-timer-card {
+body.theme-light .top-timer-dock {
+  background: #f4ede1;
+  border-bottom-color: var(--border-medium);
+}
+
+.corner-sync-timer {
+  font-family: var(--font-mono);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* --- DOCKED STATE AT TOP OF PAGE --- */
+.corner-sync-timer.timer-docked {
+  position: relative;
+  top: 0;
+  right: auto;
+  left: auto;
+  width: 100%;
+  max-width: 820px;
+  margin: 0 auto;
+  z-index: 95;
+}
+
+.corner-sync-timer.timer-docked .corner-timer-card {
+  background: rgba(14, 14, 20, 0.7);
+  border: 1.5px solid var(--border-subtle);
+  border-radius: 4px;
+  padding: 6px 18px;
+  box-shadow: none;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  position: relative;
+  overflow: hidden;
+  min-width: 0;
+  width: 100%;
+}
+
+body.theme-light .corner-sync-timer.timer-docked .corner-timer-card {
+  background: #faf7f0;
+  border-color: var(--border-medium);
+}
+
+.corner-sync-timer.timer-docked.timer-running .corner-timer-card {
+  border-color: var(--red-primary);
+  box-shadow: 0 0 16px rgba(255, 31, 32, 0.25);
+}
+
+.corner-sync-timer.timer-docked.timer-paused .corner-timer-card {
+  border-color: var(--amber-warn);
+  box-shadow: 0 0 14px rgba(255, 179, 0, 0.2);
+}
+
+.corner-sync-timer.timer-docked .corner-timer-display {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.corner-sync-timer.timer-docked .corner-timer-digits {
+  font-size: 28px;
+  letter-spacing: 0.08em;
+}
+
+.corner-sync-timer.timer-docked .corner-timer-progress-track {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  margin: 0;
+  border-radius: 0;
+}
+
+/* --- FLOATING STATE WHEN SCROLLED --- */
+.corner-sync-timer.timer-floating {
+  position: fixed;
+  top: 76px;
+  right: 24px;
+  width: 250px;
+  z-index: 1000;
+  animation: timerFloatIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes timerFloatIn {
+  from {
+    opacity: 0.8;
+    transform: translateY(-12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.corner-sync-timer.timer-floating .corner-timer-card {
   background: #000000;
   border: 2px solid var(--border-medium);
   border-radius: 4px;
   padding: 10px 14px;
   min-width: 220px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.85);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.88);
   display: flex;
   flex-direction: column;
   gap: 6px;
   position: relative;
   overflow: hidden;
-  transition: all var(--transition-fast);
 }
 
-body.theme-light .corner-timer-card {
+body.theme-light .corner-sync-timer.timer-floating .corner-timer-card {
   background: #faf7f0;
   border-color: var(--border-medium);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
 
-/* Active running state */
-.corner-sync-timer.timer-running .corner-timer-card {
+.corner-sync-timer.timer-floating.timer-running .corner-timer-card {
   border-color: var(--red-primary);
   box-shadow: 0 0 24px rgba(255, 31, 32, 0.45);
 }
 
-/* Paused state */
-.corner-sync-timer.timer-paused .corner-timer-card {
+.corner-sync-timer.timer-floating.timer-paused .corner-timer-card {
   border-color: var(--amber-warn);
   box-shadow: 0 0 20px rgba(255, 179, 0, 0.35);
 }
 
+.corner-sync-timer.timer-floating .corner-timer-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 2px 0;
+}
+
+.corner-sync-timer.timer-floating .corner-timer-digits {
+  font-size: 32px;
+}
+
+/* Header, Status & Controls */
 .corner-timer-header {
   display: flex;
   justify-content: space-between;
@@ -259,13 +372,6 @@ body.theme-light .corner-timer-card {
 }
 
 /* Clock Digits Display - Prominent & Big */
-.corner-timer-display {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2px 0;
-}
-
 .corner-timer-digits {
   font-family: var(--font-mono);
   font-size: 32px;
@@ -335,6 +441,80 @@ body.theme-light .corner-timer-progress-track {
   transition: width 0.25s linear;
 }
 
+/* Football-Style Stoppage / Extra Time Badge */
+.football-bonus-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #04140a;
+  border: 1.5px solid #22c55e;
+  box-shadow: 0 0 14px rgba(34, 197, 94, 0.45);
+  border-radius: 3px;
+  padding: 3px 8px;
+  font-family: var(--font-mono);
+  animation: pulse-bonus-glow 1.6s infinite ease-in-out;
+}
+
+@keyframes pulse-bonus-glow {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.4);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 18px rgba(34, 197, 94, 0.75);
+    transform: scale(1.02);
+  }
+}
+
+body.theme-light .football-bonus-badge {
+  background: #eefbf1;
+  border-color: #16a34a;
+  box-shadow: 0 0 10px rgba(22, 163, 74, 0.3);
+}
+
+.fbb-board {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  color: #4ade80;
+  font-weight: 800;
+  font-size: 13.5px;
+  letter-spacing: 0.06em;
+  font-family: var(--font-mono);
+}
+
+body.theme-light .fbb-board {
+  color: #15803d;
+}
+
+.fbb-plus {
+  font-size: 15px;
+  color: #22c55e;
+  font-weight: 900;
+  line-height: 1;
+}
+
+body.theme-light .fbb-plus {
+  color: #16a34a;
+}
+
+.fbb-sub {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #86efac;
+  background: rgba(34, 197, 94, 0.16);
+  padding: 1px 5px;
+  border-radius: 2px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+body.theme-light .fbb-sub {
+  color: #166534;
+  background: rgba(22, 163, 74, 0.14);
+}
+
 /* --------------------------------------------------------------------------
    04. TOP TELEMETRY BAR
    -------------------------------------------------------------------------- */
@@ -358,7 +538,6 @@ body.theme-light .telemetry-bar {
   max-width: var(--container-max);
   margin: 0 auto;
   padding: 7px 24px;
-  padding-right: 250px; /* Leave room for fixed corner timer */
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -444,7 +623,6 @@ body.theme-light .tactical-nav {
   max-width: var(--container-max);
   margin: 0 auto;
   padding: 12px 24px;
-  padding-right: 250px; /* Room for fixed corner timer */
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1838,12 +2016,18 @@ body.theme-light .tactical-footer {
 
 @media (max-width: 992px) {
   .telemetry-inner, .nav-container {
-    padding-right: 24px;
+    padding-right: 20px;
+    padding-left: 20px;
   }
-  .corner-sync-timer {
-    top: auto;
-    bottom: 20px;
-    right: 20px;
+  .corner-sync-timer.timer-docked .corner-timer-card {
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px 12px;
+  }
+  .corner-sync-timer.timer-floating {
+    top: 68px;
+    right: 14px;
+    width: 230px;
   }
   .corner-timer-card {
     min-width: 190px;

@@ -43,7 +43,9 @@ document.addEventListener('DOMContentLoaded', () => {
     duration: 300,
     remaining: 300,
     startTimestamp: null,
-    endTimestamp: null
+    endTimestamp: null,
+    bonusSeconds: 0,
+    lastUpdated: 0
   };
 
   // Load any previously saved timer from local storage
@@ -120,6 +122,16 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (e) {}
   }
 
+  function broadcastInauguration(inaug) {
+    if (!inaug) return;
+    try {
+      localStorage.setItem('astra_inauguration_state', JSON.stringify(inaug));
+      if (broadcastChannel) {
+        broadcastChannel.postMessage({ type: 'INAUGURATION_UPDATE', state: inaug });
+      }
+    } catch (e) {}
+  }
+
   let localMatrix = null;
   let judgesList = [];
 
@@ -184,6 +196,24 @@ document.addEventListener('DOMContentLoaded', () => {
       btnStart.style.display = 'inline-flex';
       btnPause.style.display = 'none';
       btnResume.style.display = 'none';
+    }
+
+    // Bonus Time indicator (Football Stoppage Style)
+    const adminBonusPill = document.getElementById('admin-bonus-pill');
+    const adminBonusBoard = document.getElementById('admin-bonus-counter-board');
+    const adminBonusDigits = document.getElementById('admin-bonus-digits');
+    const bonusSecs = localTimer.bonusSeconds || 0;
+    if (adminBonusPill && adminBonusBoard && adminBonusDigits) {
+      if (bonusSecs > 0) {
+        adminBonusPill.className = 'admin-bonus-pill bonus-active';
+        adminBonusPill.textContent = `+${formatTime(bonusSecs)} EXTRA TIME ACTIVE`;
+        adminBonusBoard.style.display = 'inline-flex';
+        adminBonusDigits.textContent = formatTime(bonusSecs);
+      } else {
+        adminBonusPill.className = 'admin-bonus-pill';
+        adminBonusPill.textContent = 'NO BONUS ACTIVE';
+        adminBonusBoard.style.display = 'none';
+      }
     }
   }
 
@@ -276,6 +306,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const now = Date.now();
     localTimer.status = 'idle';
     localTimer.remaining = localTimer.duration;
+    localTimer.bonusSeconds = 0;
     localTimer.startTimestamp = null;
     localTimer.endTimestamp = null;
     localTimer.lastUpdated = now;
@@ -305,6 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
       status: 'idle',
       duration: duration,
       remaining: duration,
+      bonusSeconds: 0,
       startTimestamp: null,
       endTimestamp: null,
       lastUpdated: now
@@ -341,6 +373,7 @@ document.addEventListener('DOMContentLoaded', () => {
         status: 'idle',
         duration: duration,
         remaining: duration,
+        bonusSeconds: 0,
         startTimestamp: null,
         endTimestamp: null,
         lastUpdated: now
@@ -357,6 +390,96 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (e) {}
     });
   });
+
+  // ==========================================================================
+  // 2B. BONUS TIME CONTROLLER (FOOTBALL STOPPAGE / EXTRA TIME STYLE)
+  // ==========================================================================
+  async function addBonusTime(seconds) {
+    const now = Date.now();
+    localTimer.bonusSeconds = Math.max(0, (localTimer.bonusSeconds || 0) + seconds);
+    localTimer.duration = Math.max(1, (localTimer.duration || 300) + seconds);
+
+    if (localTimer.status === 'running') {
+      if (localTimer.endTimestamp) {
+        localTimer.endTimestamp += seconds * 1000;
+      } else {
+        localTimer.endTimestamp = now + (localTimer.remaining + seconds) * 1000;
+      }
+      const diff = Math.ceil((localTimer.endTimestamp - now) / 1000);
+      localTimer.remaining = Math.max(0, diff);
+    } else if (localTimer.status === 'stopped' && seconds > 0) {
+      localTimer.status = 'running';
+      localTimer.remaining = seconds;
+      localTimer.endTimestamp = now + (seconds * 1000);
+    } else {
+      localTimer.remaining = Math.max(0, (localTimer.remaining || 0) + seconds);
+    }
+
+    localTimer.lastUpdated = now;
+    broadcastTimer(localTimer);
+    renderTimer();
+
+    try {
+      await fetch('/api/timer/bonus', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bonusSeconds: seconds })
+      });
+    } catch (e) {}
+  }
+
+  async function resetBonusTime() {
+    const now = Date.now();
+    const curBonus = localTimer.bonusSeconds || 0;
+    localTimer.bonusSeconds = 0;
+    localTimer.duration = Math.max(1, (localTimer.duration || 300) - curBonus);
+    if (localTimer.status === 'running' && localTimer.endTimestamp) {
+      localTimer.endTimestamp = Math.max(now, localTimer.endTimestamp - (curBonus * 1000));
+      const diff = Math.ceil((localTimer.endTimestamp - now) / 1000);
+      localTimer.remaining = Math.max(0, diff);
+    } else {
+      localTimer.remaining = Math.max(0, (localTimer.remaining || 0) - curBonus);
+    }
+    localTimer.lastUpdated = now;
+    broadcastTimer(localTimer);
+    renderTimer();
+
+    try {
+      await fetch('/api/timer/bonus', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resetBonus: true })
+      });
+    } catch (e) {}
+  }
+
+  // Bonus Quick Chip Listeners
+  document.querySelectorAll('.btn-bonus-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const secs = parseInt(btn.getAttribute('data-bonus-secs'), 10) || 60;
+      addBonusTime(secs);
+    });
+  });
+
+  const btnApplyBonus = document.getElementById('btn-apply-bonus');
+  const customBonusMins = document.getElementById('custom-bonus-mins');
+  if (btnApplyBonus && customBonusMins) {
+    btnApplyBonus.addEventListener('click', () => {
+      const mins = parseInt(customBonusMins.value, 10) || 1;
+      if (mins > 0) {
+        addBonusTime(mins * 60);
+      }
+    });
+  }
+
+  const btnResetBonus = document.getElementById('btn-reset-bonus');
+  if (btnResetBonus) {
+    btnResetBonus.addEventListener('click', () => {
+      if (confirm('Clear all added extra/bonus time?')) {
+        resetBonusTime();
+      }
+    });
+  }
 
   // ==========================================================================
   // 3. COLLAPSIBLE RUBRIC DRAWER
@@ -841,6 +964,222 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================================================================
+  // 6C. INAUGURATION LIVE CLOCK & EVENT COMMENCEMENT CONTROLLER
+  // ==========================================================================
+  const inaugAdminBanner = document.getElementById('inauguration-admin-banner');
+  const inaugAdminDot = document.getElementById('inaug-admin-dot');
+  const inaugAdminVisBadge = document.getElementById('inaug-admin-vis-badge');
+  const inaugAdminStateBadge = document.getElementById('inaug-admin-state-badge');
+  const adminInaugDays = document.getElementById('admin-inaug-days');
+  const adminInaugHrs = document.getElementById('admin-inaug-hrs');
+  const adminInaugMins = document.getElementById('admin-inaug-mins');
+  const adminInaugSecs = document.getElementById('admin-inaug-secs');
+  const btnInaugToggleVis = document.getElementById('btn-inaug-toggle-vis');
+  const btnInaugVisIcon = document.getElementById('btn-inaug-vis-icon');
+  const btnInaugVisText = document.getElementById('btn-inaug-vis-text');
+  const btnInaugTriggerLive = document.getElementById('btn-inaug-trigger-live');
+  const btnInaugTriggerIcon = document.getElementById('btn-inaug-trigger-icon');
+  const btnInaugTriggerText = document.getElementById('btn-inaug-trigger-text');
+  const btnInaugReset = document.getElementById('btn-inaug-reset');
+
+  let localInauguration = {
+    targetIso: '2026-09-17T10:30:00+05:30',
+    targetTimestamp: 1789621200000,
+    isVisible: true,
+    isInaugurated: false,
+    inauguratedAt: null,
+    updatedAt: 0
+  };
+  let lastInaugUpdatedAt = 0;
+
+  async function loadInaugurationState() {
+    try {
+      const res = await fetch('/api/inauguration');
+      if (!res.ok) return;
+      const data = await res.json();
+      updateInaugurationUI(data);
+    } catch (e) {}
+  }
+
+  function updateInaugurationUI(inaug) {
+    if (!inaug) return;
+    const time = inaug.updatedAt || 0;
+    if (time && lastInaugUpdatedAt && time < lastInaugUpdatedAt) {
+      return;
+    }
+    if (time) lastInaugUpdatedAt = time;
+
+    localInauguration = Object.assign({}, localInauguration, inaug);
+    broadcastInauguration(localInauguration);
+    renderAdminInaugurationClock();
+  }
+
+  function renderAdminInaugurationClock() {
+    if (!inaugAdminBanner) return;
+
+    // Visibility Badge & Toggle Button
+    if (localInauguration.isVisible !== false) {
+      if (inaugAdminVisBadge) {
+        inaugAdminVisBadge.className = 'badge-inaug-visible';
+        inaugAdminVisBadge.textContent = '👁️ VISIBLE ON PORTAL';
+      }
+      if (btnInaugToggleVis) {
+        btnInaugToggleVis.className = 'btn-inaug-action btn-inaug-hide';
+      }
+      if (btnInaugVisIcon) btnInaugVisIcon.textContent = '👁️';
+      if (btnInaugVisText) btnInaugVisText.textContent = 'HIDE CLOCK ON PORTAL (MAKE IT GO)';
+    } else {
+      if (inaugAdminVisBadge) {
+        inaugAdminVisBadge.className = 'badge-inaug-hidden';
+        inaugAdminVisBadge.textContent = '🙈 HIDDEN ON PORTAL';
+      }
+      if (btnInaugToggleVis) {
+        btnInaugToggleVis.className = 'btn-inaug-action btn-inaug-show';
+      }
+      if (btnInaugVisIcon) btnInaugVisIcon.textContent = '✨';
+      if (btnInaugVisText) btnInaugVisText.textContent = 'SHOW CLOCK ON PORTAL (MAKE IT COME)';
+    }
+
+    const now = Date.now();
+    const target = localInauguration.targetTimestamp || 1789621200000;
+    const isPast = now >= target;
+    const inaugurated = localInauguration.isInaugurated || isPast;
+
+    if (inaugurated) {
+      if (inaugAdminBanner) inaugAdminBanner.classList.add('inaug-is-active');
+      if (inaugAdminDot) inaugAdminDot.className = 'inaug-live-dot inaug-live-green';
+      if (inaugAdminStateBadge) {
+        inaugAdminStateBadge.className = 'badge-inaug-celebrate';
+        inaugAdminStateBadge.textContent = '🎉 EVENT COMMENCED (INAUGURATED)';
+      }
+      if (btnInaugTriggerLive) {
+        btnInaugTriggerLive.style.opacity = '0.5';
+        btnInaugTriggerLive.disabled = true;
+      }
+      if (btnInaugTriggerIcon) btnInaugTriggerIcon.textContent = '✓';
+      if (btnInaugTriggerText) btnInaugTriggerText.textContent = 'OFFICIALLY INAUGURATED';
+
+      if (adminInaugDays) adminInaugDays.textContent = '00';
+      if (adminInaugHrs) adminInaugHrs.textContent = '00';
+      if (adminInaugMins) adminInaugMins.textContent = '00';
+      if (adminInaugSecs) adminInaugSecs.textContent = '00';
+    } else {
+      if (inaugAdminBanner) inaugAdminBanner.classList.remove('inaug-is-active');
+      if (inaugAdminDot) inaugAdminDot.className = 'inaug-live-dot';
+      if (inaugAdminStateBadge) {
+        inaugAdminStateBadge.className = 'badge-inaug-counting';
+        inaugAdminStateBadge.textContent = '⏳ COUNTDOWN TICKING';
+      }
+      if (btnInaugTriggerLive) {
+        btnInaugTriggerLive.style.opacity = '1';
+        btnInaugTriggerLive.disabled = false;
+      }
+      if (btnInaugTriggerIcon) btnInaugTriggerIcon.textContent = '🎉';
+      if (btnInaugTriggerText) btnInaugTriggerText.textContent = 'OFFICIALLY INAUGURATE NOW';
+
+      const diff = Math.max(0, target - now);
+      const totalSecs = Math.floor(diff / 1000);
+      const days = Math.floor(totalSecs / 86400);
+      const hours = Math.floor((totalSecs % 86400) / 3600);
+      const mins = Math.floor((totalSecs % 3600) / 60);
+      const secs = totalSecs % 60;
+
+      if (adminInaugDays) adminInaugDays.textContent = String(days).padStart(2, '0');
+      if (adminInaugHrs) adminInaugHrs.textContent = String(hours).padStart(2, '0');
+      if (adminInaugMins) adminInaugMins.textContent = String(mins).padStart(2, '0');
+      if (adminInaugSecs) adminInaugSecs.textContent = String(secs).padStart(2, '0');
+    }
+  }
+
+  // Admin Countdown Clock Loop
+  setInterval(renderAdminInaugurationClock, 1000);
+
+  // Toggle Visibility: Make it Come and Go
+  if (btnInaugToggleVis) {
+    btnInaugToggleVis.addEventListener('click', async () => {
+      const nextVis = !(localInauguration.isVisible !== false);
+      const confirmMsg = nextVis
+        ? 'DISPLAY the live Inauguration Clock prominently on top of the participant portal?'
+        : 'HIDE the Inauguration Clock from the participant portal?';
+
+      if (confirm(confirmMsg)) {
+        const now = Date.now();
+        lastInaugUpdatedAt = now;
+        localInauguration.isVisible = nextVis;
+        localInauguration.updatedAt = now;
+        renderAdminInaugurationClock();
+        broadcastInauguration(localInauguration);
+
+        try {
+          const res = await fetch('/api/inauguration/toggle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ isVisible: nextVis })
+          });
+          const data = await res.json();
+          if (data.ok && data.inauguration) {
+            updateInaugurationUI(data.inauguration);
+          }
+        } catch (e) {}
+      }
+    });
+  }
+
+  // Trigger Inauguration Manually
+  if (btnInaugTriggerLive) {
+    btnInaugTriggerLive.addEventListener('click', async () => {
+      if (confirm('OFFICIALLY INAUGURATE ASTRA 11.0: BUILD-A-BOT NOW?\n\nThis will trigger the celebration banner and broadcast commencement across all participant screens.')) {
+        const now = Date.now();
+        lastInaugUpdatedAt = now;
+        localInauguration.isInaugurated = true;
+        localInauguration.inauguratedAt = now;
+        localInauguration.updatedAt = now;
+        renderAdminInaugurationClock();
+        broadcastInauguration(localInauguration);
+
+        try {
+          const res = await fetch('/api/inauguration/trigger', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ isInaugurated: true })
+          });
+          const data = await res.json();
+          if (data.ok && data.inauguration) {
+            updateInaugurationUI(data.inauguration);
+          }
+        } catch (e) {}
+      }
+    });
+  }
+
+  // Reset Inauguration to Countdown
+  if (btnInaugReset) {
+    btnInaugReset.addEventListener('click', async () => {
+      if (confirm('Reset event state back to active countdown targeting 17-Sep-2026 10:30 AM?')) {
+        const now = Date.now();
+        lastInaugUpdatedAt = now;
+        localInauguration.isInaugurated = false;
+        localInauguration.inauguratedAt = null;
+        localInauguration.updatedAt = now;
+        renderAdminInaugurationClock();
+        broadcastInauguration(localInauguration);
+
+        try {
+          const res = await fetch('/api/inauguration/trigger', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ isInaugurated: false })
+          });
+          const data = await res.json();
+          if (data.ok && data.inauguration) {
+            updateInaugurationUI(data.inauguration);
+          }
+        } catch (e) {}
+      }
+    });
+  }
+
+  // ==========================================================================
   // 7. REAL-TIME SERVER-SENT EVENTS (SSE) & MATRIX REFRESH
   // ==========================================================================
   function initSSE() {
@@ -866,6 +1205,9 @@ document.addEventListener('DOMContentLoaded', () => {
               if (time) lastDomainsUpdatedAt = time;
               updateDomainsUI(data.domains.isHidden, false);
             }
+          }
+          if (data.inauguration) {
+            updateInaugurationUI(data.inauguration);
           }
         } catch (err) {}
       };
@@ -916,5 +1258,6 @@ document.addEventListener('DOMContentLoaded', () => {
   loadMatrix();
   loadLeaderboardState();
   loadDomainsState();
+  loadInaugurationState();
   initSSE();
 });
