@@ -430,6 +430,21 @@ module.exports = async function handler(req, res) {
   // --------------------------------------------------------------------------
   if (pathname === '/api/timer' || pathname === '/api/status') {
     if (req.method === 'GET' || req.method === 'HEAD') {
+      const clientUpdated = parseInt(req.headers['x-timer-updated'] || urlObj.searchParams.get('t_up') || '0', 10);
+      const clientEnd = parseInt(req.headers['x-timer-end'] || urlObj.searchParams.get('t_end') || '0', 10);
+      const clientDuration = parseInt(req.headers['x-timer-duration'] || urlObj.searchParams.get('t_dur') || '0', 10);
+      const clientStatus = req.headers['x-timer-status'] || urlObj.searchParams.get('t_st') || '';
+
+      // If container's in-memory timer is colder than client's active timer, adopt it to heal this serverless container
+      if (clientUpdated > (state.timer.lastUpdated || 0) && clientStatus === 'running' && clientEnd > Date.now()) {
+        state.timer.status = 'running';
+        state.timer.duration = clientDuration || state.timer.duration || 300;
+        state.timer.endTimestamp = clientEnd;
+        state.timer.lastUpdated = clientUpdated;
+        state.timer.remaining = Math.max(0, Math.ceil((clientEnd - Date.now()) / 1000));
+        await persistState();
+      }
+
       const now = Date.now();
       if (state.timer.status === 'running' && state.timer.endTimestamp) {
         const diff = Math.ceil((state.timer.endTimestamp - now) / 1000);

@@ -387,18 +387,34 @@
 
   function applyTimerState(newState) {
     if (!newState) return;
-    // Only discard if incoming state is significantly older than local state
-    if (localTimerState.lastUpdated && newState.lastUpdated) {
-      if (newState.lastUpdated < localTimerState.lastUpdated - 2000) {
+
+    const srvTime = Number(newState.lastUpdated) || 0;
+    const localTime = Number(localTimerState.lastUpdated) || 0;
+
+    // RULE 1: Never accept a stale timer state from a cold or out-of-sync serverless container.
+    // If incoming state timestamp is older than our local active timestamp, drop it completely.
+    if (localTime > 0 && srvTime < localTime) {
+      return;
+    }
+
+    // RULE 2: If local clock is actively RUNNING with time remaining in the future,
+    // never let an unstarted/idle state (e.g. 5:00 default duration: 300) reset it
+    // unless the server state has a strictly newer timestamp from an explicit admin stop/reset.
+    if (localTimerState.status === 'running' && localTimerState.endTimestamp && Date.now() < localTimerState.endTimestamp) {
+      if (newState.status !== 'running' && srvTime <= localTime) {
+        return;
+      }
+      if (newState.status === 'idle' && (newState.duration === 300 || srvTime <= localTime)) {
         return;
       }
     }
 
-    // Anti-jitter: If both states are actively running with identical timestamp, let local clock count down smoothly
+    // RULE 3: Anti-jitter lock: If both states are running with identical timestamp and endTimestamp,
+    // let local clock count down smoothly without jumping or resetting.
     if (
       localTimerState.status === 'running' &&
       newState.status === 'running' &&
-      localTimerState.lastUpdated === newState.lastUpdated &&
+      srvTime === localTime &&
       localTimerState.endTimestamp === newState.endTimestamp &&
       (localTimerState.bonusSeconds || 0) === (newState.bonusSeconds || 0)
     ) {
@@ -571,11 +587,9 @@
           const payload = JSON.parse(event.data);
           if (payload.timer) {
             applyTimerState(payload.timer);
-            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(payload.timer)); } catch (e) {}
           } else if (payload.status) {
             // legacy timer-only payload
             applyTimerState(payload);
-            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(payload)); } catch (e) {}
           }
           if (payload.leaderboard) {
             applyLeaderboardState(payload.leaderboard);
@@ -598,12 +612,23 @@
   // Active REST polling fallback every 1500ms to ensure atomic sync across all platforms
   async function pollServerState() {
     try {
-      const res = await fetch('/api/timer');
+      let queryParams = '';
+      if (localTimerState.status === 'running' && localTimerState.lastUpdated) {
+        queryParams = `?t_up=${localTimerState.lastUpdated}&t_end=${localTimerState.endTimestamp || 0}&t_dur=${localTimerState.duration || 300}&t_st=${localTimerState.status}`;
+      }
+      const res = await fetch('/api/timer' + queryParams, {
+        headers: {
+          'Cache-Control': 'no-cache, no-store',
+          'x-timer-updated': String(localTimerState.lastUpdated || 0),
+          'x-timer-end': String(localTimerState.endTimestamp || 0),
+          'x-timer-status': localTimerState.status || '',
+          'x-timer-duration': String(localTimerState.duration || 300)
+        }
+      });
       if (res.ok) {
         const payload = await res.json();
         if (payload.timer) {
           applyTimerState(payload.timer);
-          try { localStorage.setItem(STORAGE_KEY, JSON.stringify(payload.timer)); } catch (e) {}
         }
         if (payload.domains && typeof payload.domains.isHidden === 'boolean') {
           applyDomainsVisibility(payload.domains.isHidden, payload.domains.updatedAt || payload.domains.lastUpdated || 0);
