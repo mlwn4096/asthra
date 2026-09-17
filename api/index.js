@@ -705,6 +705,66 @@ module.exports = async function handler(req, res) {
   }
 
   // --------------------------------------------------------------------------
+  // 2D. AUTHORIZED HANDBOOK DOWNLOAD & DIRECT EMBARGO ENFORCEMENT
+  // --------------------------------------------------------------------------
+  if (pathname === '/api/pdf/download' || pathname.endsWith('participate.pdf') || pathname.endsWith('participate_main.pdf') || pathname.endsWith('judging.pdf')) {
+    if (!state.pdf) {
+      state.pdf = { isHidden: true, manualHideAfterInaug: false, updatedAt: 0 };
+    }
+    const inau = state.inauguration || {};
+    const isLaunched = inau.isInaugurated || Date.now() >= (inau.targetTimestamp || 1789621200000);
+    let effectiveHidden = state.pdf.isHidden;
+    if (isLaunched && !state.pdf.manualHideAfterInaug) {
+      effectiveHidden = false;
+    }
+
+    if (effectiveHidden) {
+      res.writeHead(403, {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0'
+      });
+      return res.end(JSON.stringify({
+        error: 'HANDBOOK_EMBARGOED',
+        message: 'Official event handbook is locked under jury embargo until kickoff (17-Sep-2026 10:30 AM).'
+      }));
+    }
+
+    const targetFile = pathname.includes('judging') ? 'judging.pdf' : 'participate.pdf';
+    const possiblePaths = [
+      path.join(__dirname, targetFile),
+      path.join(__dirname, '..', targetFile),
+      path.join(process.cwd(), targetFile),
+      path.join(process.cwd(), 'api', targetFile)
+    ];
+
+    let resolvedPath = null;
+    for (const p of possiblePaths) {
+      if (fs.existsSync(p)) {
+        resolvedPath = p;
+        break;
+      }
+    }
+
+    if (!resolvedPath) {
+      res.writeHead(404, {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache'
+      });
+      return res.end(JSON.stringify({ error: 'FILE_NOT_FOUND', message: `${targetFile} not found on server.` }));
+    }
+
+    const stat = fs.statSync(resolvedPath);
+    res.writeHead(200, {
+      'Content-Type': 'application/pdf',
+      'Content-Length': stat.size,
+      'Content-Disposition': `attachment; filename="${targetFile}"`,
+      'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0'
+    });
+    const stream = fs.createReadStream(resolvedPath);
+    return stream.pipe(res);
+  }
+
+  // --------------------------------------------------------------------------
   // 3. LEADERBOARD STATE MACHINE
   // --------------------------------------------------------------------------
   if (pathname === '/api/leaderboard') {
@@ -1115,7 +1175,8 @@ module.exports = async function handler(req, res) {
       leaderboard: publicLeaderboard,
       adminMatrix: matrix,
       domains: state.domains,
-      inauguration: state.inauguration
+      inauguration: state.inauguration,
+      pdf: state.pdf
     })}\n\n`);
 
     res.end();

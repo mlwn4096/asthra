@@ -824,12 +824,33 @@
 
     isPdfHidden = effectiveHidden;
 
+    const downloadLinks = document.querySelectorAll('[data-pdf-download]');
     if (isPdfHidden) {
       document.body.classList.add('pdf-hidden');
+      downloadLinks.forEach((el) => {
+        el.setAttribute('href', 'javascript:void(0)');
+        el.removeAttribute('download');
+      });
     } else {
       document.body.classList.remove('pdf-hidden');
+      downloadLinks.forEach((el) => {
+        el.setAttribute('href', '/api/pdf/download');
+        el.setAttribute('download', 'participate.pdf');
+      });
     }
   }
+
+  // Intercept any forced clicks on PDF buttons while embargo is active
+  document.addEventListener('click', (e) => {
+    const trigger = e.target.closest('[data-pdf-download]');
+    if (!trigger) return;
+    if (isPdfHidden) {
+      e.preventDefault();
+      e.stopPropagation();
+      alert('🔒 HANDBOOK EMBARGO ACTIVE // Unlocks automatically at official kickoff (17-Sep-2026 10:30 AM).');
+      return false;
+    }
+  });
 
   async function loadPdfVisibility() {
     try {

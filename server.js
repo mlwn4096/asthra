@@ -1218,6 +1218,44 @@ async function handleRequest(req, res) {
   }
 
   // --------------------------------------------------------------------------
+  // API: AUTHORIZED HANDBOOK DOWNLOAD & DIRECT EMBARGO ENFORCEMENT
+  // --------------------------------------------------------------------------
+  if (pathname === '/api/pdf/download' || pathname === '/participate.pdf' || pathname === '/participate_main.pdf' || pathname === '/judging.pdf') {
+    const currentPdf = getEffectivePdfState();
+    if (currentPdf.isHidden) {
+      res.writeHead(403, {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0'
+      });
+      return res.end(JSON.stringify({
+        error: 'HANDBOOK_EMBARGOED',
+        message: 'Official event handbook is locked under jury embargo until kickoff (17-Sep-2026 10:30 AM).'
+      }));
+    }
+
+    const targetFile = pathname.includes('judging') ? 'judging.pdf' : 'participate.pdf';
+    const filePath = path.join(PUBLIC_DIR, targetFile);
+
+    fs.stat(filePath, (err, stats) => {
+      if (err || !stats.isFile()) {
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ error: 'FILE_NOT_FOUND', message: `${targetFile} not found on server.` }));
+      }
+
+      res.writeHead(200, {
+        'Content-Type': 'application/pdf',
+        'Content-Length': stats.size,
+        'Content-Disposition': `attachment; filename="${targetFile}"`,
+        'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0'
+      });
+
+      const stream = fs.createReadStream(filePath);
+      stream.pipe(res);
+    });
+    return;
+  }
+
+  // --------------------------------------------------------------------------
   // STATIC FILE SERVING & ROUTE PROTECTION
   // --------------------------------------------------------------------------
   // Disallow /admin or /admin.html (return 404 for security)
