@@ -178,6 +178,33 @@ function persistInaugurationState() {
   setEventState('inauguration_state', inaugurationState);
 }
 
+// PDF Download Button Visibility State (Hidden under embargo vs Visible)
+let pdfState = getEventState('pdf_state', {
+  isHidden: true,
+  manualHideAfterInaug: false,
+  updatedAt: Date.now()
+});
+
+function getEffectivePdfState() {
+  const now = Date.now();
+  const inau = getEffectiveInaugurationState();
+  const isEventLaunched = inau.isInaugurated || now >= inau.targetTimestamp;
+
+  // Automatically reveal / pop up when the event launches & global timer ends (17th September 2026 10:30 AM)
+  if (isEventLaunched && !pdfState.manualHideAfterInaug) {
+    if (pdfState.isHidden) {
+      pdfState.isHidden = false;
+      pdfState.updatedAt = now;
+      persistPdfState();
+    }
+  }
+  return pdfState;
+}
+
+function persistPdfState() {
+  setEventState('pdf_state', pdfState);
+}
+
 // ============================================================================
 // 3. SERVER-SENT EVENTS (SSE) BROADCAST BUS
 // ============================================================================
@@ -194,7 +221,8 @@ function broadcastSSE() {
     leaderboard: publicLeaderboard,
     adminMatrix: adminMatrix,
     domains: domainsState,
-    inauguration: getEffectiveInaugurationState()
+    inauguration: getEffectiveInaugurationState(),
+    pdf: getEffectivePdfState()
   };
 
   const payload = `data: ${JSON.stringify(payloadObj)}\n\n`;
@@ -1138,10 +1166,54 @@ async function handleRequest(req, res) {
       inaugurationState.inauguratedAt = inaugurationState.isInaugurated ? now : null;
       inaugurationState.updatedAt = now;
       persistInaugurationState();
+
+      // Automatically pop up / reveal PDF download buttons when event is officially inaugurated
+      if (inaugurationState.isInaugurated) {
+        pdfState.isHidden = false;
+        pdfState.manualHideAfterInaug = false;
+        pdfState.updatedAt = now;
+        persistPdfState();
+      }
+
       broadcastSSE();
-      return sendJson(res, 200, { ok: true, inauguration: getEffectiveInaugurationState() });
+      return sendJson(res, 200, { ok: true, inauguration: getEffectiveInaugurationState(), pdf: getEffectivePdfState() });
     } catch (e) {
       return sendJson(res, 400, { error: e.message });
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // API: PARTICIPANT HANDBOOK (PARTICIPATE.PDF) VISIBILITY CONTROLLER
+  // --------------------------------------------------------------------------
+  if (pathname === '/api/pdf/visibility') {
+    if (req.method === 'GET') {
+      return sendJson(res, 200, getEffectivePdfState());
+    }
+    if (req.method === 'POST') {
+      try {
+        const body = await parseJsonBody(req);
+        const inau = getEffectiveInaugurationState();
+        const isEventLaunched = inau.isInaugurated || Date.now() >= inau.targetTimestamp;
+
+        if (typeof body.isHidden === 'boolean') {
+          pdfState.isHidden = body.isHidden;
+        } else {
+          pdfState.isHidden = !pdfState.isHidden;
+        }
+
+        if (isEventLaunched && pdfState.isHidden) {
+          pdfState.manualHideAfterInaug = true;
+        } else if (!pdfState.isHidden) {
+          pdfState.manualHideAfterInaug = false;
+        }
+
+        pdfState.updatedAt = Date.now();
+        persistPdfState();
+        broadcastSSE();
+        return sendJson(res, 200, { ok: true, pdf: getEffectivePdfState() });
+      } catch (e) {
+        return sendJson(res, 400, { error: e.message });
+      }
     }
   }
 

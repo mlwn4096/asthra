@@ -88,7 +88,7 @@
       </nav>
 
       <div class="nav-actions">
-        <a href="participate.pdf" download="participate.pdf" class="btn btn-sm btn-outline">
+        <a href="participate.pdf" download="participate.pdf" class="btn btn-sm btn-outline" data-pdf-download>
           <span class="btn-icon">⬇</span>
           <span>PARTICIPATE.PDF</span>
         </a>
@@ -117,7 +117,7 @@
           <span>🔒</span>
           <span>LEADERBOARD</span>
         </a>
-        <a href="participate.pdf" download="participate.pdf" class="jump-action-btn">
+        <a href="participate.pdf" download="participate.pdf" class="jump-action-btn" data-pdf-download>
           <span>⬇</span>
           <span>PARTICIPATE.PDF</span>
         </a>
@@ -128,10 +128,10 @@
   <!-- Mobile Drawer Backdrop Overlay -->
   <div class="drawer-backdrop" id="drawer-backdrop"></div>
 
-  <!-- Mobile Drawer Navigation -->
+  <!-- Mobile Slide Drawer -->
   <div class="mobile-drawer" id="mobile-drawer">
     <div class="drawer-header">
-      <span class="telemetry-mono">NAVIGATION MENU</span>
+      <div class="drawer-title">ASTRA 11.0 // MENU</div>
       <button class="drawer-close" id="drawer-close" aria-label="Close menu">&times;</button>
     </div>
     <div class="drawer-links">
@@ -143,7 +143,7 @@
       <button id="drawer-theme-toggle" class="btn btn-outline btn-block mb-3">
         <span class="theme-icon">☀️</span> SWITCH TO LIGHT MODE
       </button>
-      <a href="participate.pdf" download class="btn btn-primary btn-block">DOWNLOAD PARTICIPATE.PDF</a>
+      <a href="participate.pdf" download class="btn btn-primary btn-block" data-pdf-download>DOWNLOAD PARTICIPATE.PDF</a>
     </div>
   </div>
 
@@ -293,7 +293,7 @@
           <a href="#rules" class="btn btn-outline btn-lg">
             <span>RULES &amp; DIRECTIVES</span>
           </a>
-          <a href="participate.pdf" download class="btn btn-subtle btn-lg">
+          <a href="participate.pdf" download class="btn btn-subtle btn-lg" data-pdf-download>
             <span>DOWNLOAD PARTICIPATE.PDF</span>
             <span class="btn-icon">⬇</span>
           </a>
@@ -548,10 +548,14 @@
           <p class="pdf-callout-desc">
             The official <code>participate.pdf</code> provides in-depth documentation for all event directives, domain guidelines, repository commit audit procedures, and exhaustive jury scoring criteria.
           </p>
-          <a href="participate.pdf" download="participate.pdf" class="btn btn-primary btn-lg pdf-download-cta">
+          <a href="participate.pdf" download="participate.pdf" class="btn btn-primary btn-lg pdf-download-cta" data-pdf-download>
             <span class="btn-icon">⬇</span>
             <span>DOWNLOAD PARTICIPATE.PDF (FULL HANDBOOK)</span>
           </a>
+          <div class="pdf-callout-locked-msg" id="pdf-callout-locked-msg">
+            <span class="pdf-lock-icon">🔒</span>
+            <span class="pdf-lock-text">HANDBOOK EMBARGO ACTIVE // UNLOCKS AUTOMATICALLY AT OFFICIAL KICKOFF (17-SEP-2026 10:30 AM)</span>
+          </div>
         </div>
 
         <!-- Expandable Brief Accordion Blocks (Click '+' To Reveal) -->
@@ -715,7 +719,7 @@
       <div class="footer-right">
         <span class="telemetry-mono">OFFICIAL PARTICIPANT PORTAL // 2026</span>
         <div class="footer-links">
-          <a href="participate.pdf" download>participate.pdf</a>
+          <a href="participate.pdf" download data-pdf-download>participate.pdf</a>
         </div>
       </div>
     </div>

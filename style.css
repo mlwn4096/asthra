@@ -1530,6 +1530,43 @@ body.theme-light .pdf-callout-card {
   margin-top: 6px;
 }
 
+/* PDF Download Visibility Controller State */
+body.pdf-hidden [data-pdf-download] {
+  display: none !important;
+}
+
+.pdf-callout-locked-msg {
+  display: none;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 31, 32, 0.08);
+  border: 1px dashed var(--red-primary);
+  color: var(--red-bright);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 14px 20px;
+  border-radius: 2px;
+  letter-spacing: 0.05em;
+  margin-top: 10px;
+  animation: pulse-pdf-embargo 3s infinite ease-in-out;
+}
+
+body.pdf-hidden .pdf-callout-locked-msg {
+  display: inline-flex !important;
+}
+
+body.theme-light .pdf-callout-locked-msg {
+  background: #fdf2f2;
+  border-color: #f8b4b4;
+  color: #c52222;
+}
+
+@keyframes pulse-pdf-embargo {
+  0%, 100% { opacity: 0.85; border-color: rgba(255, 31, 32, 0.5); }
+  50% { opacity: 1; border-color: rgba(255, 31, 32, 0.9); }
+}
+
 /* Expandable Accordion Dropdowns */
 .rules-accordions-wrap {
   display: flex;

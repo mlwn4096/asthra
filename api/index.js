@@ -89,6 +89,11 @@ function getDefaultState() {
       inauguratedAt: null,
       updatedAt: 0
     },
+    pdf: {
+      isHidden: true,
+      manualHideAfterInaug: false,
+      updatedAt: 0
+    },
     judges: [],
     sessions: {},
     teams: [],
@@ -646,10 +651,56 @@ module.exports = async function handler(req, res) {
       }
       state.inauguration.inauguratedAt = state.inauguration.isInaugurated ? now : null;
       state.inauguration.updatedAt = now;
+
+      // Automatically reveal PDF upon event launch / inauguration
+      if (state.inauguration.isInaugurated) {
+        if (!state.pdf) state.pdf = { isHidden: true, manualHideAfterInaug: false, updatedAt: 0 };
+        state.pdf.isHidden = false;
+        state.pdf.manualHideAfterInaug = false;
+        state.pdf.updatedAt = now;
+      }
+
       await persistState();
-      return sendJson(res, 200, { ok: true, inauguration: state.inauguration });
+      return sendJson(res, 200, { ok: true, inauguration: state.inauguration, pdf: state.pdf });
     } catch (e) {
       return sendJson(res, 400, { error: e.message });
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // 2C. PARTICIPANT HANDBOOK (PARTICIPATE.PDF) VISIBILITY CONTROLLER
+  // --------------------------------------------------------------------------
+  if (pathname === '/api/pdf/visibility') {
+    if (!state.pdf) {
+      state.pdf = { isHidden: true, manualHideAfterInaug: false, updatedAt: 0 };
+    }
+    const inau = state.inauguration || {};
+    const isLaunched = inau.isInaugurated || Date.now() >= (inau.targetTimestamp || 1789621200000);
+    if (isLaunched && !state.pdf.manualHideAfterInaug) {
+      state.pdf.isHidden = false;
+    }
+    if (req.method === 'GET') {
+      return sendJson(res, 200, state.pdf);
+    }
+    if (req.method === 'POST') {
+      try {
+        const body = await parseJsonBody(req);
+        if (typeof body.isHidden === 'boolean') {
+          state.pdf.isHidden = body.isHidden;
+        } else {
+          state.pdf.isHidden = !state.pdf.isHidden;
+        }
+        if (isLaunched && state.pdf.isHidden) {
+          state.pdf.manualHideAfterInaug = true;
+        } else if (!state.pdf.isHidden) {
+          state.pdf.manualHideAfterInaug = false;
+        }
+        state.pdf.updatedAt = typeof body.updatedAt === 'number' ? body.updatedAt : Date.now();
+        await persistState();
+        return sendJson(res, 200, { ok: true, pdf: state.pdf });
+      } catch (e) {
+        return sendJson(res, 400, { error: e.message });
+      }
     }
   }
 

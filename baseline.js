@@ -41,9 +41,13 @@
     const STORAGE_KEY = 'astra_timer_state_v1';
     const CHANNEL_NAME = 'astra_timer_sync_channel';
     const INAUGURATION_STORAGE_KEY = 'astra_inauguration_state';
+    const PDF_STORAGE_KEY = 'astra_pdf_hidden';
 
     let lastDomainsUpdatedAt = 0;
     let lastInaugUpdatedAt = 0;
+    let lastPdfUpdatedAt = 0;
+    let isPdfHidden = true;
+    let manualPdfOverride = false;
 
     let localTimer = {
       status: 'idle',
@@ -88,6 +92,17 @@
             if (s && typeof updateInaugurationUI === 'function') {
               updateInaugurationUI(s);
             }
+          } else if (event.data.type === 'PDF_UPDATE') {
+            const p = event.data.state;
+            if (p && typeof p.isHidden === 'boolean') {
+              const t = p.updatedAt || 0;
+              if (!lastPdfUpdatedAt || t >= lastPdfUpdatedAt) {
+                if (t) lastPdfUpdatedAt = t;
+                if (typeof updatePdfUI === 'function') {
+                  updatePdfUI(p.isHidden, false);
+                }
+              }
+            }
           }
         };
       }
@@ -111,6 +126,18 @@
           const parsed = JSON.parse(e.newValue);
           if (parsed && typeof updateInaugurationUI === 'function') {
             updateInaugurationUI(parsed);
+          }
+        } catch (err) {}
+      } else if (e.key === 'astra_pdf_hidden' && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          const isHidden = typeof parsed === 'boolean' ? parsed : parsed.isHidden;
+          const t = parsed.updatedAt || 0;
+          if (!lastPdfUpdatedAt || t >= lastPdfUpdatedAt) {
+            if (t) lastPdfUpdatedAt = t;
+            if (typeof updatePdfUI === 'function') {
+              updatePdfUI(isHidden, false);
+            }
           }
         } catch (err) {}
       }
@@ -152,6 +179,16 @@
       localStorage.setItem('astra_inauguration_state', JSON.stringify(inaug));
       if (broadcastChannel) {
         broadcastChannel.postMessage({ type: 'INAUGURATION_UPDATE', state: inaug });
+      }
+    } catch (e) {}
+  }
+
+  function broadcastPdf(hidden, updatedAt = 0) {
+    try {
+      const time = updatedAt || Date.now();
+      localStorage.setItem('astra_pdf_hidden', JSON.stringify({ isHidden: hidden, updatedAt: time }));
+      if (broadcastChannel) {
+        broadcastChannel.postMessage({ type: 'PDF_UPDATE', state: { isHidden: hidden, updatedAt: time } });
       }
     } catch (e) {}
   }
@@ -1096,6 +1133,17 @@
       if (adminInaugHrs) adminInaugHrs.textContent = '00';
       if (adminInaugMins) adminInaugMins.textContent = '00';
       if (adminInaugSecs) adminInaugSecs.textContent = '00';
+
+      // Auto-unlock PDF download button upon event launch & 10:30 AM kickoff
+      if (isPdfHidden && !manualPdfOverride) {
+        lastPdfUpdatedAt = now;
+        updatePdfUI(false, true);
+        fetch('/api/pdf/visibility', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ isHidden: false, updatedAt: now })
+        }).catch(() => {});
+      }
     } else {
       if (inaugAdminBanner) inaugAdminBanner.classList.remove('inaug-is-active');
       if (inaugAdminDot) inaugAdminDot.className = 'inaug-live-dot';
@@ -1173,6 +1221,11 @@
         renderAdminInaugurationClock();
         broadcastInauguration(localInauguration);
 
+        if (isPdfHidden && !manualPdfOverride) {
+          lastPdfUpdatedAt = now;
+          updatePdfUI(false, true);
+        }
+
         try {
           const res = await fetch('/api/inauguration/trigger', {
             method: 'POST',
@@ -1216,6 +1269,95 @@
   }
 
   // ==========================================================================
+  // 6D. PARTICIPANT HANDBOOK (PARTICIPATE.PDF) EMBARGO CONTROLLER
+  // ==========================================================================
+  const pdfToggleBanner = document.getElementById('pdf-toggle-banner');
+  const pdfBadgeStatus = document.getElementById('pdf-badge-status');
+  const pdfSubStatus = document.getElementById('pdf-sub-status');
+  const btnTogglePdf = document.getElementById('btn-toggle-pdf');
+  const btnPdfIcon = document.getElementById('btn-pdf-icon');
+  const btnPdfText = document.getElementById('btn-pdf-text');
+
+  async function loadPdfState() {
+    try {
+      const res = await fetch('/api/pdf/visibility');
+      if (!res.ok) return;
+      const data = await res.json();
+      if (typeof data.isHidden === 'boolean') {
+        const time = data.updatedAt || 0;
+        if (!lastPdfUpdatedAt || time >= lastPdfUpdatedAt) {
+          if (time) lastPdfUpdatedAt = time;
+          updatePdfUI(data.isHidden, false);
+        }
+      }
+    } catch (e) {}
+  }
+
+  function updatePdfUI(hidden, doBroadcast = true) {
+    isPdfHidden = !!hidden;
+    if (doBroadcast) {
+      broadcastPdf(isPdfHidden, lastPdfUpdatedAt || Date.now());
+    }
+    if (isPdfHidden) {
+      if (pdfToggleBanner) pdfToggleBanner.classList.add('state-hidden');
+      if (pdfBadgeStatus) {
+        pdfBadgeStatus.className = 'domains-badge-hidden';
+        pdfBadgeStatus.textContent = '🔒 STATUS: HIDDEN / EMBARGO ACTIVE';
+      }
+      if (pdfSubStatus) {
+        pdfSubStatus.textContent = 'Download PDF buttons are concealed across participant portal. Unlocks automatically at official 10:30 AM kickoff.';
+      }
+      if (btnTogglePdf) {
+        btnTogglePdf.className = 'btn-domains-control btn-action-unlock';
+      }
+      if (btnPdfIcon) btnPdfIcon.textContent = '🔓';
+      if (btnPdfText) btnPdfText.textContent = 'UNLOCK & REVEAL DOWNLOAD PDF BUTTON';
+    } else {
+      if (pdfToggleBanner) pdfToggleBanner.classList.remove('state-hidden');
+      if (pdfBadgeStatus) {
+        pdfBadgeStatus.className = 'domains-badge-revealed';
+        pdfBadgeStatus.textContent = '👁️ STATUS: REVEALED & VISIBLE';
+      }
+      if (pdfSubStatus) {
+        pdfSubStatus.textContent = 'Download PDF buttons are active and visible across all participant screens.';
+      }
+      if (btnTogglePdf) {
+        btnTogglePdf.className = 'btn-domains-control btn-action-lock';
+      }
+      if (btnPdfIcon) btnPdfIcon.textContent = '🔒';
+      if (btnPdfText) btnPdfText.textContent = 'HIDE DOWNLOAD PDF BUTTON (EMBARGO)';
+    }
+  }
+
+  if (btnTogglePdf) {
+    btnTogglePdf.addEventListener('click', async () => {
+      const nextState = !isPdfHidden;
+      const confirmMsg = nextState
+        ? 'HIDE the participate.pdf download button throughout the participant portal?'
+        : 'REVEAL and make the participate.pdf download button visible throughout the participant portal?';
+
+      if (confirm(confirmMsg)) {
+        const now = Date.now();
+        lastPdfUpdatedAt = now;
+        manualPdfOverride = nextState;
+        updatePdfUI(nextState, true);
+
+        try {
+          const res = await fetch('/api/pdf/visibility', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ isHidden: nextState, updatedAt: now })
+          });
+          const data = await res.json();
+          if (data.ok && data.pdf) {
+            updatePdfUI(data.pdf.isHidden, false);
+          }
+        } catch (e) {}
+      }
+    });
+  }
+
+  // ==========================================================================
   // 7. REAL-TIME SERVER-SENT EVENTS (SSE) & MATRIX REFRESH
   // ==========================================================================
   function initSSE() {
@@ -1242,6 +1384,13 @@
               updateDomainsUI(data.domains.isHidden, false);
             }
           }
+          if (data.pdf && typeof data.pdf.isHidden === 'boolean') {
+            const time = data.pdf.updatedAt || 0;
+            if (!lastPdfUpdatedAt || time >= lastPdfUpdatedAt) {
+              if (time) lastPdfUpdatedAt = time;
+              updatePdfUI(data.pdf.isHidden, false);
+            }
+          }
           if (data.inauguration) {
             updateInaugurationUI(data.inauguration);
           }
@@ -1266,8 +1415,9 @@
       }
     } catch (e) {}
 
-    // Periodic domains sync check
+    // Periodic domains and pdf sync check
     loadDomainsState();
+    loadPdfState();
   }
   setInterval(pollMatrix, 3500);
 
@@ -1288,12 +1438,24 @@
     } catch (e) {}
   }
 
+  // Restore saved PDF state on boot
+  try {
+    const rawPdf = localStorage.getItem(PDF_STORAGE_KEY);
+    if (rawPdf) {
+      const parsed = JSON.parse(rawPdf);
+      const h = typeof parsed === 'boolean' ? parsed : (typeof parsed.isHidden === 'boolean' ? parsed.isHidden : true);
+      isPdfHidden = h;
+    }
+  } catch (e) {}
+
   // Initial Boot
   loadTimerState();
   loadJudges();
   loadMatrix();
   loadLeaderboardState();
   loadDomainsState();
+  loadPdfState();
+  updatePdfUI(isPdfHidden, false);
   loadInaugurationState();
   renderAdminInaugurationClock();
   initSSE();

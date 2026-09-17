@@ -245,6 +245,8 @@
           applyDomainsVisibility(event.data.state?.isHidden);
         } else if (event.data && event.data.type === 'INAUGURATION_UPDATE') {
           applyInaugurationState(event.data.state);
+        } else if (event.data && event.data.type === 'PDF_UPDATE') {
+          applyPdfVisibility(event.data.state?.isHidden, event.data.state?.updatedAt);
         }
       };
     } catch (e) {}
@@ -267,6 +269,12 @@
     } else if (e.key === 'astra_inauguration_state' && e.newValue) {
       try {
         applyInaugurationState(JSON.parse(e.newValue));
+      } catch (err) {}
+    } else if (e.key === 'astra_pdf_hidden' && e.newValue) {
+      try {
+        const parsed = JSON.parse(e.newValue);
+        const h = typeof parsed === 'boolean' ? parsed : parsed.isHidden;
+        applyPdfVisibility(h, parsed.updatedAt || 0);
       } catch (err) {}
     }
   });
@@ -578,6 +586,9 @@
           if (payload.inauguration) {
             applyInaugurationState(payload.inauguration);
           }
+          if (payload.pdf && typeof payload.pdf.isHidden === 'boolean') {
+            applyPdfVisibility(payload.pdf.isHidden, payload.pdf.updatedAt || 0);
+          }
         } catch (err) {}
       };
     } catch (e) {}
@@ -599,6 +610,9 @@
         }
         if (payload.inauguration) {
           applyInaugurationState(payload.inauguration);
+        }
+        if (payload.pdf && typeof payload.pdf.isHidden === 'boolean') {
+          applyPdfVisibility(payload.pdf.isHidden, payload.pdf.updatedAt || 0);
         }
         if (payload.leaderboard) {
           applyLeaderboardState(payload.leaderboard);
@@ -723,6 +737,10 @@
       if (inaugPulseDot) {
         inaugPulseDot.className = 'inaug-pulse-dot pulse-green';
       }
+      // Auto-reveal PDF download buttons upon kickoff
+      if (typeof isPdfHidden !== 'undefined' && isPdfHidden && !pdfManualOverride) {
+        applyPdfVisibility(false);
+      }
     } else {
       if (inaugCountdownView) inaugCountdownView.style.display = 'block';
       if (inaugCelebrationView) inaugCelebrationView.style.display = 'none';
@@ -774,6 +792,72 @@
   }
   loadInaugurationState();
   setInterval(loadInaugurationState, 3000);
+
+  // ---------------------------------------------------------------------------
+  // 06E. PARTICIPANT HANDBOOK (PARTICIPATE.PDF) VISIBILITY CONTROLLER
+  // ---------------------------------------------------------------------------
+  const PDF_STORAGE_KEY = 'astra_pdf_hidden';
+  let isPdfHidden = true; // Embargoed by default until kickoff
+  let lastPdfUpdatedAt = 0;
+  let pdfManualOverride = false;
+
+  function applyPdfVisibility(hidden, updatedAt = 0) {
+    if (updatedAt && lastPdfUpdatedAt && updatedAt < lastPdfUpdatedAt) {
+      return;
+    }
+    if (updatedAt) {
+      lastPdfUpdatedAt = updatedAt;
+    }
+
+    const now = Date.now();
+    const target = localInauguration.targetTimestamp || 1789621200000;
+    const isEventLaunched = localInauguration.isInaugurated || (now >= target);
+
+    let effectiveHidden = typeof hidden === 'boolean' ? hidden : true;
+
+    // Automatic Kickoff Pop-up:
+    // When the event launches & global timer ends (17-Sep-2026 10:30 AM or inaugurated),
+    // automatically pop up / reveal the participate.pdf download button!
+    if (isEventLaunched && !pdfManualOverride) {
+      effectiveHidden = false;
+    }
+
+    isPdfHidden = effectiveHidden;
+
+    if (isPdfHidden) {
+      document.body.classList.add('pdf-hidden');
+    } else {
+      document.body.classList.remove('pdf-hidden');
+    }
+  }
+
+  async function loadPdfVisibility() {
+    try {
+      const res = await fetch('/api/pdf/visibility');
+      if (res.ok) {
+        const data = await res.json();
+        const hidden = typeof data === 'boolean' ? data : (typeof data.isHidden === 'boolean' ? data.isHidden : false);
+        applyPdfVisibility(hidden, data.updatedAt || 0);
+      }
+    } catch (e) {}
+  }
+
+  // Read saved PDF state on startup
+  try {
+    const rawPdf = localStorage.getItem(PDF_STORAGE_KEY);
+    if (rawPdf) {
+      const parsed = JSON.parse(rawPdf);
+      const h = typeof parsed === 'boolean' ? parsed : (typeof parsed.isHidden === 'boolean' ? parsed.isHidden : true);
+      applyPdfVisibility(h, parsed.updatedAt || 0);
+    } else {
+      applyPdfVisibility(true);
+    }
+  } catch (e) {
+    applyPdfVisibility(true);
+  }
+
+  loadPdfVisibility();
+  setInterval(loadPdfVisibility, 3000);
 
   // ---------------------------------------------------------------------------
   // 07. QUICK-JUMP TACTICAL ACTION BUTTONS
