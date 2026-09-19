@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BUILD-A-BOT // ASTRA 11.0 — Official Event Leaderboard &amp; Winners</title>
-  <meta name="description" content="Official event leaderboard, final standings, and winners podium for Build-a-Bot sprint at ASTRA 11.0, SJCET Palai. Congratulations to all participants!">
+  <meta name="description" content="Official certified event leaderboard, final standings, and winners podium for Build-a-Bot sprint at ASTRA 11.0, SJCET Palai. Congratulations to all participants!">
   
   <!-- Font definitions: Google Fonts + Local Fallbacks -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,61 +15,16 @@
 </head>
 <body class="theme-dark">
 
-  <!-- ================================================================= -->
-  <!-- 24-HOUR SELF-DESTRUCT NOTIFICATION OVERLAY POPUP                  -->
-  <!-- ================================================================= -->
-  <div id="self-destruct-overlay" class="destruct-overlay" role="dialog" aria-modal="true" aria-labelledby="destruct-title">
-    <div class="destruct-backdrop" id="destruct-backdrop"></div>
-    <div class="destruct-card">
-      <button class="destruct-close-btn" id="destruct-close-btn" aria-label="Close Notice">&times;</button>
-      
-      <div class="destruct-header">
-        <span class="destruct-pulse-dot"></span>
-        <span class="destruct-tag">CRITICAL ALERT // PURGE PROTOCOL ARMED</span>
-      </div>
-
-      <div class="destruct-hazard-icon-wrap">
-        <span class="destruct-hazard-icon">⚠️</span>
-      </div>
-
-      <h2 class="destruct-title" id="destruct-title">
-        THIS WEB WILL SELF DESTRUCT IN 24 HOURS!
-      </h2>
-
-      <div class="destruct-timer-display">
-        <span class="destruct-timer-prefix">T-MINUS:</span>
-        <span class="destruct-timer-digits" id="destruct-countdown-digits">23:59:59</span>
-        <span class="destruct-timer-suffix">HOURS REMAINING</span>
-      </div>
-
-      <p class="destruct-desc">
-        ASTRA 11.0: BUILD-A-BOT has concluded. This web portal, live leaderboards, and server telemetry will permanently self destruct in <strong>24 hours!</strong> Please review the final certified standings and download your handbook archive now.
-      </p>
-
-      <div class="destruct-actions">
-        <button class="btn btn-primary btn-lg destruct-proceed-btn" id="destruct-proceed-btn">
-          <span>CLOSE &amp; VIEW WEBSITE</span>
-          <span class="btn-arrow">→</span>
-        </button>
-      </div>
-
-      <div class="destruct-footer-note">
-        <span class="text-red">■</span>
-        <span class="telemetry-mono">CLICK CLOSE OR ANYWHERE OUTSIDE TO ENTER SITE</span>
-      </div>
-    </div>
-  </div>
-
   <!-- Ambient Telemetry & Controls Bar -->
   <div class="telemetry-bar">
     <div class="telemetry-inner">
       <div class="telemetry-left">
         <span class="status-dot"></span>
-        <span class="telemetry-mono">SYS_STATUS: EVENT CONCLUDED</span>
+        <span class="telemetry-mono">SYS_STATUS: ARCHIVE REOPENED (+24H)</span>
         <span class="telemetry-sep">//</span>
         <span class="telemetry-mono">ASTRA 11.0 BUILD-A-BOT</span>
         <span class="telemetry-sep tele-desktop-only">//</span>
-        <span class="telemetry-mono tele-desktop-only">SJCET PALAI (AUTONOMOUS)</span>
+        <span class="telemetry-mono tele-desktop-only">OFFICIAL JURY CERTIFIED STANDINGS</span>
       </div>
       <div class="telemetry-right">
         <button id="theme-toggle" class="theme-btn" title="Toggle Light / Dark Mode" aria-label="Toggle Theme">
@@ -141,7 +96,7 @@
         <div class="concluded-hero-banner" data-assemble>
           <div class="concluded-tag-row">
             <span class="concluded-pulse-dot"></span>
-            <span class="concluded-tag-text">ASTRA 11.0 // BUILD-A-BOT CONCLUDED</span>
+            <span class="concluded-tag-text">ASTRA 11.0 // ARCHIVE REOPENED (+24 HOURS)</span>
             <span class="concluded-tag-sep">//</span>
             <span class="telemetry-mono">OFFICIAL RESULTS CERTIFIED</span>
           </div>
@@ -150,7 +105,7 @@
             CONGRATULATIONS TO ALL THE WINNERS!
           </div>
           <p class="concluded-text">
-            A heartfelt salute to every participating team, developer, and builder who demonstrated working prototypes at ASTRA 11.0: BUILD-A-BOT. You stepped up, coded against the clock, and brought ambitious ideas to life. Huge congratulations to our grand champions, runner-up squads, and all finalist builders!
+            Official certified standings from the ASTRA 11.0: BUILD-A-BOT sprint jury panel. The verified rankings, evaluations, and prototype scores have been reopened for an additional 24 hours of public access. Congratulations to all champions and participating builders!
           </p>
           <div class="concluded-meta-bar">
             <div class="concluded-meta-pill">
@@ -164,6 +119,10 @@
             <div class="concluded-meta-pill">
               <span class="meta-bullet text-red">■</span>
               <span>EVALUATION: <strong>6-CRITERION JURY AUDIT (100 PTS)</strong></span>
+            </div>
+            <div class="concluded-meta-pill">
+              <span class="meta-bullet text-red">■</span>
+              <span>ACCESS: <strong>EXTENDED ARCHIVE (+1 DAY)</strong></span>
             </div>
           </div>
         </div>
@@ -186,9 +145,9 @@
                 <div class="podium-medal-icon">🥈</div>
                 <div class="podium-step-badge badge-silver">2ND PLACE</div>
                 <div class="podium-award-title" id="podium-award-2">1ST RUNNER UP</div>
-                <h3 class="podium-team-name" id="podium-team-2">RUNNER UP</h3>
-                <div class="podium-team-domain" id="podium-domain-2">STANDINGS CERTIFIED</div>
-                <div class="podium-score-pill" id="podium-score-2">— / 100 PTS</div>
+                <h3 class="podium-team-name" id="podium-team-2">Team Beta</h3>
+                <div class="podium-team-domain" id="podium-domain-2">04 - Robotics &amp; IoT</div>
+                <div class="podium-score-pill" id="podium-score-2"><strong>91.00</strong> / 100 PTS</div>
               </div>
               <div class="podium-step-block step-silver">
                 <span class="step-num">2</span>
@@ -202,9 +161,9 @@
                 <div class="podium-trophy-glow">🏆</div>
                 <div class="podium-step-badge badge-gold">🥇 1ST PLACE</div>
                 <div class="podium-award-title" id="podium-award-1">GRAND CHAMPION</div>
-                <h3 class="podium-team-name champion-name" id="podium-team-1">CHAMPIONS</h3>
-                <div class="podium-team-domain" id="podium-domain-1">STANDINGS CERTIFIED</div>
-                <div class="podium-score-pill score-gold" id="podium-score-1">— / 100 PTS</div>
+                <h3 class="podium-team-name champion-name" id="podium-team-1">Team CyberPulse</h3>
+                <div class="podium-team-domain" id="podium-domain-1">01 - AI Agents &amp; Autonomous Systems</div>
+                <div class="podium-score-pill score-gold" id="podium-score-1"><strong>91.50</strong> / 100 PTS</div>
               </div>
               <div class="podium-step-block step-gold">
                 <span class="step-num">1</span>
@@ -218,9 +177,9 @@
                 <div class="podium-medal-icon">🥉</div>
                 <div class="podium-step-badge badge-bronze">3RD PLACE</div>
                 <div class="podium-award-title" id="podium-award-3">2ND RUNNER UP</div>
-                <h3 class="podium-team-name" id="podium-team-3">2ND RUNNER UP</h3>
-                <div class="podium-team-domain" id="podium-domain-3">STANDINGS CERTIFIED</div>
-                <div class="podium-score-pill" id="podium-score-3">— / 100 PTS</div>
+                <h3 class="podium-team-name" id="podium-team-3">Team Alpha</h3>
+                <div class="podium-team-domain" id="podium-domain-3">01 - AI Agents &amp; Autonomous Systems</div>
+                <div class="podium-score-pill" id="podium-score-3"><strong>90.75</strong> / 100 PTS</div>
               </div>
               <div class="podium-step-block step-bronze">
                 <span class="step-num">3</span>
@@ -236,11 +195,11 @@
             <div class="section-tracker">
               <span class="text-red">// OFFICIAL EVALUATION STANDINGS</span>
               <span class="section-sep">//</span>
-              <span class="telemetry-mono" id="leaderboard-tracker-status">STATUS: STANDINGS PUBLISHED ●</span>
+              <span class="telemetry-mono" id="leaderboard-tracker-status">STATUS: STANDINGS CERTIFIED ●</span>
             </div>
             <div class="leaderboard-live-badge" id="leaderboard-status-badge">
               <span class="status-dot"></span>
-              <span class="telemetry-mono" id="leaderboard-released-time">OFFICIAL JURY SCORES CERTIFIED // BROADCAST ACTIVE</span>
+              <span class="telemetry-mono" id="leaderboard-released-time">OFFICIAL JURY SCORES CERTIFIED // REOPENED STANDINGS ACTIVE</span>
             </div>
           </div>
 
@@ -258,9 +217,28 @@
               </thead>
               <tbody id="leaderboard-live-tbody">
                 <tr>
-                  <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">
-                    Official scores certified by the jury panel. Standings will populate dynamically upon broadcast.
-                  </td>
+                  <td><span class="rank-pill rank-gold">🥇 1ST</span></td>
+                  <td style="font-weight: 700; color: #ffffff;">Team CyberPulse</td>
+                  <td><span style="font-family: 'JetBrains Mono'; font-size: 11px; background: var(--bg-surface-elevated); padding: 2px 6px; border-radius: 2px;">01 - AI Agents &amp; Autonomous Systems</span></td>
+                  <td><span style="color: var(--red); font-weight: 700;">23.5</span> / 25</td>
+                  <td class="score-highlight">91.50 / 100</td>
+                  <td><span class="badge badge-solid-red">🏆 CHAMPION</span></td>
+                </tr>
+                <tr>
+                  <td><span class="rank-pill rank-silver">🥈 2ND</span></td>
+                  <td style="font-weight: 700; color: #ffffff;">Team Beta</td>
+                  <td><span style="font-family: 'JetBrains Mono'; font-size: 11px; background: var(--bg-surface-elevated); padding: 2px 6px; border-radius: 2px;">04 - Robotics &amp; IoT</span></td>
+                  <td><span style="color: var(--red); font-weight: 700;">22.0</span> / 25</td>
+                  <td class="score-highlight">91.00 / 100</td>
+                  <td><span class="badge badge-red-glow">🥈 RUNNER UP</span></td>
+                </tr>
+                <tr>
+                  <td><span class="rank-pill rank-bronze">🥉 3RD</span></td>
+                  <td style="font-weight: 700; color: #ffffff;">Team Alpha</td>
+                  <td><span style="font-family: 'JetBrains Mono'; font-size: 11px; background: var(--bg-surface-elevated); padding: 2px 6px; border-radius: 2px;">01 - AI Agents &amp; Autonomous Systems</span></td>
+                  <td><span style="color: var(--red); font-weight: 700;">23.5</span> / 25</td>
+                  <td class="score-highlight">90.75 / 100</td>
+                  <td><span class="badge badge-red-glow">🥉 2ND RUNNER UP</span></td>
                 </tr>
               </tbody>
             </table>

@@ -526,10 +526,50 @@
     }
   }
 
+  // EXACT EVALUATION RESULTS FROM HACKATHON DATABASE
+  const EXACT_DATABASE_TEAMS = [
+    {
+      rank: 1,
+      teamId: 'team_team_cyberpulse_6171b1',
+      teamName: 'Team CyberPulse',
+      domain: '01 - AI Agents & Autonomous Systems',
+      avgFunctionality: 23.5,
+      c4: 23.5,
+      avgTotal: 91.50,
+      total: 91.50,
+      award: '🏆 CHAMPION'
+    },
+    {
+      rank: 2,
+      teamId: 'team_team_beta_5b3081',
+      teamName: 'Team Beta',
+      domain: '04 - Robotics & IoT',
+      avgFunctionality: 22.0,
+      c4: 22.0,
+      avgTotal: 91.00,
+      total: 91.00,
+      award: '🥈 RUNNER UP'
+    },
+    {
+      rank: 3,
+      teamId: 'team_team_alpha_62b36a',
+      teamName: 'Team Alpha',
+      domain: '01 - AI Agents & Autonomous Systems',
+      avgFunctionality: 23.5,
+      c4: 23.5,
+      avgTotal: 90.75,
+      total: 90.75,
+      award: '🥉 2ND RUNNER UP'
+    }
+  ];
+
   let lastLeaderboardUpdatedAt = 0;
 
   function applyLeaderboardState(lbState) {
-    if (!lbState) return;
+    if (!lbState) {
+      updatePodium(EXACT_DATABASE_TEAMS);
+      return;
+    }
 
     const time = lbState.updatedAt || lbState.publishedAt || 0;
     if (time && lastLeaderboardUpdatedAt && time < lastLeaderboardUpdatedAt) {
@@ -543,73 +583,67 @@
       localStorage.setItem('astra_leaderboard_state', JSON.stringify(lbState));
     } catch (e) {}
 
-    const isPublished = lbState.isUnlocked || lbState.state === 'PUBLISHED' || (Array.isArray(lbState.teams) && lbState.teams.length > 0);
+    const teams = (Array.isArray(lbState.teams) && lbState.teams.length > 0)
+      ? lbState.teams
+      : EXACT_DATABASE_TEAMS;
 
     if (leaderboardTrackerStatus) {
-      leaderboardTrackerStatus.textContent = isPublished ? 'STATUS: STANDINGS PUBLISHED ●' : 'STATUS: JURY CERTIFICATION IN PROGRESS ⏳';
+      leaderboardTrackerStatus.textContent = 'STATUS: STANDINGS CERTIFIED ●';
     }
 
     if (leaderboardReleasedTime) {
       if (lbState.publishedAt) {
         const d = new Date(lbState.publishedAt);
-        leaderboardReleasedTime.textContent = `OFFICIAL JURY SCORES CERTIFIED // PUBLISHED AT ${d.toLocaleTimeString()}`;
+        leaderboardReleasedTime.textContent = `OFFICIAL JURY SCORES CERTIFIED // REOPENED AT ${d.toLocaleTimeString()}`;
       } else {
-        leaderboardReleasedTime.textContent = 'OFFICIAL JURY SCORES CERTIFIED // BROADCAST ACTIVE';
+        leaderboardReleasedTime.textContent = 'OFFICIAL JURY SCORES CERTIFIED // REOPENED STANDINGS ACTIVE';
       }
     }
 
-    if (Array.isArray(lbState.teams) && lbState.teams.length > 0) {
-      updatePodium(lbState.teams);
+    updatePodium(teams);
 
-      if (leaderboardTbody) {
-        leaderboardTbody.innerHTML = lbState.teams.map((t, idx) => {
-          const teamName = t.teamName || t.team || 'Team';
-          const domain = t.domain || 'General';
-          const c4Score = t.avgFunctionality != null ? Number(t.avgFunctionality).toFixed(1) : (t.c4 != null ? Number(t.c4).toFixed(1) : '—');
-          const totalScore = t.avgTotal != null ? Number(t.avgTotal).toFixed(2) : (t.total != null ? Number(t.total).toFixed(1) : '—');
-          const award = t.award || (idx === 0 ? '🏆 CHAMPION' : (idx === 1 ? '🥈 RUNNER UP' : (idx === 2 ? '🥉 2ND RUNNER UP' : 'FINALIST')));
+    if (leaderboardTbody) {
+      leaderboardTbody.innerHTML = teams.map((t, idx) => {
+        const teamName = t.teamName || t.team || 'Team';
+        const domain = t.domain || 'General';
+        const c4Score = t.avgFunctionality != null ? Number(t.avgFunctionality).toFixed(1) : (t.c4 != null ? Number(t.c4).toFixed(1) : '—');
+        const totalScore = t.avgTotal != null ? Number(t.avgTotal).toFixed(2) : (t.total != null ? Number(t.total).toFixed(1) : '—');
+        const award = t.award || (idx === 0 ? '🏆 CHAMPION' : (idx === 1 ? '🥈 RUNNER UP' : (idx === 2 ? '🥉 2ND RUNNER UP' : 'FINALIST')));
 
-          let rankBadge = `<span class="rank-pill">#${idx + 1}</span>`;
-          if (idx === 0) {
-            rankBadge = `<span class="rank-pill rank-gold">🥇 1ST</span>`;
-          } else if (idx === 1) {
-            rankBadge = `<span class="rank-pill rank-silver">🥈 2ND</span>`;
-          } else if (idx === 2) {
-            rankBadge = `<span class="rank-pill rank-bronze">🥉 3RD</span>`;
-          }
+        let rankBadge = `<span class="rank-pill">#${idx + 1}</span>`;
+        if (idx === 0) {
+          rankBadge = `<span class="rank-pill rank-gold">🥇 1ST</span>`;
+        } else if (idx === 1) {
+          rankBadge = `<span class="rank-pill rank-silver">🥈 2ND</span>`;
+        } else if (idx === 2) {
+          rankBadge = `<span class="rank-pill rank-bronze">🥉 3RD</span>`;
+        }
 
-          return `
-            <tr>
-              <td>${rankBadge}</td>
-              <td style="font-weight: 700; color: #ffffff;">${teamName}</td>
-              <td><span style="font-family: 'JetBrains Mono'; font-size: 11px; background: var(--bg-surface-elevated); padding: 2px 6px; border-radius: 2px;">${domain}</span></td>
-              <td><span style="color: var(--red); font-weight: 700;">${c4Score}</span> / 25</td>
-              <td class="score-highlight">${totalScore} / 100</td>
-              <td><span class="badge ${idx === 0 ? 'badge-solid-red' : (idx <= 2 ? 'badge-red-glow' : 'badge-subtle')}">${award}</span></td>
-            </tr>
-          `;
-        }).join('');
-      }
-    } else {
-      if (leaderboardTbody) {
-        leaderboardTbody.innerHTML = `
+        return `
           <tr>
-            <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">
-              Official scores certified by the jury panel. Standings will populate dynamically upon broadcast.
-            </td>
+            <td>${rankBadge}</td>
+            <td style="font-weight: 700; color: #ffffff;">${teamName}</td>
+            <td><span style="font-family: 'JetBrains Mono'; font-size: 11px; background: var(--bg-surface-elevated); padding: 2px 6px; border-radius: 2px;">${domain}</span></td>
+            <td><span style="color: var(--red); font-weight: 700;">${c4Score}</span> / 25</td>
+            <td class="score-highlight">${totalScore} / 100</td>
+            <td><span class="badge ${idx === 0 ? 'badge-solid-red' : (idx <= 2 ? 'badge-red-glow' : 'badge-subtle')}">${award}</span></td>
           </tr>
         `;
-      }
+      }).join('');
     }
   }
 
-  // Read initial leaderboard state
+  // Read initial leaderboard state or default to exact database snapshot
   try {
     const rawLb = localStorage.getItem('astra_leaderboard_state');
     if (rawLb) {
       applyLeaderboardState(JSON.parse(rawLb));
+    } else {
+      applyLeaderboardState({ state: 'PUBLISHED', teams: EXACT_DATABASE_TEAMS });
     }
-  } catch (e) {}
+  } catch (e) {
+    applyLeaderboardState({ state: 'PUBLISHED', teams: EXACT_DATABASE_TEAMS });
+  }
 
   // ---------------------------------------------------------------------------
   // 06. SERVER SYNC FOR BOTH TIMER & LEADERBOARD (SSE STREAM)
@@ -1131,78 +1165,6 @@
     drawerItems.forEach(item => {
       item.addEventListener('click', closeMobileDrawer);
     });
-  }
-
-  // ---------------------------------------------------------------------------
-  // 13. 24-HOUR SELF-DESTRUCT NOTIFICATION OVERLAY CONTROLLER
-  // ---------------------------------------------------------------------------
-  const destructOverlay = document.getElementById('self-destruct-overlay');
-  const destructProceedBtn = document.getElementById('destruct-proceed-btn');
-  const destructCloseBtn = document.getElementById('destruct-close-btn');
-  const destructBackdrop = document.getElementById('destruct-backdrop');
-  const destructCountdownDigits = document.getElementById('destruct-countdown-digits');
-
-  // Compute 24-hour target (persisted in localStorage or default to 24h from now)
-  const DESTRUCT_TARGET_KEY = 'astra_destruct_target';
-  let destructTarget = 0;
-  try {
-    const storedTarget = localStorage.getItem(DESTRUCT_TARGET_KEY);
-    if (storedTarget) {
-      destructTarget = parseInt(storedTarget, 10);
-    }
-  } catch (e) {}
-
-  if (!destructTarget || isNaN(destructTarget) || destructTarget <= Date.now()) {
-    destructTarget = Date.now() + 24 * 3600 * 1000;
-    try {
-      localStorage.setItem(DESTRUCT_TARGET_KEY, String(destructTarget));
-    } catch (e) {}
-  }
-
-  function updateDestructClock() {
-    if (!destructCountdownDigits) return;
-    const now = Date.now();
-    const diffSecs = Math.max(0, Math.floor((destructTarget - now) / 1000));
-    const hrs = Math.floor(diffSecs / 3600);
-    const mins = Math.floor((diffSecs % 3600) / 60);
-    const secs = diffSecs % 60;
-    destructCountdownDigits.textContent = `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-  }
-  updateDestructClock();
-  setInterval(updateDestructClock, 1000);
-
-  function openSelfDestructOverlay() {
-    if (!destructOverlay) return;
-    destructOverlay.classList.add('active');
-    document.body.classList.add('destruct-open');
-    playSound('alert');
-  }
-
-  function closeSelfDestructOverlay() {
-    if (!destructOverlay) return;
-    destructOverlay.classList.remove('active');
-    document.body.classList.remove('destruct-open');
-    playSound('click');
-  }
-
-  if (destructProceedBtn) {
-    destructProceedBtn.addEventListener('click', closeSelfDestructOverlay);
-  }
-  if (destructCloseBtn) {
-    destructCloseBtn.addEventListener('click', closeSelfDestructOverlay);
-  }
-  if (destructBackdrop) {
-    destructBackdrop.addEventListener('click', closeSelfDestructOverlay);
-  }
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && destructOverlay && destructOverlay.classList.contains('active')) {
-      closeSelfDestructOverlay();
-    }
-  });
-
-  // Automatically pop up whenever someone opens the site
-  if (destructOverlay) {
-    setTimeout(openSelfDestructOverlay, 300);
   }
 
 })();
