@@ -526,40 +526,117 @@
     }
   }
 
-  // EXACT EVALUATION RESULTS FROM HACKATHON DATABASE
-  const EXACT_DATABASE_TEAMS = [
+  // REAL TABULATED STANDINGS PULLED FROM SUPABASE
+  const REAL_SUPABASE_TEAMS = [
     {
       rank: 1,
-      teamId: 'team_team_cyberpulse_6171b1',
-      teamName: 'Team CyberPulse',
-      domain: '01 - AI Agents & Autonomous Systems',
-      avgFunctionality: 23.5,
-      c4: 23.5,
-      avgTotal: 91.50,
-      total: 91.50,
+      teamId: 'team_1404ea71',
+      teamName: 'Ananthu Anil',
+      domain: '07 - Cybersecurity & Digital Safety',
+      avgFunctionality: 22.0,
+      c4: 22.0,
+      avgTotal: 86.00,
+      total: 86.00,
       award: '🏆 CHAMPION'
     },
     {
       rank: 2,
-      teamId: 'team_team_beta_5b3081',
-      teamName: 'Team Beta',
-      domain: '04 - Robotics & IoT',
-      avgFunctionality: 22.0,
-      c4: 22.0,
-      avgTotal: 91.00,
-      total: 91.00,
-      award: '🥈 RUNNER UP'
+      teamId: 'team_5045d832',
+      teamName: 'Vasudev v',
+      domain: '12 - Accessibility & Inclusive Tech',
+      avgFunctionality: 23.0,
+      c4: 23.0,
+      avgTotal: 85.00,
+      total: 85.00,
+      award: '🥈 1ST RUNNER UP'
     },
     {
       rank: 3,
-      teamId: 'team_team_alpha_62b36a',
-      teamName: 'Team Alpha',
-      domain: '01 - AI Agents & Autonomous Systems',
-      avgFunctionality: 23.5,
-      c4: 23.5,
-      avgTotal: 90.75,
-      total: 90.75,
+      teamId: 'team_66fd72e6',
+      teamName: 'Angel rose',
+      domain: '03 - Healthcare & Wellbeing Technology',
+      avgFunctionality: 22.0,
+      c4: 22.0,
+      avgTotal: 83.50,
+      total: 83.50,
       award: '🥉 2ND RUNNER UP'
+    },
+    {
+      rank: 4,
+      teamId: 'team_e2e12493',
+      teamName: 'Tom shibu',
+      domain: '07 - Cybersecurity & Digital Safety',
+      avgFunctionality: 23.0,
+      c4: 23.0,
+      avgTotal: 83.00,
+      total: 83.00,
+      award: 'FINALIST PROTOTYPE'
+    },
+    {
+      rank: 5,
+      teamId: 'team_6020d753',
+      teamName: 'Alan I Kavungal',
+      domain: '07 - Cybersecurity & Digital Safety',
+      avgFunctionality: 20.0,
+      c4: 20.0,
+      avgTotal: 75.00,
+      total: 75.00,
+      award: 'FINALIST PROTOTYPE'
+    },
+    {
+      rank: 6,
+      teamId: 'team_fc49f264',
+      teamName: 'Lynn Roshan R',
+      domain: '15 - Data & Decision Intelligence',
+      avgFunctionality: 18.0,
+      c4: 18.0,
+      avgTotal: 74.00,
+      total: 74.00,
+      award: 'FINALIST PROTOTYPE'
+    },
+    {
+      rank: 7,
+      teamId: 'team_6e1eb8b5',
+      teamName: 'Noorul Ameen',
+      domain: '11 - Student Productivity & Campus Tech',
+      avgFunctionality: 20.0,
+      c4: 20.0,
+      avgTotal: 72.00,
+      total: 72.00,
+      award: 'FINALIST PROTOTYPE'
+    },
+    {
+      rank: 8,
+      teamId: 'team_dada18b7',
+      teamName: 'Fahad Mohammed Kabeer',
+      domain: '06 - AI-Powered Applications',
+      avgFunctionality: 20.0,
+      c4: 20.0,
+      avgTotal: 70.00,
+      total: 70.00,
+      award: 'FINALIST PROTOTYPE'
+    },
+    {
+      rank: 9,
+      teamId: 'team_faba167d',
+      teamName: 'Justin',
+      domain: '11 - Student Productivity & Campus Tech',
+      avgFunctionality: 3.0,
+      c4: 3.0,
+      avgTotal: 63.00,
+      total: 63.00,
+      award: 'FINALIST PROTOTYPE'
+    },
+    {
+      rank: 10,
+      teamId: 'team_a7143e6b',
+      teamName: 'Aibin Joseph',
+      domain: '01 - AI Agents & Autonomous Systems',
+      avgFunctionality: 15.0,
+      c4: 15.0,
+      avgTotal: 61.00,
+      total: 61.00,
+      award: 'FINALIST PROTOTYPE'
     }
   ];
 
@@ -567,14 +644,11 @@
 
   function applyLeaderboardState(lbState) {
     if (!lbState) {
-      updatePodium(EXACT_DATABASE_TEAMS);
+      updatePodium(REAL_SUPABASE_TEAMS);
       return;
     }
 
     const time = lbState.updatedAt || lbState.publishedAt || 0;
-    if (time && lastLeaderboardUpdatedAt && time < lastLeaderboardUpdatedAt) {
-      return; // Discard stale state from older container
-    }
     if (time) {
       lastLeaderboardUpdatedAt = time;
     }
@@ -585,7 +659,7 @@
 
     const teams = (Array.isArray(lbState.teams) && lbState.teams.length > 0)
       ? lbState.teams
-      : EXACT_DATABASE_TEAMS;
+      : REAL_SUPABASE_TEAMS;
 
     if (leaderboardTrackerStatus) {
       leaderboardTrackerStatus.textContent = 'STATUS: STANDINGS CERTIFIED ●';
@@ -608,7 +682,7 @@
         const domain = t.domain || 'General';
         const c4Score = t.avgFunctionality != null ? Number(t.avgFunctionality).toFixed(1) : (t.c4 != null ? Number(t.c4).toFixed(1) : '—');
         const totalScore = t.avgTotal != null ? Number(t.avgTotal).toFixed(2) : (t.total != null ? Number(t.total).toFixed(1) : '—');
-        const award = t.award || (idx === 0 ? '🏆 CHAMPION' : (idx === 1 ? '🥈 RUNNER UP' : (idx === 2 ? '🥉 2ND RUNNER UP' : 'FINALIST')));
+        const award = t.award || (idx === 0 ? '🏆 CHAMPION' : (idx === 1 ? '🥈 1ST RUNNER UP' : (idx === 2 ? '🥉 2ND RUNNER UP' : 'FINALIST PROTOTYPE')));
 
         let rankBadge = `<span class="rank-pill">#${idx + 1}</span>`;
         if (idx === 0) {
@@ -633,16 +707,23 @@
     }
   }
 
-  // Read initial leaderboard state or default to exact database snapshot
+  // Read initial leaderboard state or default to real Supabase snapshot
   try {
     const rawLb = localStorage.getItem('astra_leaderboard_state');
     if (rawLb) {
-      applyLeaderboardState(JSON.parse(rawLb));
+      const parsed = JSON.parse(rawLb);
+      // Cleanse any test/dummy teams from cache
+      if (parsed.teams && parsed.teams.some(t => (t.teamId && t.teamId.includes('cyberpulse')) || (t.teamName && t.teamName.includes('CyberPulse')))) {
+        localStorage.removeItem('astra_leaderboard_state');
+        applyLeaderboardState({ state: 'PUBLISHED', teams: REAL_SUPABASE_TEAMS });
+      } else {
+        applyLeaderboardState(parsed);
+      }
     } else {
-      applyLeaderboardState({ state: 'PUBLISHED', teams: EXACT_DATABASE_TEAMS });
+      applyLeaderboardState({ state: 'PUBLISHED', teams: REAL_SUPABASE_TEAMS });
     }
   } catch (e) {
-    applyLeaderboardState({ state: 'PUBLISHED', teams: EXACT_DATABASE_TEAMS });
+    applyLeaderboardState({ state: 'PUBLISHED', teams: REAL_SUPABASE_TEAMS });
   }
 
   // ---------------------------------------------------------------------------

@@ -58,40 +58,117 @@ async function persistSupabaseState(state) {
   }
 }
 
-// EXACT TABULATED STANDINGS FROM HACKATHON DATABASE
-const EXACT_DATABASE_TEAMS = [
+// REAL TABULATED STANDINGS PULLED FROM SUPABASE
+const REAL_SUPABASE_TEAMS = [
   {
     rank: 1,
-    teamId: 'team_team_cyberpulse_6171b1',
-    teamName: 'Team CyberPulse',
-    domain: '01 - AI Agents & Autonomous Systems',
-    avgFunctionality: 23.5,
-    c4: 23.5,
-    avgTotal: 91.50,
-    total: 91.50,
+    teamId: 'team_1404ea71',
+    teamName: 'Ananthu Anil',
+    domain: '07 - Cybersecurity & Digital Safety',
+    avgFunctionality: 22.0,
+    c4: 22.0,
+    avgTotal: 86.00,
+    total: 86.00,
     award: '🏆 CHAMPION'
   },
   {
     rank: 2,
-    teamId: 'team_team_beta_5b3081',
-    teamName: 'Team Beta',
-    domain: '04 - Robotics & IoT',
-    avgFunctionality: 22.0,
-    c4: 22.0,
-    avgTotal: 91.00,
-    total: 91.00,
-    award: '🥈 RUNNER UP'
+    teamId: 'team_5045d832',
+    teamName: 'Vasudev v',
+    domain: '12 - Accessibility & Inclusive Tech',
+    avgFunctionality: 23.0,
+    c4: 23.0,
+    avgTotal: 85.00,
+    total: 85.00,
+    award: '🥈 1ST RUNNER UP'
   },
   {
     rank: 3,
-    teamId: 'team_team_alpha_62b36a',
-    teamName: 'Team Alpha',
-    domain: '01 - AI Agents & Autonomous Systems',
-    avgFunctionality: 23.5,
-    c4: 23.5,
-    avgTotal: 90.75,
-    total: 90.75,
+    teamId: 'team_66fd72e6',
+    teamName: 'Angel rose',
+    domain: '03 - Healthcare & Wellbeing Technology',
+    avgFunctionality: 22.0,
+    c4: 22.0,
+    avgTotal: 83.50,
+    total: 83.50,
     award: '🥉 2ND RUNNER UP'
+  },
+  {
+    rank: 4,
+    teamId: 'team_e2e12493',
+    teamName: 'Tom shibu',
+    domain: '07 - Cybersecurity & Digital Safety',
+    avgFunctionality: 23.0,
+    c4: 23.0,
+    avgTotal: 83.00,
+    total: 83.00,
+    award: 'FINALIST PROTOTYPE'
+  },
+  {
+    rank: 5,
+    teamId: 'team_6020d753',
+    teamName: 'Alan I Kavungal',
+    domain: '07 - Cybersecurity & Digital Safety',
+    avgFunctionality: 20.0,
+    c4: 20.0,
+    avgTotal: 75.00,
+    total: 75.00,
+    award: 'FINALIST PROTOTYPE'
+  },
+  {
+    rank: 6,
+    teamId: 'team_fc49f264',
+    teamName: 'Lynn Roshan R',
+    domain: '15 - Data & Decision Intelligence',
+    avgFunctionality: 18.0,
+    c4: 18.0,
+    avgTotal: 74.00,
+    total: 74.00,
+    award: 'FINALIST PROTOTYPE'
+  },
+  {
+    rank: 7,
+    teamId: 'team_6e1eb8b5',
+    teamName: 'Noorul Ameen',
+    domain: '11 - Student Productivity & Campus Tech',
+    avgFunctionality: 20.0,
+    c4: 20.0,
+    avgTotal: 72.00,
+    total: 72.00,
+    award: 'FINALIST PROTOTYPE'
+  },
+  {
+    rank: 8,
+    teamId: 'team_dada18b7',
+    teamName: 'Fahad Mohammed Kabeer',
+    domain: '06 - AI-Powered Applications',
+    avgFunctionality: 20.0,
+    c4: 20.0,
+    avgTotal: 70.00,
+    total: 70.00,
+    award: 'FINALIST PROTOTYPE'
+  },
+  {
+    rank: 9,
+    teamId: 'team_faba167d',
+    teamName: 'Justin',
+    domain: '11 - Student Productivity & Campus Tech',
+    avgFunctionality: 3.0,
+    c4: 3.0,
+    avgTotal: 63.00,
+    total: 63.00,
+    award: 'FINALIST PROTOTYPE'
+  },
+  {
+    rank: 10,
+    teamId: 'team_a7143e6b',
+    teamName: 'Aibin Joseph',
+    domain: '01 - AI Agents & Autonomous Systems',
+    avgFunctionality: 15.0,
+    c4: 15.0,
+    avgTotal: 61.00,
+    total: 61.00,
+    award: 'FINALIST PROTOTYPE'
   }
 ];
 
@@ -114,9 +191,9 @@ function getDefaultState() {
     },
     leaderboard: {
       state: 'PUBLISHED', // Published by default for event conclusion
-      publishedAt: 1789820817226,
-      updatedAt: 1789820817226,
-      snapshot: [...EXACT_DATABASE_TEAMS]
+      publishedAt: 1789632060189,
+      updatedAt: 1789632060189,
+      snapshot: [...REAL_SUPABASE_TEAMS]
     },
     inauguration: {
       targetIso: '2026-09-17T10:30:00+05:30',
@@ -224,18 +301,19 @@ async function getState() {
   if (!Array.isArray(global.__ASTRA_STATE.evaluations)) global.__ASTRA_STATE.evaluations = [];
   if (!global.__ASTRA_STATE.sessions) global.__ASTRA_STATE.sessions = {};
 
-  // Ensure leaderboard is PUBLISHED and populated with exact database teams
+  // Ensure leaderboard is PUBLISHED and populated with real Supabase teams
   if (!global.__ASTRA_STATE.leaderboard) {
     global.__ASTRA_STATE.leaderboard = {
       state: 'PUBLISHED',
-      publishedAt: 1789820817226,
-      updatedAt: 1789820817226,
-      snapshot: [...EXACT_DATABASE_TEAMS]
+      publishedAt: 1789632060189,
+      updatedAt: 1789632060189,
+      snapshot: [...REAL_SUPABASE_TEAMS]
     };
   } else {
     global.__ASTRA_STATE.leaderboard.state = 'PUBLISHED';
-    if (!Array.isArray(global.__ASTRA_STATE.leaderboard.snapshot) || global.__ASTRA_STATE.leaderboard.snapshot.length === 0) {
-      global.__ASTRA_STATE.leaderboard.snapshot = [...EXACT_DATABASE_TEAMS];
+    if (!Array.isArray(global.__ASTRA_STATE.leaderboard.snapshot) || global.__ASTRA_STATE.leaderboard.snapshot.length === 0 ||
+        global.__ASTRA_STATE.leaderboard.snapshot.some(t => t.teamId && t.teamId.includes('cyberpulse'))) {
+      global.__ASTRA_STATE.leaderboard.snapshot = [...REAL_SUPABASE_TEAMS];
     }
   }
 
@@ -518,9 +596,9 @@ module.exports = async function handler(req, res) {
           state: 'PUBLISHED',
           updatedAt: state.leaderboard.updatedAt || state.leaderboard.publishedAt || 0,
           publishedAt: state.leaderboard.publishedAt || Date.now(),
-          teams: (state.leaderboard.snapshot && state.leaderboard.snapshot.length > 0)
+          teams: (state.leaderboard.snapshot && state.leaderboard.snapshot.length > 0 && !state.leaderboard.snapshot.some(t => t.teamId && t.teamId.includes('cyberpulse')))
             ? state.leaderboard.snapshot
-            : EXACT_DATABASE_TEAMS
+            : REAL_SUPABASE_TEAMS
         },
         leaderboardState: 'PUBLISHED'
       });
@@ -854,9 +932,9 @@ module.exports = async function handler(req, res) {
   // --------------------------------------------------------------------------
     if (pathname === '/api/leaderboard') {
       if (req.method === 'GET') {
-        const teams = (state.leaderboard.snapshot && state.leaderboard.snapshot.length > 0)
+        const teams = (state.leaderboard.snapshot && state.leaderboard.snapshot.length > 0 && !state.leaderboard.snapshot.some(t => t.teamId && t.teamId.includes('cyberpulse')))
           ? state.leaderboard.snapshot
-          : EXACT_DATABASE_TEAMS;
+          : REAL_SUPABASE_TEAMS;
         return sendJson(res, 200, {
           state: 'PUBLISHED',
           updatedAt: state.leaderboard.updatedAt || state.leaderboard.publishedAt || 0,
@@ -1246,9 +1324,9 @@ module.exports = async function handler(req, res) {
     });
 
     const matrix = computeMatrix(state);
-    const publicTeams = (state.leaderboard.snapshot && state.leaderboard.snapshot.length > 0)
+    const publicTeams = (state.leaderboard.snapshot && state.leaderboard.snapshot.length > 0 && !state.leaderboard.snapshot.some(t => t.teamId && t.teamId.includes('cyberpulse')))
       ? state.leaderboard.snapshot
-      : EXACT_DATABASE_TEAMS;
+      : REAL_SUPABASE_TEAMS;
     const publicLeaderboard = {
       state: 'PUBLISHED',
       publishedAt: state.leaderboard.publishedAt || Date.now(),
