@@ -680,7 +680,6 @@
       leaderboardTbody.innerHTML = teams.map((t, idx) => {
         const teamName = t.teamName || t.team || 'Team';
         const domain = t.domain || 'General';
-        const c4Score = t.avgFunctionality != null ? Number(t.avgFunctionality).toFixed(1) : (t.c4 != null ? Number(t.c4).toFixed(1) : '—');
         const totalScore = t.avgTotal != null ? Number(t.avgTotal).toFixed(2) : (t.total != null ? Number(t.total).toFixed(1) : '—');
         const award = t.award || (idx === 0 ? '🏆 CHAMPION' : (idx === 1 ? '🥈 1ST RUNNER UP' : (idx === 2 ? '🥉 2ND RUNNER UP' : 'FINALIST PROTOTYPE')));
 
@@ -698,7 +697,6 @@
             <td>${rankBadge}</td>
             <td style="font-weight: 700; color: #ffffff;">${teamName}</td>
             <td><span style="font-family: 'JetBrains Mono'; font-size: 11px; background: var(--bg-surface-elevated); padding: 2px 6px; border-radius: 2px;">${domain}</span></td>
-            <td><span style="color: var(--red); font-weight: 700;">${c4Score}</span> / 25</td>
             <td class="score-highlight">${totalScore} / 100</td>
             <td><span class="badge ${idx === 0 ? 'badge-solid-red' : (idx <= 2 ? 'badge-red-glow' : 'badge-subtle')}">${award}</span></td>
           </tr>
